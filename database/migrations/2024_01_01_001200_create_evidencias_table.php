@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('asesor_pedagogicos', function (Blueprint $table) {
+        Schema::create('evidencias', function (Blueprint $table) {
             $table->id();
+            $table->string('tipo')->nullable();
+            $table->text('descripcion')->nullable();
+            $table->string('ruta_archivo')->nullable();
+            $table->foreignId('solicitud_id')->constrained('solicitudes')->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('asesor_pedagogicos');
+        Schema::dropIfExists('evidencias');
     }
 };
