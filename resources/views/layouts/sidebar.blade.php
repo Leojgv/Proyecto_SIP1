@@ -17,9 +17,9 @@
         </li>
 
         <li class="nav-item">
-          <a href="#{{ route('alumnos.index') }}" class="nav-link">
+          <a href="#{{ route('estudiantes.index') }}" class="nav-link">
             <i class="nav-icon fas fa-cog"></i>
-            <p>Alumnos</p>
+            <p>Estudiantes</p>
           </a>
         </li>
 
