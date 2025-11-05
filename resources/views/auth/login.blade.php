@@ -226,7 +226,7 @@
 <div class="login-shell">
     <div class="login-brand">
         <i class="fas fa-graduation-cap"></i>
-        <span>Sistema de Inclusión Educativa</span>
+        <span>Inacap sistema de Ayuda</span>
     </div>
 
     <a href="{{ url('/') }}" class="back-link">
