@@ -1,33 +1,33 @@
 @extends('layouts.app')
 
+@section('title', 'Detalle del estudiante')
+
 @section('content')
-<div class="container">
-    <h1>Detalles del Estudiante</h1>
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">{{ $estudiante->nombre }} {{ $estudiante->apellido }}</h1>
+    <div class="btn-group">
+      <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-primary">Editar</a>
+      <a href="{{ route('estudiantes.index') }}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+  </div>
 
-    <table class="table table-bordered">
-        <tr>
-            <th>RUT</th>
-            <td>{{ $estudiante->rut }}</td>
-        </tr>
-        <tr>
-            <th>Nombre</th>
-            <td>{{ $estudiante->nombre }}</td>
-        </tr>
-        <tr>
-            <th>Apellido</th>
-            <td>{{ $estudiante->apellido }}</td>
-        </tr>
-        <tr>
-            <th>Email</th>
-            <td>{{ $estudiante->email }}</td>
-        </tr>
-        <tr>
-            <th>Teléfono</th>
-            <td>{{ $estudiante->telefono }}</td>
-        </tr>
-    </table>
+  <div class="card">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">RUT</dt>
+        <dd class="col-sm-9">{{ $estudiante->rut }}</dd>
 
-    <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-warning">Editar</a>
-    <a href="{{ route('estudiantes.index') }}" class="btn btn-secondary">Volver</a>
+        <dt class="col-sm-3">Correo</dt>
+        <dd class="col-sm-9">{{ $estudiante->email }}</dd>
+
+        <dt class="col-sm-3">Teléfono</dt>
+        <dd class="col-sm-9">{{ $estudiante->telefono ?: '—' }}</dd>
+
+        <dt class="col-sm-3">Carrera</dt>
+        <dd class="col-sm-9">{{ $estudiante->carrera?->nombre }}</dd>
+      </dl>
+    </div>
+  </div>
 </div>
 @endsection

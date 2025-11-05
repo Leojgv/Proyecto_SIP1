@@ -2,85 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Carrera;
 use App\Models\Estudiante;
 use Illuminate\Http\Request;
 
 class EstudianteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $estudiantes = Estudiante::all();
+        $estudiantes = Estudiante::with('carrera')->orderBy('nombre')->orderBy('apellido')->get();
+
         return view('estudiantes.index', compact('estudiantes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('estudiantes.create');
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        return view('estudiantes.create', compact('carreras'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-         $request->validate([
-            'rut' => 'required|unique:estudiantes',
-            'nombre' => 'required',
-            'apellido' => 'required',
-            'email' => 'required|email|unique:estudiantes',
-            'telefono' => 'nullable',
+        $validated = $request->validate([
+            'rut' => ['required', 'string', 'max:20', 'unique:estudiantes,rut'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:estudiantes,email'],
+            'telefono' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
         ]);
 
-        Estudiante::create($request->all());
+        Estudiante::create($validated);
+
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(estudiante $estudiante)
+    public function show(Estudiante $estudiante)
     {
-       return view('estudiantes.show', compact('estudiante'));
+        $estudiante->load('carrera');
+
+        return view('estudiantes.show', compact('estudiante'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(estudiante $estudiante)
+    public function edit(Estudiante $estudiante)
     {
-       return view('estudiantes.edit', compact('estudiante'));
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        return view('estudiantes.edit', compact('estudiante', 'carreras'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, estudiante $estudiante)
+    public function update(Request $request, Estudiante $estudiante)
     {
-       $request->validate([
-            'rut' => 'required|unique:estudiantes,rut,' . $estudiante->id,
-            'nombre' => 'required',
-            'apellido' => 'required',
-            'email' => 'required|email|unique:estudiantes,email,' . $estudiante->id,
-            'telefono' => 'nullable',
+        $validated = $request->validate([
+            'rut' => ['required', 'string', 'max:20', 'unique:estudiantes,rut,' . $estudiante->id],
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:estudiantes,email,' . $estudiante->id],
+            'telefono' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
         ]);
 
-        $estudiante->update($request->all());
+        $estudiante->update($validated);
+
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(estudiante $estudiante)
+    public function destroy(Estudiante $estudiante)
     {
         $estudiante->delete();
-        return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
 
+        return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado correctamente.');
     }
 }

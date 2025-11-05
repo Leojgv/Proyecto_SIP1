@@ -1,46 +1,59 @@
 @extends('layouts.app')
 
+@section('title', 'Estudiantes')
+
 @section('content')
-<div class="container">
-    <h1>Lista de Estudiantes</h1>
+<div class="container-fluid">
+  @include('partials.alerts')
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Estudiantes</h1>
+    <a href="{{ route('estudiantes.create') }}" class="btn btn-primary">Nuevo estudiante</a>
+  </div>
 
-    <a href="{{ route('estudiantes.create') }}" class="btn btn-primary mb-3">Nuevo Estudiante</a>
-
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>RUT</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Acciones</th>
-            </tr>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">RUT</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Correo</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Carrera</th>
+            <th scope="col" class="text-end">Acciones</th>
+          </tr>
         </thead>
         <tbody>
-            @foreach ($estudiantes as $estudiante)
-                <tr>
-                    <td>{{ $estudiante->rut }}</td>
-                    <td>{{ $estudiante->nombre }}</td>
-                    <td>{{ $estudiante->apellido }}</td>
-                    <td>{{ $estudiante->email }}</td>
-                    <td>{{ $estudiante->telefono }}</td>
-                    <td>
-                        <a href="{{ route('estudiantes.show', $estudiante) }}" class="btn btn-info btn-sm">Ver</a>
-                        <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-warning btn-sm">Editar</a>
-                        <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" style="display:inline-block;">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar este estudiante?')">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
+          @forelse ($estudiantes as $estudiante)
+            <tr>
+              <td>{{ $estudiante->rut }}</td>
+              <td>{{ $estudiante->nombre }}</td>
+              <td>{{ $estudiante->apellido }}</td>
+              <td>{{ $estudiante->email }}</td>
+              <td>{{ $estudiante->telefono }}</td>
+              <td>{{ $estudiante->carrera?->nombre }}</td>
+              <td class="text-end">
+                <div class="btn-group" role="group" aria-label="Acciones">
+                  <a href="{{ route('estudiantes.show', $estudiante) }}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                  <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="7" class="text-center py-4">No hay estudiantes registrados.</td>
+            </tr>
+          @endforelse
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
 </div>
 @endsection
