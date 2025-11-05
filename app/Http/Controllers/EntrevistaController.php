@@ -2,64 +2,77 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AsesorPedagogico;
 use App\Models\Entrevista;
+use App\Models\Solicitud;
 use Illuminate\Http\Request;
 
 class EntrevistaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $entrevistas = Entrevista::with(['solicitud.estudiante', 'asesorPedagogico'])
+            ->orderByDesc('fecha')
+            ->get();
+
+        return view('entrevistas.index', compact('entrevistas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
+        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('entrevistas.create', compact('solicitudes', 'asesores'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'fecha' => ['required', 'date'],
+            'observaciones' => ['nullable', 'string'],
+            'solicitud_id' => ['required', 'exists:solicitudes,id'],
+            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+        ]);
+
+        Entrevista::create($validated);
+
+        return redirect()->route('entrevistas.index')->with('success', 'Entrevista creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Entrevista $entrevista)
     {
-        //
+        $entrevista->load(['solicitud.estudiante', 'asesorPedagogico']);
+
+        return view('entrevistas.show', compact('entrevista'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Entrevista $entrevista)
     {
-        //
+        $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
+        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('entrevistas.edit', compact('entrevista', 'solicitudes', 'asesores'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Entrevista $entrevista)
     {
-        //
+        $validated = $request->validate([
+            'fecha' => ['required', 'date'],
+            'observaciones' => ['nullable', 'string'],
+            'solicitud_id' => ['required', 'exists:solicitudes,id'],
+            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+        ]);
+
+        $entrevista->update($validated);
+
+        return redirect()->route('entrevistas.index')->with('success', 'Entrevista actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Entrevista $entrevista)
     {
-        //
+        $entrevista->delete();
+
+        return redirect()->route('entrevistas.index')->with('success', 'Entrevista eliminada correctamente.');
     }
 }

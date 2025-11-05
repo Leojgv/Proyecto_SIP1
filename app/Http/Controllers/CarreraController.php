@@ -12,7 +12,9 @@ class CarreraController extends Controller
      */
     public function index()
     {
-        //
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        return view('carreras.index', compact('carreras'));
     }
 
     /**
@@ -20,7 +22,7 @@ class CarreraController extends Controller
      */
     public function create()
     {
-        //
+        return view('carreras.create');
     }
 
     /**
@@ -28,7 +30,16 @@ class CarreraController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'jornada' => ['nullable', 'string', 'max:255'],
+            'facultad' => ['nullable', 'string', 'max:255'],
+            'grado' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        Carrera::create($validated);
+
+        return redirect()->route('carreras.index')->with('success', 'Carrera creada correctamente.');
     }
 
     /**
@@ -36,7 +47,7 @@ class CarreraController extends Controller
      */
     public function show(Carrera $carrera)
     {
-        //
+        return view('carreras.show', compact('carrera'));
     }
 
     /**
@@ -44,7 +55,7 @@ class CarreraController extends Controller
      */
     public function edit(Carrera $carrera)
     {
-        //
+        return view('carreras.edit', compact('carrera'));
     }
 
     /**
@@ -52,7 +63,16 @@ class CarreraController extends Controller
      */
     public function update(Request $request, Carrera $carrera)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'jornada' => ['nullable', 'string', 'max:255'],
+            'facultad' => ['nullable', 'string', 'max:255'],
+            'grado' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $carrera->update($validated);
+
+        return redirect()->route('carreras.index')->with('success', 'Carrera actualizada correctamente.');
     }
 
     /**
@@ -60,6 +80,8 @@ class CarreraController extends Controller
      */
     public function destroy(Carrera $carrera)
     {
-        //
+        $carrera->delete();
+
+        return redirect()->route('carreras.index')->with('success', 'Carrera eliminada correctamente.');
     }
 }

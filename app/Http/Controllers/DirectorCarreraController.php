@@ -2,64 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Carrera;
 use App\Models\DirectorCarrera;
 use Illuminate\Http\Request;
 
 class DirectorCarreraController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $directores = DirectorCarrera::with('carrera')->orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('directores_carrera.index', compact('directores'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        return view('directores_carrera.create', compact('carreras'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:director_carreras,email'],
+            'telefono' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
+        ]);
+
+        DirectorCarrera::create($validated);
+
+        return redirect()->route('directores-carrera.index')->with('success', 'Director de carrera creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(DirectorCarrera $directorCarrera)
+    public function show(DirectorCarrera $directores_carrera)
     {
-        //
+        $directores_carrera->load('carrera');
+
+        return view('directores_carrera.show', ['director' => $directores_carrera]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(DirectorCarrera $directorCarrera)
+    public function edit(DirectorCarrera $directores_carrera)
     {
-        //
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        return view('directores_carrera.edit', ['director' => $directores_carrera, 'carreras' => $carreras]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, DirectorCarrera $directorCarrera)
+    public function update(Request $request, DirectorCarrera $directores_carrera)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:director_carreras,email,' . $directores_carrera->id],
+            'telefono' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
+        ]);
+
+        $directores_carrera->update($validated);
+
+        return redirect()->route('directores-carrera.index')->with('success', 'Director de carrera actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(DirectorCarrera $directorCarrera)
+    public function destroy(DirectorCarrera $directores_carrera)
     {
-        //
+        $directores_carrera->delete();
+
+        return redirect()->route('directores-carrera.index')->with('success', 'Director de carrera eliminado correctamente.');
     }
 }

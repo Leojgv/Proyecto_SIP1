@@ -3,63 +3,76 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asignatura;
+use App\Models\Carrera;
+use App\Models\Docente;
 use Illuminate\Http\Request;
 
 class AsignaturaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $asignaturas = Asignatura::with(['carrera', 'docente'])->orderBy('nombre')->get();
+
+        return view('asignaturas.index', compact('asignaturas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $carreras = Carrera::orderBy('nombre')->get();
+        $docentes = Docente::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('asignaturas.create', compact('carreras', 'docentes'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'tipo' => ['nullable', 'string', 'max:255'],
+            'estado' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
+            'docente_id' => ['nullable', 'exists:docentes,id'],
+        ]);
+
+        Asignatura::create($validated);
+
+        return redirect()->route('asignaturas.index')->with('success', 'Asignatura creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Asignatura $asignatura)
     {
-        //
+        $asignatura->load(['carrera', 'docente']);
+
+        return view('asignaturas.show', compact('asignatura'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Asignatura $asignatura)
     {
-        //
+        $carreras = Carrera::orderBy('nombre')->get();
+        $docentes = Docente::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('asignaturas.edit', compact('asignatura', 'carreras', 'docentes'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Asignatura $asignatura)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'tipo' => ['nullable', 'string', 'max:255'],
+            'estado' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
+            'docente_id' => ['nullable', 'exists:docentes,id'],
+        ]);
+
+        $asignatura->update($validated);
+
+        return redirect()->route('asignaturas.index')->with('success', 'Asignatura actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Asignatura $asignatura)
     {
-        //
+        $asignatura->delete();
+
+        return redirect()->route('asignaturas.index')->with('success', 'Asignatura eliminada correctamente.');
     }
 }

@@ -3,63 +3,71 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evidencia;
+use App\Models\Solicitud;
 use Illuminate\Http\Request;
 
 class EvidenciaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $evidencias = Evidencia::with('solicitud.estudiante')->orderByDesc('created_at')->get();
+
+        return view('evidencias.index', compact('evidencias'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
+
+        return view('evidencias.create', compact('solicitudes'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'tipo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['nullable', 'string'],
+            'ruta_archivo' => ['nullable', 'string', 'max:255'],
+            'solicitud_id' => ['required', 'exists:solicitudes,id'],
+        ]);
+
+        Evidencia::create($validated);
+
+        return redirect()->route('evidencias.index')->with('success', 'Evidencia creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Evidencia $evidencia)
     {
-        //
+        $evidencia->load('solicitud.estudiante');
+
+        return view('evidencias.show', compact('evidencia'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Evidencia $evidencia)
     {
-        //
+        $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
+
+        return view('evidencias.edit', compact('evidencia', 'solicitudes'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Evidencia $evidencia)
     {
-        //
+        $validated = $request->validate([
+            'tipo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['nullable', 'string'],
+            'ruta_archivo' => ['nullable', 'string', 'max:255'],
+            'solicitud_id' => ['required', 'exists:solicitudes,id'],
+        ]);
+
+        $evidencia->update($validated);
+
+        return redirect()->route('evidencias.index')->with('success', 'Evidencia actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Evidencia $evidencia)
     {
-        //
+        $evidencia->delete();
+
+        return redirect()->route('evidencias.index')->with('success', 'Evidencia eliminada correctamente.');
     }
 }

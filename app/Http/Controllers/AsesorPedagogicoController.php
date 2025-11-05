@@ -7,59 +7,60 @@ use Illuminate\Http\Request;
 
 class AsesorPedagogicoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('asesores_pedagogicos.index', compact('asesores'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('asesores_pedagogicos.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:asesor_pedagogicos,email'],
+            'telefono' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        AsesorPedagogico::create($validated);
+
+        return redirect()->route('asesores-pedagogicos.index')->with('success', 'Asesor pedagógico creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(AsesorPedagogico $asesorPedagogico)
+    public function show(AsesorPedagogico $asesores_pedagogico)
     {
-        //
+        return view('asesores_pedagogicos.show', ['asesor' => $asesores_pedagogico]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AsesorPedagogico $asesorPedagogico)
+    public function edit(AsesorPedagogico $asesores_pedagogico)
     {
-        //
+        return view('asesores_pedagogicos.edit', ['asesor' => $asesores_pedagogico]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, AsesorPedagogico $asesorPedagogico)
+    public function update(Request $request, AsesorPedagogico $asesores_pedagogico)
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:asesor_pedagogicos,email,' . $asesores_pedagogico->id],
+            'telefono' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $asesores_pedagogico->update($validated);
+
+        return redirect()->route('asesores-pedagogicos.index')->with('success', 'Asesor pedagógico actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(AsesorPedagogico $asesorPedagogico)
+    public function destroy(AsesorPedagogico $asesores_pedagogico)
     {
-        //
+        $asesores_pedagogico->delete();
+
+        return redirect()->route('asesores-pedagogicos.index')->with('success', 'Asesor pedagógico eliminado correctamente.');
     }
 }

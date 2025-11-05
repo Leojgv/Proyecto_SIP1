@@ -2,64 +2,84 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AsesorPedagogico;
+use App\Models\DirectorCarrera;
+use App\Models\Estudiante;
 use App\Models\Solicitud;
 use Illuminate\Http\Request;
 
 class SolicitudController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $solicitudes = Solicitud::with(['estudiante', 'asesorPedagogico', 'directorCarrera'])
+            ->orderByDesc('fecha_solicitud')
+            ->get();
+
+        return view('solicitudes.index', compact('solicitudes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+        $directores = DirectorCarrera::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('solicitudes.create', compact('estudiantes', 'asesores', 'directores'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'fecha_solicitud' => ['required', 'date'],
+            'descripcion' => ['nullable', 'string'],
+            'estado' => ['nullable', 'string', 'max:255'],
+            'estudiante_id' => ['required', 'exists:estudiantes,id'],
+            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+            'director_carrera_id' => ['required', 'exists:director_carreras,id'],
+        ]);
+
+        Solicitud::create($validated);
+
+        return redirect()->route('solicitudes.index')->with('success', 'Solicitud creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Solicitud $solicitud)
     {
-        //
+        $solicitud->load(['estudiante', 'asesorPedagogico', 'directorCarrera']);
+
+        return view('solicitudes.show', compact('solicitud'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Solicitud $solicitud)
     {
-        //
+        $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+        $directores = DirectorCarrera::orderBy('nombre')->orderBy('apellido')->get();
+
+        return view('solicitudes.edit', compact('solicitud', 'estudiantes', 'asesores', 'directores'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Solicitud $solicitud)
     {
-        //
+        $validated = $request->validate([
+            'fecha_solicitud' => ['required', 'date'],
+            'descripcion' => ['nullable', 'string'],
+            'estado' => ['nullable', 'string', 'max:255'],
+            'estudiante_id' => ['required', 'exists:estudiantes,id'],
+            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+            'director_carrera_id' => ['required', 'exists:director_carreras,id'],
+        ]);
+
+        $solicitud->update($validated);
+
+        return redirect()->route('solicitudes.index')->with('success', 'Solicitud actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Solicitud $solicitud)
     {
-        //
+        $solicitud->delete();
+
+        return redirect()->route('solicitudes.index')->with('success', 'Solicitud eliminada correctamente.');
     }
 }

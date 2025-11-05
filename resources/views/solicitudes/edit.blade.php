@@ -1,0 +1,67 @@
+@extends('layouts.app')
+
+@section('title', 'Editar solicitud')
+
+@section('content')
+<div class="container-fluid">
+  @include('partials.alerts')
+
+  <div class="card">
+    <div class="card-header">Editar solicitud</div>
+    <div class="card-body">
+      <form action="{{ route('solicitudes.update', $solicitud) }}" method="POST">
+        @csrf
+        @method('PUT')
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="fecha_solicitud" class="form-label">Fecha</label>
+            <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="{{ old('fecha_solicitud', optional($solicitud->fecha_solicitud)->format('Y-m-d')) }}" class="form-control @error('fecha_solicitud') is-invalid @enderror" required>
+            @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-4">
+            <label for="estado" class="form-label">Estado</label>
+            <input type="text" id="estado" name="estado" value="{{ old('estado', $solicitud->estado) }}" class="form-control @error('estado') is-invalid @enderror">
+            @error('estado')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-4">
+            <label for="estudiante_id" class="form-label">Estudiante</label>
+            <select id="estudiante_id" name="estudiante_id" class="form-select @error('estudiante_id') is-invalid @enderror" required>
+              @foreach($estudiantes as $estudiante)
+                <option value="{{ $estudiante->id }}" @selected(old('estudiante_id', $solicitud->estudiante_id) == $estudiante->id)>{{ $estudiante->nombre }} {{ $estudiante->apellido }}</option>
+              @endforeach
+            </select>
+            @error('estudiante_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-6">
+            <label for="asesor_pedagogico_id" class="form-label">Asesor pedagógico</label>
+            <select id="asesor_pedagogico_id" name="asesor_pedagogico_id" class="form-select @error('asesor_pedagogico_id') is-invalid @enderror" required>
+              @foreach($asesores as $asesor)
+                <option value="{{ $asesor->id }}" @selected(old('asesor_pedagogico_id', $solicitud->asesor_pedagogico_id) == $asesor->id)>{{ $asesor->nombre }} {{ $asesor->apellido }}</option>
+              @endforeach
+            </select>
+            @error('asesor_pedagogico_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-md-6">
+            <label for="director_carrera_id" class="form-label">Director de carrera</label>
+            <select id="director_carrera_id" name="director_carrera_id" class="form-select @error('director_carrera_id') is-invalid @enderror" required>
+              @foreach($directores as $director)
+                <option value="{{ $director->id }}" @selected(old('director_carrera_id', $solicitud->director_carrera_id) == $director->id)>{{ $director->nombre }} {{ $director->apellido }}</option>
+              @endforeach
+            </select>
+            @error('director_carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="4" class="form-control @error('descripcion') is-invalid @enderror">{{ old('descripcion', $solicitud->descripcion) }}</textarea>
+            @error('descripcion')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="mt-4 d-flex justify-content-end gap-2">
+          <a href="{{ route('solicitudes.index') }}" class="btn btn-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endsection
