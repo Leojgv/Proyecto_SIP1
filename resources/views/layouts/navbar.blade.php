@@ -2,7 +2,7 @@
   <!-- Botón Sidebar -->
   <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" data-lte-toggle="sidebar" href="#"><i class="fas fa-bars"></i></a>
+      <a class="nav-link" data-widget="pushmenu" role="button" href="#"><i class="fas fa-bars"></i></a>
     </li>
   </ul>
 
