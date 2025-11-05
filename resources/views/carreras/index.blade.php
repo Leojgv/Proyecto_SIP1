@@ -20,7 +20,6 @@
           <tr>
             <th>Nombre</th>
             <th>Jornada</th>
-            <th>Facultad</th>
             <th>Grado</th>
             <th class="text-end">Acciones</th>
           </tr>
@@ -30,7 +29,6 @@
             <tr>
               <td>{{ $carrera->nombre }}</td>
               <td>{{ $carrera->jornada ?? '—' }}</td>
-              <td>{{ $carrera->facultad ?? '—' }}</td>
               <td>{{ $carrera->grado ?? '—' }}</td>
               <td class="text-end">
                 <a href="{{ route('carreras.edit', $carrera) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
@@ -43,7 +41,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="5" class="text-center py-4">No hay carreras registradas.</td>
+              <td colspan="4" class="text-center py-4">No hay carreras registradas.</td>
             </tr>
           @endforelse
         </tbody>

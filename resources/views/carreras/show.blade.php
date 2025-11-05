@@ -15,9 +15,6 @@
         <dt class="col-sm-3">Jornada</dt>
         <dd class="col-sm-9">{{ $carrera->jornada ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Facultad</dt>
-        <dd class="col-sm-9">{{ $carrera->facultad ?? '—' }}</dd>
-
         <dt class="col-sm-3">Grado</dt>
         <dd class="col-sm-9">{{ $carrera->grado ?? '—' }}</dd>
 

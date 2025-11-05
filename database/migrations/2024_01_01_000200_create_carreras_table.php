@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->string('jornada')->nullable();
-            $table->string('facultad')->nullable();
             $table->string('grado')->nullable();
             $table->timestamps();
         });
