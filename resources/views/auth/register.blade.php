@@ -87,9 +87,6 @@
                 </form>
             </div>
         </div>
-        
-        <!-- Lado de la Imagen de Fondo -->
-        <div class="login-background"></div>
     </div>
 </body>
 </html>

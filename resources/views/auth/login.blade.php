@@ -3,13 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>Iniciar Sesión - {{ config('app.name', 'Laravel') }}</title>
-
     <link href="{{ asset('css/custom-login.css') }}" rel="stylesheet">
-    
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
 </head>
 <body>
@@ -64,11 +60,15 @@
                             LOGIN
                         </button>
                     </div>
+                    <!-- Enlace para Registro -->
+                    <div class="register-link">
+                         <a class="btn btn-link" href="{{ route('register') }}">
+                            ¿No tienes una cuenta? Regístrate
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
-        
-        <div class="login-background"></div>
     </div>
 </body>
 </html>
