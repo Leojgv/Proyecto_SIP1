@@ -11,26 +11,19 @@ body, html {
     height: 100vh;
     width: 100%;
     
-    /* NUEVO: Centrar el formulario */
     justify-content: center;
     align-items: center;
-    padding: 1.5rem; /* Espacio para pantallas pequeñas */
+    padding: 1.5rem; 
     box-sizing: border-box;
-    position: relative; /* Contexto para el fondo */
+    position: relative; 
 }
 
 .login-background {
-    /* NUEVO: Fondo de pantalla completo */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    width: 65%;
     height: 100%;
-    background-image: url('../images/image_545d24.jpg'); 
+    background-image: url('public/images/imagen-de-fondo.png'); 
     background-size: cover;
     background-position: center;
-    /* Opcional: puedes descomentar la siguiente línea para oscurecer un poco el fondo */
-    /* filter: brightness(0.8); */
 }
 
 .login-form-wrapper {
@@ -43,16 +36,13 @@ body, html {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra */
     position: relative; /* Para que esté sobre el fondo */
     z-index: 10;
-    
-    /* Propiedades antiguas eliminadas/sobrescritas */
-    /* width: 35%; */
-    /* height: 100%; */
     overflow-y: auto; /* Mantener por si el formulario es largo */
 }
 
 .login-form {
     width: 100%;
     max-width: 400px;
+    margin: 0 auto;
 }
 
 .login-form h1 {
