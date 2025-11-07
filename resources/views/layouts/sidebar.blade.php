@@ -17,6 +17,13 @@
         </li>
 
         <li class="nav-item">
+          <a href="{{ route('estudiantes.dashboard') }}" class="nav-link">
+            <i class="nav-icon fas fa-chart-line"></i>
+            <p>Dashboard Estudiante</p>
+          </a>
+        </li>
+        
+        <li class="nav-item">
           <a href="{{ route('estudiantes.index') }}" class="nav-link">
             <i class="nav-icon fas fa-user-graduate"></i>
             <p>Estudiantes</p>
