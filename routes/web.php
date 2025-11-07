@@ -13,6 +13,7 @@ use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\DirectorCarreraController;
 use App\Http\Controllers\DocenteAsignaturaController;
+use App\Http\Controllers\EstudianteDashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,7 +23,12 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::resource('estudiantes', EstudianteController::class);
+Route::middleware('auth')->group(function () {
+    Route::get('estudiantes/dashboard', [EstudianteDashboardController::class, 'show'])->name('estudiantes.dashboard');
+    Route::post('estudiantes/dashboard/perfil', [EstudianteDashboardController::class, 'storeProfile'])->name('estudiantes.dashboard.store-profile');
+});
+
+Route::resource('estudiantes', EstudianteController::class)->whereNumber('estudiante');
 Route::resource('carreras', CarreraController::class);
 Route::resource('asesores-pedagogicos', AsesorPedagogicoController::class);
 Route::resource('ajustes-razonables', AjusteRazonableController::class);
