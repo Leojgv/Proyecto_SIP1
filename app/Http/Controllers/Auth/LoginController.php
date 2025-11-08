@@ -42,4 +42,30 @@ class LoginController extends Controller
     {
         return redirect('/login');
     }
+
+    protected function authenticated(Request $request, $user)
+    {
+        $user->loadMissing('rol', 'roles');
+
+        if ($user->superuser) {
+            return redirect()->route('home');
+        }
+
+        $roleNames = collect([
+            optional($user->rol)->nombre,
+        ])
+            ->merge($user->roles->pluck('nombre'))
+            ->filter()
+            ->map(fn ($name) => mb_strtolower($name));
+
+        if ($roleNames->contains('estudiante')) {
+            return redirect()->route('estudiantes.dashboard');
+        }
+
+        if ($roleNames->contains('admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->intended($this->redirectPath());
+    }
 }
