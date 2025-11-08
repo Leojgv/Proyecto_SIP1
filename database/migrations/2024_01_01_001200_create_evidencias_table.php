@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('evidencias')) {
+            return;
+        }
+
         Schema::create('evidencias', function (Blueprint $table) {
             $table->id();
             $table->string('tipo')->nullable();

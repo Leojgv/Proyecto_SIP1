@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('estudiantes')) {
+            return;
+        }
+
         Schema::create('estudiantes', function (Blueprint $table) {
             $table->id();
             $table->string('rut')->unique();

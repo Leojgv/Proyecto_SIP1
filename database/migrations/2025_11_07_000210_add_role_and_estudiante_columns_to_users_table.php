@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -6,29 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         if (! Schema::hasColumn('users', 'rol_id')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->foreignId('rol_id')->nullable()->after('password')->constrained('roles')->nullOnDelete();
+                $table->foreignId('rol_id')->nullable()->after('email')->constrained('roles')->nullOnDelete();
             });
         }
 
         if (! Schema::hasColumn('users', 'estudiante_id')) {
-            $after = Schema::hasColumn('users', 'rol_id') ? 'rol_id' : 'password';
+            $afterColumn = Schema::hasColumn('users', 'rol_id') ? 'rol_id' : 'email';
 
-            Schema::table('users', function (Blueprint $table) use ($after) {
-                $table->foreignId('estudiante_id')->nullable()->after($after)->constrained('estudiantes')->nullOnDelete();
+            Schema::table('users', function (Blueprint $table) use ($afterColumn) {
+                $table->foreignId('estudiante_id')
+                    ->nullable()
+                    ->after($afterColumn)
+                    ->constrained('estudiantes')
+                    ->nullOnDelete();
             });
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
