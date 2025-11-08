@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Iniciar Sesión - {{ config('app.name', 'Laravel') }}</title>
-    <link href="{{ asset('css/custom-login.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom-login.css') }}">
 </head>
 <body>
     <div class="login-container">
         <div class="login-form-wrapper">
             <div class="login-form">
-                <h1>INICIAR SESIÓN</h1>
-                
+                <h1 class="text-uppercase">Iniciar Sesión</h1>
+
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
                     <div class="input-group">
-                        <label for="email">EMAIL</label>
-                        <input id="rut" type="text" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                        <label for="email">Correo electrónico</label>
+                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
+                               name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                         <i class="fas fa-user input-icon"></i>
-                        
                         @error('email')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
@@ -30,10 +30,10 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="password">CONTRASEÑA</label>
-                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                        <label for="password">Contraseña</label>
+                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
+                               name="password" required autocomplete="current-password">
                         <i class="fas fa-lock input-icon"></i>
-                        
                         @error('password')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
@@ -43,10 +43,9 @@
 
                     <div class="login-options">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="remember">
-                                RECORDAR
-                            </label>
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember"
+                                   {{ old('remember') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="remember">Recordarme</label>
                         </div>
                         @if (Route::has('password.request'))
                             <a class="btn btn-link" href="{{ route('password.request') }}">
@@ -57,14 +56,14 @@
 
                     <div class="form-group mb-0">
                         <button type="submit" class="login-button">
-                            LOGIN
+                            Ingresar
                         </button>
                     </div>
-                    <!-- Enlace para Registro -->
+
                     <div class="register-link">
                          <a class="btn btn-link" href="{{ route('register') }}">
                             ¿No tienes una cuenta? Regístrate
-                        </a>
+                         </a>
                     </div>
                 </form>
             </div>

@@ -1,4 +1,4 @@
-@extends('layouts.dashboard_estudiante.estudiante')
+﻿@extends('layouts.dashboard_estudiante.estudiante')
 
 @section('title', 'Dashboard Estudiante')
 
@@ -80,12 +80,12 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between">
-      <div class="mb-3 mb-lg-0">
+    <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center">
+      <div class="mb-3 mb-lg-0 flex-grow-1">
         <h5 class="card-title mb-1">¿Necesitas solicitar una entrevista?</h5>
         <p class="card-text text-muted mb-0">Coordina con el equipo de asesoría pedagógica para recibir apoyo personalizado.</p>
       </div>
-      <a href="{{ route('entrevistas.create') }}" class="btn btn-primary btn-lg">
+      <a href="{{ route('estudiantes.entrevistas.create') }}" class="btn btn-primary btn-lg ms-lg-auto">
         <i class="fas fa-calendar-plus me-2"></i>Solicitar Entrevista
       </a>
     </div>
@@ -280,3 +280,4 @@
   </div>
 </div>
 @endsection
+

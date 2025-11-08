@@ -16,8 +16,8 @@
     </a>
 
     <a
-      href="{{ route('entrevistas.create') }}"
-      class="student-sidebar__link {{ request()->routeIs('entrevistas.create') ? 'active' : '' }}"
+      href="{{ route('estudiantes.entrevistas.create') }}"
+      class="student-sidebar__link {{ request()->routeIs('estudiantes.entrevistas.create') ? 'active' : '' }}"
     >
       <i class="fas fa-paper-plane"></i>
       <span>Solicitar Entrevista</span>

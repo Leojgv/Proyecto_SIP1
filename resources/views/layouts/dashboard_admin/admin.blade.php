@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>@yield('title', 'Panel del estudiante')</title>
+  <title>@yield('title', 'Panel del administrador')</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap 5 -->
@@ -15,9 +15,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
   <link rel="stylesheet" href="{{ asset('dist/css/adminlte.css') }}">
-
+  
   <style>
-    /* Paleta por tonos (rojos) */
+    /* Paleta por tonos (rojos) compartida con el dashboard estudiantil */
     :root {
       --tone-50:  #fef2f2;
       --tone-100: #fee2e2;
@@ -145,12 +145,10 @@
       }
     }
 
-    /* Encabezado de cards: forzar flujo vertical título + texto */
     .card-body .card-title { float: none !important; display: block; }
     .card-body .card-title + .text-muted,
     .card-body .card-title + .card-text { display: block; margin-top: .25rem; }
 
-    /* Overrides de paleta para utilidades Bootstrap/AdminLTE usando tonos */
     .bg-primary { background-color: var(--tone-600) !important; }
     .bg-success { background-color: var(--tone-700) !important; }
     .bg-secondary { background-color: var(--tone-800) !important; }
@@ -180,10 +178,12 @@
       border-color: var(--tone-400) !important;
     }
   </style>
+
+  @stack('styles')
 </head>
 <body>
 <div class="student-wrapper">
-  @include('layouts.dashboard_estudiante.sidebar-estudiante')
+  @include('layouts.dashboard_admin.sidebar-admin')
 
   <main class="student-main">
     <header class="student-topbar">
@@ -207,5 +207,6 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="{{ asset('dist/js/adminlte.js') }}"></script>
+@stack('scripts')
 </body>
 </html>
