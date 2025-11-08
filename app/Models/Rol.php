@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Rol extends Model
 {
@@ -17,8 +17,8 @@ class Rol extends Model
         'descripcion',
     ];
 
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class, 'rol_id');
+        return $this->belongsToMany(User::class, 'rol_user')->withTimestamps();
     }
 }
