@@ -38,7 +38,7 @@
             @endphp
             <tr>
               <td>
-                <strong>{{ $usuario->name }}</strong>
+                <strong>{{ trim($usuario->nombre . ' ' . $usuario->apellido) }}</strong>
                 <p class="mb-0 text-muted small">{{ $usuario->email }}</p>
                 @if ($usuario->estudiante)
                   <p class="mb-0 text-muted small">Estudiante asociado: {{ $usuario->estudiante->nombre }} {{ $usuario->estudiante->apellido }}</p>

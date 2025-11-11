@@ -30,7 +30,7 @@
             <tr>
               <td>{{ $entrevista->fecha?->format('d/m/Y') }}</td>
               <td>{{ $entrevista->solicitud->estudiante->nombre ?? '—' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</td>
-              <td>{{ optional($entrevista->asesorPedagogico)->nombre ? $entrevista->asesorPedagogico->nombre . ' ' . $entrevista->asesorPedagogico->apellido : '—' }}</td>
+              <td>{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : '—' }}</td>
               <td>{{ $entrevista->observaciones ? \Illuminate\Support\Str::limit($entrevista->observaciones, 40) : '—' }}</td>
               <td class="text-end">
                 <a href="{{ route('entrevistas.edit', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Editar</a>

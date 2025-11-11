@@ -31,8 +31,8 @@
             <tr>
               <td>{{ $solicitud->fecha_solicitud?->format('d/m/Y') }}</td>
               <td>{{ $solicitud->estudiante->nombre ?? '—' }} {{ $solicitud->estudiante->apellido ?? '' }}</td>
-              <td>{{ optional($solicitud->asesorPedagogico)->nombre ? $solicitud->asesorPedagogico->nombre . ' ' . $solicitud->asesorPedagogico->apellido : '—' }}</td>
-              <td>{{ optional($solicitud->directorCarrera)->nombre ? $solicitud->directorCarrera->nombre . ' ' . $solicitud->directorCarrera->apellido : '—' }}</td>
+              <td>{{ optional($solicitud->asesor)->nombre ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : '—' }}</td>
+              <td>{{ optional($solicitud->director)->nombre ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : '—' }}</td>
               <td>{{ $solicitud->estado ?? '—' }}</td>
               <td class="text-end">
                 <a href="{{ route('solicitudes.edit', $solicitud) }}" class="btn btn-sm btn-outline-secondary">Editar</a>

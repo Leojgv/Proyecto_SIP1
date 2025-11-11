@@ -71,7 +71,7 @@
             <select multiple class="form-select @error('user_ids') is-invalid @enderror" id="user_ids" name="user_ids[]" size="5">
               @foreach ($usuarios as $usuario)
                 <option value="{{ $usuario->id }}" @selected(collect(old('user_ids', []))->contains($usuario->id))>
-                  {{ $usuario->name ?? $usuario->email }}
+                  {{ trim(($usuario->nombre ?? '') . ' ' . ($usuario->apellido ?? '')) ?: $usuario->email }}
                 </option>
               @endforeach
             </select>

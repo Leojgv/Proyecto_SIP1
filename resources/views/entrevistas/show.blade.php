@@ -16,7 +16,7 @@
         <dd class="col-sm-9">{{ $entrevista->solicitud->estudiante->nombre ?? '—' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</dd>
 
         <dt class="col-sm-3">Asesor</dt>
-        <dd class="col-sm-9">{{ optional($entrevista->asesorPedagogico)->nombre ? $entrevista->asesorPedagogico->nombre . ' ' . $entrevista->asesorPedagogico->apellido : '—' }}</dd>
+        <dd class="col-sm-9">{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : '—' }}</dd>
 
         <dt class="col-sm-3">Observaciones</dt>
         <dd class="col-sm-9">{{ $entrevista->observaciones ?? '—' }}</dd>

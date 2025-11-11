@@ -25,13 +25,24 @@
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
 
-                    <!-- Campo Nombre -->
                     <div class="input-group">
-                        <label for="name">NOMBRE COMPLETO</label>
-                        <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                        <label for="nombre">NOMBRE</label>
+                        <input id="nombre" type="text" class="form-control @error('nombre') is-invalid @enderror" name="nombre" value="{{ old('nombre') }}" required autocomplete="given-name" autofocus>
                         <i class="fas fa-user input-icon"></i>
                         
-                        @error('name')
+                        @error('nombre')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+
+                    <div class="input-group">
+                        <label for="apellido">APELLIDO</label>
+                        <input id="apellido" type="text" class="form-control @error('apellido') is-invalid @enderror" name="apellido" value="{{ old('apellido') }}" required autocomplete="family-name">
+                        <i class="fas fa-user input-icon"></i>
+                        
+                        @error('apellido')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
                             </span>

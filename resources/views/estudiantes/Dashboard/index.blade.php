@@ -107,11 +107,11 @@
                     <span class="badge bg-light text-dark me-2">{{ $solicitud->fecha_solicitud?->format('d/m/Y') }}</span>
                     {{ \Illuminate\Support\Str::title($solicitud->estado ?? 'pendiente') }}
                   </h6>
-                  @if ($solicitud->asesorPedagogico)
-                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesor: {{ $solicitud->asesorPedagogico->nombre }}</small>
+                  @if ($solicitud->asesor)
+                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesor: {{ $solicitud->asesor->nombre_completo }}</small>
                   @endif
-                  @if ($solicitud->directorCarrera)
-                    <small class="text-muted d-block"><i class="fas fa-user-shield me-1"></i>Director: {{ $solicitud->directorCarrera->nombre }}</small>
+                  @if ($solicitud->director)
+                    <small class="text-muted d-block"><i class="fas fa-user-shield me-1"></i>Director: {{ $solicitud->director->nombre }}</small>
                   @endif
                 </div>
                 <a href="{{ route('solicitudes.show', $solicitud) }}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>
@@ -137,8 +137,8 @@
                 <div class="d-flex align-items-center justify-content-between">
                   <div>
                     <h6 class="mb-1"><i class="fas fa-calendar-alt me-2 text-info"></i>{{ $entrevista->fecha?->format('d/m/Y') }}</h6>
-                    @if ($entrevista->asesorPedagogico)
-                      <small class="text-muted"><i class="fas fa-user-friends me-1"></i>{{ $entrevista->asesorPedagogico->nombre }}</small>
+                    @if ($entrevista->asesor)
+                      <small class="text-muted"><i class="fas fa-user-friends me-1"></i>{{ $entrevista->asesor->nombre_completo }}</small>
                     @endif
                   </div>
                   <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>

@@ -18,7 +18,7 @@
           <i class="fas fa-calendar-day me-1"></i>{{ $hoy->translatedFormat('d \\d\\e F, Y') }}
         </span>
         <span class="badge bg-light text-dark">
-          <i class="fas fa-user-shield me-1"></i>{{ $adminUser->name ?? 'Administrador' }}
+          <i class="fas fa-user-shield me-1"></i>{{ $adminUser ? trim(($adminUser->nombre ?? '') . ' ' . ($adminUser->apellido ?? '')) : 'Administrador' }}
         </span>
       </div>
     </div>

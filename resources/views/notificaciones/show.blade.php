@@ -30,7 +30,11 @@
         <dt class="col-sm-3">Destinatario</dt>
         <dd class="col-sm-9">
           @if ($notificacion->notifiable)
-            {{ $notificacion->notifiable->name ?? ($notificacion->notifiable->nombre ?? 'Usuario') }}
+            @php
+              $destinatario = $notificacion->notifiable;
+              $destinatarioNombre = $destinatario ? trim(($destinatario->nombre ?? '') . ' ' . ($destinatario->apellido ?? '')) : '';
+            @endphp
+            {{ $destinatarioNombre !== '' ? $destinatarioNombre : ($destinatario->email ?? 'Usuario') }}
             <div class="text-muted">{{ $notificacion->notifiable->email ?? '' }}</div>
           @else
             <span class="text-muted">Usuario eliminado</span>

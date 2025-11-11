@@ -16,10 +16,10 @@
         <dd class="col-sm-9">{{ $solicitud->estudiante->nombre ?? '—' }} {{ $solicitud->estudiante->apellido ?? '' }}</dd>
 
         <dt class="col-sm-3">Asesor pedagógico</dt>
-        <dd class="col-sm-9">{{ optional($solicitud->asesorPedagogico)->nombre ? $solicitud->asesorPedagogico->nombre . ' ' . $solicitud->asesorPedagogico->apellido : '—' }}</dd>
+        <dd class="col-sm-9">{{ optional($solicitud->asesor)->nombre ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : '—' }}</dd>
 
         <dt class="col-sm-3">Director de carrera</dt>
-        <dd class="col-sm-9">{{ optional($solicitud->directorCarrera)->nombre ? $solicitud->directorCarrera->nombre . ' ' . $solicitud->directorCarrera->apellido : '—' }}</dd>
+        <dd class="col-sm-9">{{ optional($solicitud->director)->nombre ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : '—' }}</dd>
 
         <dt class="col-sm-3">Estado</dt>
         <dd class="col-sm-9">{{ $solicitud->estado ?? '—' }}</dd>

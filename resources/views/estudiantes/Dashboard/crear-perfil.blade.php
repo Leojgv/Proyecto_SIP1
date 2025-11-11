@@ -27,7 +27,7 @@
                 id="nombre"
                 name="nombre"
                 class="form-control @error('nombre') is-invalid @enderror"
-                value="{{ old('nombre', $user?->name) }}"
+                value="{{ old('nombre', $user?->nombre) }}"
                 required
               >
               @error('nombre')

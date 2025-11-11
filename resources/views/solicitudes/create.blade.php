@@ -33,24 +33,24 @@
             @error('estudiante_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="asesor_pedagogico_id" class="form-label">Asesor pedagógico</label>
-            <select id="asesor_pedagogico_id" name="asesor_pedagogico_id" class="form-select @error('asesor_pedagogico_id') is-invalid @enderror" required>
+            <label for="asesor_id" class="form-label">Asesor pedagógico</label>
+            <select id="asesor_id" name="asesor_id" class="form-select @error('asesor_id') is-invalid @enderror" required>
               <option value="">Selecciona un asesor</option>
               @foreach($asesores as $asesor)
-                <option value="{{ $asesor->id }}" @selected(old('asesor_pedagogico_id') == $asesor->id)>{{ $asesor->nombre }} {{ $asesor->apellido }}</option>
+                <option value="{{ $asesor->id }}" @selected(old('asesor_id') == $asesor->id)>{{ $asesor->nombre }} {{ $asesor->apellido }}</option>
               @endforeach
             </select>
-            @error('asesor_pedagogico_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            @error('asesor_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="director_carrera_id" class="form-label">Director de carrera</label>
-            <select id="director_carrera_id" name="director_carrera_id" class="form-select @error('director_carrera_id') is-invalid @enderror" required>
+            <label for="director_id" class="form-label">Director de carrera</label>
+            <select id="director_id" name="director_id" class="form-select @error('director_id') is-invalid @enderror" required>
               <option value="">Selecciona un director</option>
               @foreach($directores as $director)
-                <option value="{{ $director->id }}" @selected(old('director_carrera_id') == $director->id)>{{ $director->nombre }} {{ $director->apellido }}</option>
+                <option value="{{ $director->id }}" @selected(old('director_id') == $director->id)>{{ $director->nombre }} {{ $director->apellido }}</option>
               @endforeach
             </select>
-            @error('director_carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            @error('director_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
             <label for="descripcion" class="form-label">Descripción</label>

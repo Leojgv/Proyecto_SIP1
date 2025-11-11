@@ -116,7 +116,17 @@
 
 @section('content')
 @php
-  $modalHasErrors = $errors->any();
+  $editUserId = session('edit_user_id');
+  $createModalHasErrors = $errors->any() && ! $editUserId;
+  $editModalHasErrors = $editUserId && $errors->getBag('editUser')->any();
+  $editModalPrefill = $editModalHasErrors ? [
+      'userId' => (string) $editUserId,
+      'nombre' => old('nombre'),
+      'apellido' => old('apellido'),
+      'email' => old('email'),
+      'rolId' => (string) old('rol_id'),
+      'updateUrl' => route('admin.users.update', ['user' => $editUserId]),
+  ] : null;
 @endphp
 <div class="container-fluid user-management">
   @if (session('success'))
@@ -245,7 +255,6 @@
                 <tr>
                   <th>Usuario</th>
                   <th>Rol</th>
-                  <th>Estado</th>
                   <th>Último acceso</th>
                   <th class="text-end">Acciones</th>
                 </tr>
@@ -258,7 +267,7 @@
                   @endphp
                   <tr>
                     <td>
-                      <div class="fw-semibold">{{ $usuario->name }}</div>
+                      <div class="fw-semibold">{{ trim($usuario->nombre . ' ' . $usuario->apellido) }}</div>
                       <div class="text-muted small">{{ $usuario->email }}</div>
                     </td>
                     <td>
@@ -267,23 +276,25 @@
                         <span class="badge rounded-pill bg-danger ms-1">Superuser</span>
                       @endif
                     </td>
-                    <td>
-                      <span class="badge {{ $activo ? 'badge-status-active' : 'badge-status-pending' }}">
-                        {{ $activo ? 'Activo' : 'Pendiente' }}
-                      </span>
-                    </td>
                     <td>{{ $ultimoAcceso ?? 'N/D' }}</td>
                     <td class="text-end">
-                      <a class="action-pill"
-                         href="{{ route('users.roles.index', ['focus' => $usuario->id]) }}"
-                         title="Gestionar roles">
-                        <i class="fas fa-user-gear"></i>
-                      </a>
+                      <button type="button"
+                              class="action-pill btn-edit-user"
+                              data-edit-user="true"
+                              data-user-id="{{ $usuario->id }}"
+                              data-user-nombre="{{ $usuario->nombre }}"
+                              data-user-apellido="{{ $usuario->apellido }}"
+                              data-user-email="{{ $usuario->email }}"
+                              data-user-rol-id="{{ $usuario->rol_id }}"
+                              data-update-url="{{ route('admin.users.update', $usuario) }}"
+                              title="Editar usuario">
+                        <i class="fas fa-user-pen"></i>
+                      </button>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="4" class="text-center text-muted py-4">
                       No se encontraron usuarios con el criterio actual.
                     </td>
                   </tr>
@@ -317,11 +328,11 @@
   </div>
 </div>
 
-<div class="modal fade {{ $modalHasErrors ? 'show d-block' : '' }}"
+<div class="modal fade {{ $createModalHasErrors ? 'show d-block' : '' }}"
      id="modalNuevoUsuario"
      tabindex="-1"
-     aria-hidden="{{ $modalHasErrors ? 'false' : 'true' }}"
-     @if($modalHasErrors) style="background: rgba(0,0,0,.5);" @endif>
+     aria-hidden="{{ $createModalHasErrors ? 'false' : 'true' }}"
+     @if($createModalHasErrors) style="background: rgba(0,0,0,.5);" @endif>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header border-0">
@@ -335,15 +346,27 @@
       <form action="{{ route('admin.users.store') }}" method="POST">
         @csrf
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label" for="modal_name">Nombre completo</label>
-            <input type="text"
-                   id="modal_name"
-                   name="name"
-                   class="form-control @error('name') is-invalid @enderror"
-                   value="{{ old('name') }}"
-                   required>
-            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="modal_nombre">Nombre</label>
+              <input type="text"
+                     id="modal_nombre"
+                     name="nombre"
+                     class="form-control @error('nombre') is-invalid @enderror"
+                     value="{{ $editUserId ? '' : old('nombre') }}"
+                     required>
+              @error('nombre')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="modal_apellido">Apellido</label>
+              <input type="text"
+                     id="modal_apellido"
+                     name="apellido"
+                     class="form-control @error('apellido') is-invalid @enderror"
+                     value="{{ $editUserId ? '' : old('apellido') }}"
+                     required>
+              @error('apellido')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="modal_email">Correo electrónico</label>
@@ -351,7 +374,7 @@
                    id="modal_email"
                    name="email"
                    class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email') }}"
+                   value="{{ $editUserId ? '' : old('email') }}"
                    required>
             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
@@ -363,7 +386,7 @@
                     required>
               <option value="">Selecciona un rol</option>
               @foreach ($roles as $rol)
-                <option value="{{ $rol->id }}" @selected(old('rol_id') == $rol->id)>{{ $rol->nombre }}</option>
+                <option value="{{ $rol->id }}" @selected(! $editUserId && old('rol_id') == $rol->id)>{{ $rol->nombre }}</option>
               @endforeach
             </select>
             @error('rol_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -396,61 +419,197 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade {{ $editModalHasErrors ? 'show d-block' : '' }}"
+     id="modalEditarUsuario"
+     tabindex="-1"
+     aria-hidden="{{ $editModalHasErrors ? 'false' : 'true' }}"
+     @if($editModalHasErrors) style="background: rgba(0,0,0,.5);" @endif>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title">Editar Usuario</h5>
+          <p class="text-muted mb-0 small">Modifica la información del usuario.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formEditarUsuario"
+            method="POST"
+            action="{{ $editModalHasErrors ? route('admin.users.update', ['user' => $editUserId]) : '#' }}">
+        @csrf
+        @method('PUT')
+        <input type="hidden"
+               id="edit_user_id_field"
+               name="user_id"
+               value="{{ $editModalHasErrors ? $editUserId : '' }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="edit_nombre">Nombre</label>
+              <input type="text"
+                     id="edit_nombre"
+                     name="nombre"
+                     class="form-control @error('nombre', 'editUser') is-invalid @enderror"
+                     value="{{ $editModalHasErrors ? old('nombre') : '' }}"
+                     required>
+              @error('nombre', 'editUser')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_apellido">Apellido</label>
+              <input type="text"
+                     id="edit_apellido"
+                     name="apellido"
+                     class="form-control @error('apellido', 'editUser') is-invalid @enderror"
+                     value="{{ $editModalHasErrors ? old('apellido') : '' }}"
+                     required>
+              @error('apellido', 'editUser')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="edit_email">Correo electrónico</label>
+            <input type="email"
+                   id="edit_email"
+                   name="email"
+                   class="form-control @error('email', 'editUser') is-invalid @enderror"
+                   value="{{ $editModalHasErrors ? old('email') : '' }}"
+                   required>
+            @error('email', 'editUser')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="edit_rol">Rol</label>
+            <select id="edit_rol"
+                    name="rol_id"
+                    class="form-select @error('rol_id', 'editUser') is-invalid @enderror"
+                    required>
+              <option value="">Selecciona un rol</option>
+              @foreach ($roles as $rol)
+                <option value="{{ $rol->id }}" @if($editModalHasErrors) @selected(old('rol_id') == $rol->id) @endif>
+                  {{ $rol->nombre }}
+                </option>
+              @endforeach
+            </select>
+            @error('rol_id', 'editUser')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const modalEl = document.getElementById('modalNuevoUsuario');
-    if (!modalEl) return;
-
-    const cleanupManualModal = () => {
-      modalEl.classList.remove('show', 'd-block');
-      modalEl.setAttribute('aria-hidden', 'true');
-      document.body.classList.remove('modal-open');
-      const manualBackdrop = document.querySelector('.modal-backdrop[data-manual-backdrop="true"]');
-      if (manualBackdrop) manualBackdrop.remove();
-    };
-
-    const showModal = () => {
-      if (window.bootstrap && window.bootstrap.Modal) {
-        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        return;
+    const setupModalController = (modalId) => {
+      const modalEl = document.getElementById(modalId);
+      if (!modalEl) {
+        return null;
       }
 
-      if (window.$ && typeof window.$.fn.modal === 'function') {
-        window.$(modalEl).modal('show');
-        return;
-      }
+      const cleanupManualModal = () => {
+        modalEl.classList.remove('show', 'd-block');
+        modalEl.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        const manualBackdrop = document.querySelector(`.modal-backdrop[data-manual-backdrop="${modalId}"]`);
+        if (manualBackdrop) {
+          manualBackdrop.remove();
+        }
+      };
 
-      modalEl.classList.add('show', 'd-block');
-      modalEl.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('modal-open');
-      if (!document.querySelector('.modal-backdrop')) {
-        const manualBackdrop = document.createElement('div');
-        manualBackdrop.className = 'modal-backdrop fade show';
-        manualBackdrop.setAttribute('data-manual-backdrop', 'true');
-        document.body.appendChild(manualBackdrop);
-      }
-    };
+      const showModal = () => {
+        if (window.bootstrap && window.bootstrap.Modal) {
+          window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+          return;
+        }
 
-    modalEl.addEventListener('hidden.bs.modal', cleanupManualModal);
+        if (window.$ && typeof window.$.fn.modal === 'function') {
+          window.$(modalEl).modal('show');
+          return;
+        }
 
-    modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach((trigger) => {
-      trigger.addEventListener('click', cleanupManualModal);
-    });
+        modalEl.classList.add('show', 'd-block');
+        modalEl.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        if (!document.querySelector(`.modal-backdrop[data-manual-backdrop="${modalId}"]`)) {
+          const manualBackdrop = document.createElement('div');
+          manualBackdrop.className = 'modal-backdrop fade show';
+          manualBackdrop.setAttribute('data-manual-backdrop', modalId);
+          document.body.appendChild(manualBackdrop);
+        }
+      };
 
-    const triggerBtn = document.getElementById('btnNuevoUsuario');
-    if (triggerBtn) {
-      triggerBtn.addEventListener('click', function (event) {
-        event.preventDefault();
-        showModal();
+      modalEl.addEventListener('hidden.bs.modal', cleanupManualModal);
+
+      modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach((trigger) => {
+        trigger.addEventListener('click', cleanupManualModal);
       });
+
+      return { show: showModal };
+    };
+
+    const nuevoUsuarioModal = setupModalController('modalNuevoUsuario');
+    if (nuevoUsuarioModal) {
+      const triggerBtn = document.getElementById('btnNuevoUsuario');
+      if (triggerBtn) {
+        triggerBtn.addEventListener('click', function (event) {
+          event.preventDefault();
+          nuevoUsuarioModal.show();
+        });
+      }
+
+      if (@json($createModalHasErrors)) {
+        nuevoUsuarioModal.show();
+      }
     }
 
-    @if($modalHasErrors)
-      showModal();
-    @endif
+    const editarUsuarioModal = setupModalController('modalEditarUsuario');
+    if (editarUsuarioModal) {
+      const editForm = document.getElementById('formEditarUsuario');
+      const editNombre = document.getElementById('edit_nombre');
+      const editApellido = document.getElementById('edit_apellido');
+      const editEmail = document.getElementById('edit_email');
+      const editRol = document.getElementById('edit_rol');
+      const editUserIdField = document.getElementById('edit_user_id_field');
+
+      const populateAndShowEditModal = (data) => {
+        if (!editForm) {
+          return;
+        }
+
+        editForm.action = data.updateUrl || '#';
+        if (editNombre) editNombre.value = data.nombre ?? '';
+        if (editApellido) editApellido.value = data.apellido ?? '';
+        if (editEmail) editEmail.value = data.email ?? '';
+        if (editRol) editRol.value = data.rolId ?? '';
+        if (editUserIdField) editUserIdField.value = data.userId ?? '';
+
+        editarUsuarioModal.show();
+      };
+
+      document.querySelectorAll('[data-edit-user="true"]').forEach((button) => {
+        button.addEventListener('click', () => {
+          populateAndShowEditModal({
+            userId: button.dataset.userId || '',
+            nombre: button.dataset.userNombre || '',
+            apellido: button.dataset.userApellido || '',
+            email: button.dataset.userEmail || '',
+            rolId: button.dataset.userRolId || '',
+            updateUrl: button.dataset.updateUrl || '#',
+          });
+        });
+      });
+
+      const editModalPrefill = @json($editModalPrefill);
+
+      if (editModalPrefill) {
+        populateAndShowEditModal(editModalPrefill);
+      }
+    }
   });
 </script>
 @endpush
