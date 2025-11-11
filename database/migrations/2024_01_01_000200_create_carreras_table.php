@@ -21,6 +21,10 @@ return new class extends Migration
             $table->string('jornada')->nullable();
             $table->string('facultad')->nullable();
             $table->string('grado')->nullable();
+            $table->foreignId('director_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -21,7 +21,10 @@ return new class extends Migration
             $table->string('tipo')->nullable();
             $table->string('estado')->nullable();
             $table->foreignId('carrera_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('docente_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('docente_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }

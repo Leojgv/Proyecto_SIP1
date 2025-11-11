@@ -21,8 +21,8 @@ return new class extends Migration
             $table->text('descripcion')->nullable();
             $table->string('estado')->default('pendiente');
             $table->foreignId('estudiante_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('asesor_pedagogico_id')->nullable()->constrained('asesor_pedagogicos')->nullOnDelete();
-            $table->foreignId('director_carrera_id')->nullable()->constrained('director_carreras')->nullOnDelete();
+            $table->foreignId('asesor_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('director_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

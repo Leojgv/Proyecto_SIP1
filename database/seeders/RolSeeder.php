@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Database\Seeders;
 
@@ -12,7 +12,7 @@ class RolSeeder extends Seeder
         $roles = [
             ['nombre' => 'Admin', 'descripcion' => 'Administrador del sistema'],
             ['nombre' => 'Estudiante', 'descripcion' => 'Usuario estudiante'],
-            ['nombre' => 'Asesor', 'descripcion' => 'Asesor pedagógico'],
+            ['nombre' => 'Asesor', 'descripcion' => 'Asesor pedagogico'],
             ['nombre' => 'Docente', 'descripcion' => 'Profesor de asignaturas'],
             ['nombre' => 'Director de Carrera', 'descripcion' => 'Director responsable de la carrera'],
         ];

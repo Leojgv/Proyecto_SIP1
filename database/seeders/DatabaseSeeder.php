@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
         $adminRoleId = Rol::where('nombre', 'Admin')->value('id');
 
         User::factory()->create([
-            'name' => 'Administrador',
+            'nombre' => 'Administrador',
+            'apellido' => 'Principal',
             'email' => 'admin@example.com',
             'rol_id' => $adminRoleId,
         ]);

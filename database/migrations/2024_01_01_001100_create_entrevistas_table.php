@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('fecha');
             $table->text('observaciones')->nullable();
             $table->foreignId('solicitud_id')->constrained('solicitudes')->cascadeOnDelete();
-            $table->foreignId('asesor_pedagogico_id')->nullable()->constrained('asesor_pedagogicos')->nullOnDelete();
+            $table->foreignId('asesor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

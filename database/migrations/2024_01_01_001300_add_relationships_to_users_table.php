@@ -13,15 +13,11 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('users', 'rol_id')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->foreignId('rol_id')->nullable()->after('password')->constrained('roles')->nullOnDelete();
-            });
-        }
-
-        if (! Schema::hasColumn('users', 'estudiante_id')) {
-            $after = Schema::hasColumn('users', 'rol_id') ? 'rol_id' : 'password';
-
-            Schema::table('users', function (Blueprint $table) use ($after) {
-                $table->foreignId('estudiante_id')->nullable()->after($after)->constrained('estudiantes')->nullOnDelete();
+                $table->foreignId('rol_id')
+                    ->nullable()
+                    ->after('password')
+                    ->constrained('roles')
+                    ->nullOnDelete();
             });
         }
     }
@@ -32,11 +28,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (Schema::hasColumn('users', 'estudiante_id')) {
-                $table->dropForeign(['estudiante_id']);
-                $table->dropColumn('estudiante_id');
-            }
-
             if (Schema::hasColumn('users', 'rol_id')) {
                 $table->dropForeign(['rol_id']);
                 $table->dropColumn('rol_id');
