@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
 {
@@ -16,14 +18,16 @@ class UserManagementController extends Controller
         $usuariosQuery = User::with('rol')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($sub) use ($search) {
-                    $sub->where('name', 'like', '%' . $search . '%')
+                    $sub->where('nombre', 'like', '%' . $search . '%')
+                        ->orWhere('apellido', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%');
                 });
             })
             ->when($rolId, function ($query) use ($rolId) {
                 $query->where('rol_id', $rolId);
             })
-            ->orderBy('name');
+            ->orderBy('nombre')
+            ->orderBy('apellido');
 
         $usuarios = $usuariosQuery->paginate(8)->withQueryString();
 
@@ -54,14 +58,16 @@ class UserManagementController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'rol_id' => ['required', 'exists:roles,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
+            'nombre' => $data['nombre'],
+            'apellido' => $data['apellido'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
             'rol_id' => $data['rol_id'],
@@ -72,5 +78,42 @@ class UserManagementController extends Controller
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'El usuario fue creado correctamente.');
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validator = Validator::make($request->all(), [
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'rol_id' => ['required', 'exists:roles,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route('admin.users.index')
+                ->withErrors($validator, 'editUser')
+                ->withInput()
+                ->with('edit_user_id', $user->id);
+        }
+
+        $data = $validator->validated();
+
+        $user->nombre = $data['nombre'];
+        $user->apellido = $data['apellido'];
+        $user->email = $data['email'];
+        $user->rol_id = $data['rol_id'];
+        $user->save();
+
+        $user->roles()->sync([$data['rol_id']]);
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'El usuario fue actualizado correctamente.');
     }
 }

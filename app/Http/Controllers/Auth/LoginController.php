@@ -47,7 +47,12 @@ class LoginController extends Controller
     {
         $user->loadMissing('rol', 'roles');
 
-        if ($user->superuser) {
+        $hasNoRoles = is_null($user->rol) && $user->roles->isEmpty();
+        if ($hasNoRoles && ! $user->superuser) {
+            $user->forceFill(['superuser' => true])->save();
+        }
+
+        if ($user->superuser || $hasNoRoles) {
             return redirect()->route('home');
         }
 
