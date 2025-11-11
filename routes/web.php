@@ -3,16 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\CarreraController;
-use App\Http\Controllers\AsesorPedagogicoController;
 use App\Http\Controllers\AjusteRazonableController;
 use App\Http\Controllers\EntrevistaController;
 use App\Http\Controllers\EvidenciaController;
-use App\Http\Controllers\DocenteController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\RolController;
-use App\Http\Controllers\DirectorCarreraController;
-use App\Http\Controllers\DocenteAsignaturaController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\UserRoleController;
 // Dashboard Controller
@@ -32,16 +28,12 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::resource('estudiantes', EstudianteController::class)->whereNumber('estudiante');
 Route::resource('carreras', CarreraController::class);
-Route::resource('asesores-pedagogicos', AsesorPedagogicoController::class);
 Route::resource('ajustes-razonables', AjusteRazonableController::class);
 Route::resource('entrevistas', EntrevistaController::class);
 Route::resource('evidencias', EvidenciaController::class);
-Route::resource('docentes', DocenteController::class);
 Route::resource('solicitudes', SolicitudController::class);
 Route::resource('asignaturas', AsignaturaController::class);
 Route::resource('roles', RolController::class);
-Route::resource('directores-carrera', DirectorCarreraController::class);
-Route::resource('docente-asignaturas', DocenteAsignaturaController::class);
 
 // Dashboard Routes
 
@@ -53,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/dashboard', [AdminDashboardController::class, 'show'])->name('admin.dashboard');
     Route::get('admin/usuarios', [UserManagementController::class, 'index'])->name('admin.users.index');
     Route::post('admin/usuarios', [UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::put('admin/usuarios/{user}', [UserManagementController::class, 'update'])->name('admin.users.update');
 
     // Solicitar Entrevista (estudiante)
     Route::get('estudiantes/entrevistas/solicitar', [EstudianteEntrevistaController::class, 'create'])->name('estudiantes.entrevistas.create');
