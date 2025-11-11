@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -20,12 +22,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nombre',
+        'apellido',
         'email',
         'password',
         'superuser',
         'rol_id',
-        'estudiante_id',
     ];
 
     /**
@@ -62,8 +64,20 @@ class User extends Authenticatable
         return $this->belongsToMany(Rol::class, 'rol_user')->withTimestamps();
     }
 
-    public function estudiante(): BelongsTo
+    public function estudiante(): HasOne
     {
-        return $this->belongsTo(Estudiante::class);
+        return $this->hasOne(Estudiante::class);
+    }
+
+    public function scopeWithRole(Builder $query, string $roleName): Builder
+    {
+        return $query->whereHas('rol', function ($inner) use ($roleName) {
+            $inner->where('nombre', $roleName);
+        });
+    }
+
+    public function getNombreCompletoAttribute(): string
+    {
+        return trim($this->nombre . ' ' . $this->apellido);
     }
 }

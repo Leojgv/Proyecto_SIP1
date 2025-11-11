@@ -18,8 +18,8 @@ class Solicitud extends Model
         'descripcion',
         'estado',
         'estudiante_id',
-        'asesor_pedagogico_id',
-        'director_carrera_id',
+        'asesor_id',
+        'director_id',
     ];
 
     protected $casts = [
@@ -31,14 +31,14 @@ class Solicitud extends Model
         return $this->belongsTo(Estudiante::class);
     }
 
-    public function asesorPedagogico(): BelongsTo
+    public function asesor(): BelongsTo
     {
-        return $this->belongsTo(AsesorPedagogico::class);
+        return $this->belongsTo(User::class, 'asesor_id');
     }
 
-    public function directorCarrera(): BelongsTo
+    public function director(): BelongsTo
     {
-        return $this->belongsTo(DirectorCarrera::class);
+        return $this->belongsTo(User::class, 'director_id');
     }
 
     public function ajustesRazonables(): HasMany

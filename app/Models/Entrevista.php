@@ -14,7 +14,7 @@ class Entrevista extends Model
         'fecha',
         'observaciones',
         'solicitud_id',
-        'asesor_pedagogico_id',
+        'asesor_id',
     ];
 
     protected $casts = [
@@ -26,8 +26,8 @@ class Entrevista extends Model
         return $this->belongsTo(Solicitud::class);
     }
 
-    public function asesorPedagogico(): BelongsTo
+    public function asesor(): BelongsTo
     {
-        return $this->belongsTo(AsesorPedagogico::class);
+        return $this->belongsTo(User::class, 'asesor_id');
     }
 }

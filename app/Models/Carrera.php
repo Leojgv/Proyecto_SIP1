@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Carrera extends Model
 {
@@ -28,13 +28,8 @@ class Carrera extends Model
         return $this->hasMany(Asignatura::class);
     }
 
-    public function directorCarrera(): HasOne
+    public function director(): BelongsTo
     {
-        return $this->hasOne(DirectorCarrera::class);
-    }
-
-    public function docenteAsignaturas(): HasMany
-    {
-        return $this->hasMany(DocenteAsignatura::class);
+        return $this->belongsTo(User::class, 'director_id');
     }
 }

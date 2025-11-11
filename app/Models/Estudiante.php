@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Estudiante extends Model
 {
@@ -19,6 +18,7 @@ class Estudiante extends Model
         'email',
         'telefono',
         'carrera_id',
+        'user_id',
     ];
 
     public function carrera(): BelongsTo
@@ -36,8 +36,8 @@ class Estudiante extends Model
         return $this->hasMany(AjusteRazonable::class);
     }
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 }
