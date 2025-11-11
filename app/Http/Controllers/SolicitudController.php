@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AsesorPedagogico;
-use App\Models\DirectorCarrera;
 use App\Models\Estudiante;
 use App\Models\Solicitud;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class SolicitudController extends Controller
 {
     public function index()
     {
-        $solicitudes = Solicitud::with(['estudiante', 'asesorPedagogico', 'directorCarrera'])
+        $solicitudes = Solicitud::with(['estudiante', 'asesor', 'director'])
             ->orderByDesc('fecha_solicitud')
             ->get();
 
@@ -22,8 +21,8 @@ class SolicitudController extends Controller
     public function create()
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
-        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
-        $directores = DirectorCarrera::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = $this->usuariosPorRol('Asesor');
+        $directores = $this->usuariosPorRol('Director de Carrera');
 
         return view('solicitudes.create', compact('estudiantes', 'asesores', 'directores'));
     }
@@ -35,8 +34,8 @@ class SolicitudController extends Controller
             'descripcion' => ['nullable', 'string'],
             'estado' => ['nullable', 'string', 'max:255'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
-            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
-            'director_carrera_id' => ['required', 'exists:director_carreras,id'],
+            'asesor_id' => ['required', 'exists:users,id'],
+            'director_id' => ['required', 'exists:users,id'],
         ]);
 
         Solicitud::create($validated);
@@ -46,7 +45,7 @@ class SolicitudController extends Controller
 
     public function show(Solicitud $solicitud)
     {
-        $solicitud->load(['estudiante', 'asesorPedagogico', 'directorCarrera']);
+        $solicitud->load(['estudiante', 'asesor', 'director']);
 
         return view('solicitudes.show', compact('solicitud'));
     }
@@ -54,8 +53,8 @@ class SolicitudController extends Controller
     public function edit(Solicitud $solicitud)
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
-        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
-        $directores = DirectorCarrera::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = $this->usuariosPorRol('Asesor');
+        $directores = $this->usuariosPorRol('Director de Carrera');
 
         return view('solicitudes.edit', compact('solicitud', 'estudiantes', 'asesores', 'directores'));
     }
@@ -67,8 +66,8 @@ class SolicitudController extends Controller
             'descripcion' => ['nullable', 'string'],
             'estado' => ['nullable', 'string', 'max:255'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
-            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
-            'director_carrera_id' => ['required', 'exists:director_carreras,id'],
+            'asesor_id' => ['required', 'exists:users,id'],
+            'director_id' => ['required', 'exists:users,id'],
         ]);
 
         $solicitud->update($validated);
@@ -81,5 +80,13 @@ class SolicitudController extends Controller
         $solicitud->delete();
 
         return redirect()->route('solicitudes.index')->with('success', 'Solicitud eliminada correctamente.');
+    }
+
+    private function usuariosPorRol(string $rol)
+    {
+        return User::withRole($rol)
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
     }
 }

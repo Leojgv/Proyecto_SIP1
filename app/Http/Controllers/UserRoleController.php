@@ -11,7 +11,7 @@ class UserRoleController extends Controller
 {
     public function index()
     {
-        $usuarios = User::with(['rol', 'roles'])->orderBy('name')->get();
+        $usuarios = User::with(['rol', 'roles'])->orderBy('nombre')->orderBy('apellido')->get();
         $roles = Rol::orderBy('nombre')->get();
 
         return view('users.roles.index', [
@@ -53,6 +53,6 @@ class UserRoleController extends Controller
 
         return redirect()
             ->route('users.roles.index')
-            ->with('success', "Se actualizaron los roles de {$user->name}.");
+            ->with('success', 'Se actualizaron los roles de ' . ($user->nombre_completo ?: 'el usuario') . '.');
     }
 }

@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AsesorPedagogico;
 use App\Models\Entrevista;
 use App\Models\Solicitud;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class EntrevistaController extends Controller
 {
     public function index()
     {
-        $entrevistas = Entrevista::with(['solicitud.estudiante', 'asesorPedagogico'])
+        $entrevistas = Entrevista::with(['solicitud.estudiante', 'asesor'])
             ->orderByDesc('fecha')
             ->get();
 
@@ -21,7 +21,7 @@ class EntrevistaController extends Controller
     public function create()
     {
         $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
-        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = $this->asesores();
 
         return view('entrevistas.create', compact('solicitudes', 'asesores'));
     }
@@ -32,7 +32,7 @@ class EntrevistaController extends Controller
             'fecha' => ['required', 'date'],
             'observaciones' => ['nullable', 'string'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
-            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+            'asesor_id' => ['required', 'exists:users,id'],
         ]);
 
         Entrevista::create($validated);
@@ -42,7 +42,7 @@ class EntrevistaController extends Controller
 
     public function show(Entrevista $entrevista)
     {
-        $entrevista->load(['solicitud.estudiante', 'asesorPedagogico']);
+        $entrevista->load(['solicitud.estudiante', 'asesor']);
 
         return view('entrevistas.show', compact('entrevista'));
     }
@@ -50,7 +50,7 @@ class EntrevistaController extends Controller
     public function edit(Entrevista $entrevista)
     {
         $solicitudes = Solicitud::with('estudiante')->orderByDesc('fecha_solicitud')->get();
-        $asesores = AsesorPedagogico::orderBy('nombre')->orderBy('apellido')->get();
+        $asesores = $this->asesores();
 
         return view('entrevistas.edit', compact('entrevista', 'solicitudes', 'asesores'));
     }
@@ -61,7 +61,7 @@ class EntrevistaController extends Controller
             'fecha' => ['required', 'date'],
             'observaciones' => ['nullable', 'string'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
-            'asesor_pedagogico_id' => ['required', 'exists:asesor_pedagogicos,id'],
+            'asesor_id' => ['required', 'exists:users,id'],
         ]);
 
         $entrevista->update($validated);
@@ -74,5 +74,13 @@ class EntrevistaController extends Controller
         $entrevista->delete();
 
         return redirect()->route('entrevistas.index')->with('success', 'Entrevista eliminada correctamente.');
+    }
+
+    private function asesores()
+    {
+        return User::withRole('Asesor')
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
     }
 }

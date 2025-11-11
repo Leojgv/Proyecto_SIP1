@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asignatura;
 use App\Models\Carrera;
-use App\Models\Docente;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AsignaturaController extends Controller
@@ -19,7 +19,7 @@ class AsignaturaController extends Controller
     public function create()
     {
         $carreras = Carrera::orderBy('nombre')->get();
-        $docentes = Docente::orderBy('nombre')->orderBy('apellido')->get();
+        $docentes = $this->docentes();
 
         return view('asignaturas.create', compact('carreras', 'docentes'));
     }
@@ -31,7 +31,7 @@ class AsignaturaController extends Controller
             'tipo' => ['nullable', 'string', 'max:255'],
             'estado' => ['nullable', 'string', 'max:255'],
             'carrera_id' => ['required', 'exists:carreras,id'],
-            'docente_id' => ['nullable', 'exists:docentes,id'],
+            'docente_id' => ['nullable', 'exists:users,id'],
         ]);
 
         Asignatura::create($validated);
@@ -49,7 +49,7 @@ class AsignaturaController extends Controller
     public function edit(Asignatura $asignatura)
     {
         $carreras = Carrera::orderBy('nombre')->get();
-        $docentes = Docente::orderBy('nombre')->orderBy('apellido')->get();
+        $docentes = $this->docentes();
 
         return view('asignaturas.edit', compact('asignatura', 'carreras', 'docentes'));
     }
@@ -61,7 +61,7 @@ class AsignaturaController extends Controller
             'tipo' => ['nullable', 'string', 'max:255'],
             'estado' => ['nullable', 'string', 'max:255'],
             'carrera_id' => ['required', 'exists:carreras,id'],
-            'docente_id' => ['nullable', 'exists:docentes,id'],
+            'docente_id' => ['nullable', 'exists:users,id'],
         ]);
 
         $asignatura->update($validated);
@@ -74,5 +74,13 @@ class AsignaturaController extends Controller
         $asignatura->delete();
 
         return redirect()->route('asignaturas.index')->with('success', 'Asignatura eliminada correctamente.');
+    }
+
+    private function docentes()
+    {
+        return User::withRole('Docente')
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
     }
 }
