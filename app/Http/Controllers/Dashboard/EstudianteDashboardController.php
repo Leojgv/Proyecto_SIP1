@@ -25,11 +25,8 @@ class EstudianteDashboardController extends Controller
             $estudianteRelacionado = Estudiante::where('email', $user->email)->first();
 
             if ($estudianteRelacionado) {
-                if ($this->usersTableHasEstudianteId()) {
-                    $user->estudiante()->associate($estudianteRelacionado);
-                    $user->save();
-                }
-
+                $estudianteRelacionado->user()->associate($user);
+                $estudianteRelacionado->save();
                 $estudiante = $estudianteRelacionado;
             }
         }
@@ -69,7 +66,7 @@ class EstudianteDashboardController extends Controller
             ->distinct('nombre')
             ->count('nombre');
 
-        $proximasEntrevistas = Entrevista::with(['solicitud', 'asesorPedagogico'])
+        $proximasEntrevistas = Entrevista::with(['solicitud', 'asesor'])
             ->whereHas('solicitud', function ($query) use ($estudiante) {
                 $query->where('estudiante_id', $estudiante->id);
             })
@@ -79,7 +76,7 @@ class EstudianteDashboardController extends Controller
             ->get();
 
         $misSolicitudes = $estudiante->solicitudes()
-            ->with(['asesorPedagogico', 'directorCarrera'])
+            ->with(['asesor', 'director'])
             ->orderByDesc('fecha_solicitud')
             ->take(5)
             ->get();
@@ -139,10 +136,8 @@ class EstudianteDashboardController extends Controller
         $estudianteRelacionado = Estudiante::where('email', $user->email)->first();
 
         if ($estudianteRelacionado) {
-            if ($this->usersTableHasEstudianteId()) {
-                $user->estudiante()->associate($estudianteRelacionado);
-                $user->save();
-            }
+            $estudianteRelacionado->user()->associate($user);
+            $estudianteRelacionado->save();
 
             return redirect()->route('estudiantes.dashboard');
         }
@@ -163,12 +158,8 @@ class EstudianteDashboardController extends Controller
                 'telefono' => $validated['telefono'] ?? null,
                 'carrera_id' => $validated['carrera_id'],
                 'email' => $user->email,
+                'user_id' => $user->id,
             ]);
-
-            if ($this->usersTableHasEstudianteId()) {
-                $user->estudiante()->associate($estudiante);
-                $user->save();
-            }
         });
 
         return redirect()
@@ -196,17 +187,6 @@ class EstudianteDashboardController extends Controller
         return redirect()
             ->route('estudiantes.dashboard', ['focus' => 'configuracion'])
             ->with('status', 'Se guardaron tus datos de contacto.');
-    }
-
-    private function usersTableHasEstudianteId(): bool
-    {
-        static $cache;
-
-        if ($cache === null) {
-            $cache = \Illuminate\Support\Facades\Schema::hasColumn('users', 'estudiante_id');
-        }
-
-        return $cache;
     }
 
     private function notificationsTableExists(): bool

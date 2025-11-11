@@ -7,7 +7,6 @@ use App\Models\Estudiante;
 use App\Models\Solicitud;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 
 class EstudianteEntrevistaController extends Controller
 {
@@ -55,12 +54,13 @@ class EstudianteEntrevistaController extends Controller
             'fecha_solicitud' => now()->toDateString(),
             'descripcion' => $descripcion,
             'estudiante_id' => $estudiante->id,
-            // Asignación de asesor y director será posterior (nullable en DB)
-            'asesor_pedagogico_id' => null,
-            'director_carrera_id' => null,
+            // Asignación de asesor y director será posterior (nullable en BD)
+            'asesor_id' => null,
+            'director_id' => null,
         ]);
 
-        return redirect()->route('estudiantes.dashboard')
+        return redirect()
+            ->route('estudiantes.dashboard')
             ->with('status', 'Solicitud de entrevista enviada correctamente.');
     }
 
@@ -75,27 +75,15 @@ class EstudianteEntrevistaController extends Controller
         $estudiante = $user->estudiante;
 
         if (! $estudiante && $user->email) {
-            $estudianteRelacionado = Estudiante::where('email', $user->email)->first();
+            $coincidencia = Estudiante::where('email', $user->email)->first();
 
-            if ($estudianteRelacionado && $this->usersTableHasEstudianteId()) {
-                $user->estudiante()->associate($estudianteRelacionado);
-                $user->save();
+            if ($coincidencia) {
+                $coincidencia->user()->associate($user);
+                $coincidencia->save();
+                $estudiante = $coincidencia;
             }
-
-            $estudiante = $estudianteRelacionado;
         }
 
         return $estudiante;
-    }
-
-    private function usersTableHasEstudianteId(): bool
-    {
-        static $cache;
-
-        if ($cache === null) {
-            $cache = Schema::hasColumn('users', 'estudiante_id');
-        }
-
-        return $cache;
     }
 }
