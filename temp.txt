@@ -1,0 +1,193 @@
+/* Contenido para public/css/custom-login.css */
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    overflow: hidden; /* Evita el scroll en la página de login */
+}
+
+body.auth-page {
+    min-height: 100vh;
+    background-color: #0d0f14;
+    background-image: url('public/images/auth/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+
+body.auth-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 15, 20, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 0;
+}
+
+.login-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem; 
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+}
+
+.login-background {
+    width: 65%;
+    height: 100%;
+    background-image: url('public/images/imagen-de-fondo.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.login-form-wrapper {
+    /* NUEVO: Estilo de tarjeta centrada */
+    width: 100%; /* Ancho completo hasta el max-width */
+    max-width: 440px; /* Ancho mÃ¡ximo del formulario */
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra */
+    position: relative; /* Para que estÃ© sobre el fondo */
+    z-index: 10;
+    overflow-y: auto; /* Mantener por si el formulario es largo */
+}
+
+.login-form {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.login-form h1 {
+    font-size: 1.5rem; /* 24px */
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.875rem; /* 14px */
+}
+
+.input-group input[type="email"],
+.input-group input[type="text"],
+.input-group input[type="password"] {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Padding para el Ã­cono */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* Importante para el padding */
+    font-size: 1rem;
+}
+
+.input-group .input-icon {
+    position: absolute;
+    left: 10px;
+    top: 70%; /* Ajustar para centrar con el input */
+    transform: translateY(-50%);
+    color: #888;
+}
+
+/* Ajuste de Ã­conos para todos los campos */
+.input-group input[name="email"] + .input-icon,
+.input-group input[name="name"] + .input-icon,
+.input-group input[name="password"] + .input-icon,
+.input-group input[name="password_confirmation"] + .input-icon {
+    top: calc(50% + 10px); /* Ajuste especÃ­fico */
+}
+
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem; /* 14px */
+}
+
+.login-options .form-check {
+    display: flex;
+    align-items: center;
+}
+
+.login-options .form-check-label {
+    margin-left: 0.5rem;
+    color: #555;
+}
+
+.login-options .btn-link {
+    font-size: 0.875rem; /* 14px */
+    color: #ff0000;
+    text-decoration: none;
+}
+
+.login-options .btn-link:hover {
+    text-decoration: underline;
+}
+
+.login-button {
+    width: 100%;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff0000; /* Color azul primario */
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+    background-color: #b30000; /* Azul mÃ¡s oscuro */
+}
+
+/* Estilos para mostrar errores de validaciÃ³n de Laravel */
+.invalid-feedback {
+    color: #dc3545; /* Rojo */
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+/* Estilo para el enlace de "Ya tienes cuenta?" */
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.register-link .btn-link {
+    font-size: 0.9rem;
+    color: #000000;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link .btn-link:hover {
+    text-decoration: underline;
+}
+
