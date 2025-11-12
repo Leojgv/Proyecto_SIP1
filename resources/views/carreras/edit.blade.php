@@ -24,11 +24,6 @@
             @error('jornada')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="facultad" class="form-label">Facultad</label>
-            <input type="text" id="facultad" name="facultad" value="{{ old('facultad', $carrera->facultad) }}" class="form-control @error('facultad') is-invalid @enderror">
-            @error('facultad')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
             <label for="grado" class="form-label">Grado</label>
             <input type="text" id="grado" name="grado" value="{{ old('grado', $carrera->grado) }}" class="form-control @error('grado') is-invalid @enderror">
             @error('grado')<div class="invalid-feedback">{{ $message }}</div>@enderror

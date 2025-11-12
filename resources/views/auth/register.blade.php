@@ -15,7 +15,7 @@
     <!-- Font Awesome para los íconos (tu proyecto ya lo incluye vía adminlte) -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
 </head>
-<body>
+<body class="auth-page" style="--auth-bg: url('{{ asset('images/auth/background.jpg') }}');">
     <div class="login-container">
         <!-- Lado del Formulario -->
         <div class="login-form-wrapper">

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Carreras')
 
@@ -20,30 +20,19 @@
           <tr>
             <th>Nombre</th>
             <th>Jornada</th>
-            <th>Facultad</th>
             <th>Grado</th>
-            <th class="text-end">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @forelse($carreras as $carrera)
             <tr>
               <td>{{ $carrera->nombre }}</td>
-              <td>{{ $carrera->jornada ?? '—' }}</td>
-              <td>{{ $carrera->facultad ?? '—' }}</td>
-              <td>{{ $carrera->grado ?? '—' }}</td>
-              <td class="text-end">
-                <a href="{{ route('carreras.edit', $carrera) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                <form action="{{ route('carreras.destroy', $carrera) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas eliminar esta carrera?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                </form>
-              </td>
+              <td>{{ $carrera->jornada ?? '�"' }}</td>
+              <td>{{ $carrera->grado ?? '�"' }}</td>
             </tr>
           @empty
             <tr>
-              <td colspan="5" class="text-center py-4">No hay carreras registradas.</td>
+              <td colspan="3" class="text-center py-4">No hay carreras registradas.</td>
             </tr>
           @endforelse
         </tbody>

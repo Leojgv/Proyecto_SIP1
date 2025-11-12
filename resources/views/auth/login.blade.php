@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom-login.css') }}">
 </head>
-<body>
+<body class="auth-page" style="--auth-bg: url('{{ asset('images/auth/background.jpg') }}');">
     <div class="login-container">
         <div class="login-form-wrapper">
             <div class="login-form">

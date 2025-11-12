@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Nueva asignatura')
 
@@ -38,7 +38,7 @@
             @error('carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">
-            <label for="docente_id" class="form-label">Docente responsable</label>
+            <label for="docente_id" class="form-label">Asesora tecnica pedagogica</label>
             <select id="docente_id" name="docente_id" class="form-select @error('docente_id') is-invalid @enderror">
               <option value="">Sin asignar</option>
               @foreach($docentes as $docente)
@@ -57,3 +57,4 @@
   </div>
 </div>
 @endsection
+

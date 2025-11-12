@@ -38,5 +38,24 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="{{ asset('dist/js/adminlte.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const body = document.body;
+    const toggleButton = document.querySelector('[data-sidebar-toggle]');
+    const storageKey = 'sidebar-collapsed';
+
+    if (localStorage.getItem(storageKey) === 'true') {
+      body.classList.add('sidebar-collapse');
+    }
+
+    if (toggleButton) {
+      toggleButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        body.classList.toggle('sidebar-collapse');
+        localStorage.setItem(storageKey, body.classList.contains('sidebar-collapse'));
+      });
+    }
+  });
+</script>
 </body>
 </html>

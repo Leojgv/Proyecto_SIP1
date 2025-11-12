@@ -1,11 +1,4 @@
-<nav class="main-header navbar navbar-expand navbar-white navbar-light">
-  <!-- Botón Sidebar -->
-  <ul class="navbar-nav">
-    <li class="nav-item">
-      <a class="nav-link" data-lte-toggle="sidebar" href="#"><i class="fas fa-bars"></i></a>
-    </li>
-  </ul>
-
+﻿<nav class="main-header navbar navbar-expand navbar-white navbar-light">
   <!-- Links a la derecha -->
   <ul class="navbar-nav ms-auto">
     <li class="nav-item">

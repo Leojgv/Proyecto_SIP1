@@ -9,13 +9,9 @@
 @section('content')
 <div class="container-fluid">
   <div class="row align-items-center mb-4">
-    <div class="col-lg-8">
+    <div class="col-12">
       <h1 class="h3 mb-1">Mi Dashboard</h1>
       <p class="text-muted mb-0">Gestiona tus solicitudes y ajustes académicos de forma centralizada.</p>
-    </div>
-    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-      <span class="badge bg-light text-dark me-2"><i class="fas fa-calendar-day me-1"></i>{{ $hoy->translatedFormat('d \d\e F, Y') }}</span>
-      <span class="badge bg-light text-dark"><i class="fas fa-user-graduate me-1"></i>{{ $estudiante->nombre }} {{ $estudiante->apellido }}</span>
     </div>
   </div>
 
@@ -108,7 +104,7 @@
                     {{ \Illuminate\Support\Str::title($solicitud->estado ?? 'pendiente') }}
                   </h6>
                   @if ($solicitud->asesor)
-                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesor: {{ $solicitud->asesor->nombre_completo }}</small>
+                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesora pedagógica: {{ $solicitud->asesor->nombre_completo }}</small>
                   @endif
                   @if ($solicitud->director)
                     <small class="text-muted d-block"><i class="fas fa-user-shield me-1"></i>Director: {{ $solicitud->director->nombre }}</small>

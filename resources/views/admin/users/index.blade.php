@@ -158,7 +158,7 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-xxl-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-primary"><i class="fas fa-users"></i></span>
@@ -169,7 +169,7 @@
         </div>
       </div>
     </div>
-    <div class="col-xxl-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-success"><i class="fas fa-user-check"></i></span>
@@ -180,24 +180,13 @@
         </div>
       </div>
     </div>
-    <div class="col-xxl-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-danger"><i class="fas fa-shield-halved"></i></span>
           <div>
             <p class="text-muted mb-0 small">Administradores</p>
             <h4 class="mb-0">{{ number_format($stats['administradores']) }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xxl-3 col-md-6">
-      <div class="stat-card shadow-sm">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-card__icon bg-secondary"><i class="fas fa-crown"></i></span>
-          <div>
-            <p class="text-muted mb-0 small">Superusuarios</p>
-            <h4 class="mb-0">{{ number_format($stats['superusuarios']) }}</h4>
           </div>
         </div>
       </div>
@@ -272,9 +261,6 @@
                     </td>
                     <td>
                       <span class="badge-outline">{{ $usuario->rol->nombre ?? 'Sin rol' }}</span>
-                      @if ($usuario->superuser)
-                        <span class="badge rounded-pill bg-danger ms-1">Superuser</span>
-                      @endif
                     </td>
                     <td>{{ $ultimoAcceso ?? 'N/D' }}</td>
                     <td class="text-end">

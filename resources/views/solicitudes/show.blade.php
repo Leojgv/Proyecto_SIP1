@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detalle de solicitud')
 
@@ -13,21 +13,25 @@
     <div class="card-body">
       <dl class="row mb-0">
         <dt class="col-sm-3">Estudiante</dt>
-        <dd class="col-sm-9">{{ $solicitud->estudiante->nombre ?? '—' }} {{ $solicitud->estudiante->apellido ?? '' }}</dd>
+        <dd class="col-sm-9">{{ $solicitud->estudiante->nombre ?? 'â€”' }} {{ $solicitud->estudiante->apellido ?? '' }}</dd>
 
-        <dt class="col-sm-3">Asesor pedagógico</dt>
-        <dd class="col-sm-9">{{ optional($solicitud->asesor)->nombre ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : '—' }}</dd>
+        <dt class="col-sm-3">Asesora pedagogica</dt>
+        <dd class="col-sm-9">{{ optional($solicitud->asesor)->nombre ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : 'â€”' }}</dd>
 
         <dt class="col-sm-3">Director de carrera</dt>
-        <dd class="col-sm-9">{{ optional($solicitud->director)->nombre ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : '—' }}</dd>
+        <dd class="col-sm-9">{{ optional($solicitud->director)->nombre ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'â€”' }}</dd>
 
         <dt class="col-sm-3">Estado</dt>
-        <dd class="col-sm-9">{{ $solicitud->estado ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $solicitud->estado ?? 'â€”' }}</dd>
 
-        <dt class="col-sm-3">Descripción</dt>
-        <dd class="col-sm-9">{{ $solicitud->descripcion ?? '—' }}</dd>
+        <dt class="col-sm-3">DescripciÃ³n</dt>
+        <dd class="col-sm-9">{{ $solicitud->descripcion ?? 'â€”' }}</dd>
       </dl>
     </div>
   </div>
 </div>
 @endsection
+
+
+
+

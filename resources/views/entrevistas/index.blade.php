@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Entrevistas')
 
@@ -20,7 +20,7 @@
           <tr>
             <th>Fecha</th>
             <th>Solicitud</th>
-            <th>Asesor</th>
+            <th>Asesora pedagógica</th>
             <th>Observaciones</th>
             <th class="text-end">Acciones</th>
           </tr>
@@ -29,12 +29,12 @@
           @forelse($entrevistas as $entrevista)
             <tr>
               <td>{{ $entrevista->fecha?->format('d/m/Y') }}</td>
-              <td>{{ $entrevista->solicitud->estudiante->nombre ?? '—' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</td>
-              <td>{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : '—' }}</td>
-              <td>{{ $entrevista->observaciones ? \Illuminate\Support\Str::limit($entrevista->observaciones, 40) : '—' }}</td>
+              <td>{{ $entrevista->solicitud->estudiante->nombre ?? 'â€”' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</td>
+              <td>{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : 'â€”' }}</td>
+              <td>{{ $entrevista->observaciones ? \Illuminate\Support\Str::limit($entrevista->observaciones, 40) : 'â€”' }}</td>
               <td class="text-end">
                 <a href="{{ route('entrevistas.edit', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                <form action="{{ route('entrevistas.destroy', $entrevista) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas eliminar esta entrevista?');">
+                <form action="{{ route('entrevistas.destroy', $entrevista) }}" method="POST" class="d-inline" onsubmit="return confirm('Â¿Deseas eliminar esta entrevista?');">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
@@ -52,3 +52,4 @@
   </div>
 </div>
 @endsection
+

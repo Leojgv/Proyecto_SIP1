@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Nueva entrevista')
 
@@ -30,9 +30,9 @@
             @error('solicitud_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">
-            <label for="asesor_id" class="form-label">Asesor pedagógico</label>
+            <label for="asesor_id" class="form-label">Asesora pedagogica</label>
             <select id="asesor_id" name="asesor_id" class="form-select @error('asesor_id') is-invalid @enderror" required>
-              <option value="">Selecciona un asesor</option>
+              <option value="">Selecciona una asesora</option>
               @foreach($asesores as $asesor)
                 <option value="{{ $asesor->id }}" @selected(old('asesor_id') == $asesor->id)>{{ $asesor->nombre }} {{ $asesor->apellido }}</option>
               @endforeach
@@ -54,3 +54,6 @@
   </div>
 </div>
 @endsection
+
+
+

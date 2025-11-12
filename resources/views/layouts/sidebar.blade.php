@@ -6,9 +6,15 @@
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <!-- Menú -->
+    <!-- Menu -->
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-sidebar-toggle title="Contraer/expandir menu">
+            <i class="nav-icon fas fa-angles-left"></i>
+            <p>Contraer menu</p>
+          </a>
+        </li>
         <li class="nav-item">
           <a href="{{ route('home') }}" class="nav-link">
             <i class="nav-icon fas fa-home"></i>
@@ -29,6 +35,15 @@
             <p>Dashboard Admin</p>
           </a>
         </li>
+
+        @if(auth()->user()?->rol?->nombre === 'Coordinadora de inclusion' || auth()->user()?->superuser)
+        <li class="nav-item">
+          <a href="{{ route('coordinadora.dashboard') }}" class="nav-link">
+            <i class="nav-icon fas fa-hand-holding-heart"></i>
+            <p>Dashboard Coordinadora</p>
+          </a>
+        </li>
+        @endif
         
         <li class="nav-item">
           <a href="{{ route('estudiantes.index') }}" class="nav-link">

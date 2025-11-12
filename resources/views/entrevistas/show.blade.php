@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detalle de entrevista')
 
@@ -15,7 +15,7 @@
         <dt class="col-sm-3">Estudiante</dt>
         <dd class="col-sm-9">{{ $entrevista->solicitud->estudiante->nombre ?? '—' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</dd>
 
-        <dt class="col-sm-3">Asesor</dt>
+        <dt class="col-sm-3">Asesora pedagogica</dt>
         <dd class="col-sm-9">{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : '—' }}</dd>
 
         <dt class="col-sm-3">Observaciones</dt>
@@ -25,3 +25,4 @@
   </div>
 </div>
 @endsection
+

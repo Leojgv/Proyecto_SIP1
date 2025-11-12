@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Asignaturas')
 
@@ -22,7 +22,7 @@
             <th>Tipo</th>
             <th>Estado</th>
             <th>Carrera</th>
-            <th>Docente responsable</th>
+            <th>Asesora tecnica pedagogica</th>
             <th class="text-end">Acciones</th>
           </tr>
         </thead>
@@ -30,13 +30,13 @@
           @forelse($asignaturas as $asignatura)
             <tr>
               <td>{{ $asignatura->nombre }}</td>
-              <td>{{ $asignatura->tipo ?? '—' }}</td>
-              <td>{{ $asignatura->estado ?? '—' }}</td>
-              <td>{{ $asignatura->carrera->nombre ?? '—' }}</td>
-              <td>{{ optional($asignatura->docente)->nombre ? $asignatura->docente->nombre . ' ' . $asignatura->docente->apellido : '—' }}</td>
+              <td>{{ $asignatura->tipo ?? 'â€”' }}</td>
+              <td>{{ $asignatura->estado ?? 'â€”' }}</td>
+              <td>{{ $asignatura->carrera->nombre ?? 'â€”' }}</td>
+              <td>{{ optional($asignatura->docente)->nombre ? $asignatura->docente->nombre . ' ' . $asignatura->docente->apellido : 'â€”' }}</td>
               <td class="text-end">
                 <a href="{{ route('asignaturas.edit', $asignatura) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                <form action="{{ route('asignaturas.destroy', $asignatura) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas eliminar esta asignatura?');">
+                <form action="{{ route('asignaturas.destroy', $asignatura) }}" method="POST" class="d-inline" onsubmit="return confirm('Â¿Deseas eliminar esta asignatura?');">
                   @csrf
                   @method('DELETE')
                   <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
@@ -54,3 +54,4 @@
   </div>
 </div>
 @endsection
+

@@ -9,17 +9,9 @@
 @section('content')
   <div class="container-fluid">
     <div class="row align-items-center mb-4">
-      <div class="col-lg-8">
+      <div class="col-12">
         <h1 class="h3 mb-1">Dashboard Administrador</h1>
         <p class="text-muted mb-0">Resumen del sistema y accesos rápidos para la gestión institucional.</p>
-      </div>
-      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-        <span class="badge bg-light text-dark me-2">
-          <i class="fas fa-calendar-day me-1"></i>{{ $hoy->translatedFormat('d \\d\\e F, Y') }}
-        </span>
-        <span class="badge bg-light text-dark">
-          <i class="fas fa-user-shield me-1"></i>{{ $adminUser ? trim(($adminUser->nombre ?? '') . ' ' . ($adminUser->apellido ?? '')) : 'Administrador' }}
-        </span>
       </div>
     </div>
 

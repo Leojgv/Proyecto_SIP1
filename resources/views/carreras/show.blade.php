@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detalle de carrera')
 
@@ -13,13 +13,11 @@
     <div class="card-body">
       <dl class="row mb-0">
         <dt class="col-sm-3">Jornada</dt>
-        <dd class="col-sm-9">{{ $carrera->jornada ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $carrera->jornada ?? 'â€”' }}</dd>
 
-        <dt class="col-sm-3">Facultad</dt>
-        <dd class="col-sm-9">{{ $carrera->facultad ?? '—' }}</dd>
 
         <dt class="col-sm-3">Grado</dt>
-        <dd class="col-sm-9">{{ $carrera->grado ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $carrera->grado ?? 'â€”' }}</dd>
 
         <dt class="col-sm-3">Creada</dt>
         <dd class="col-sm-9">{{ $carrera->created_at?->format('d/m/Y H:i') }}</dd>

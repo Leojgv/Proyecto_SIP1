@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Detalle de asignatura')
 
@@ -13,18 +13,19 @@
     <div class="card-body">
       <dl class="row mb-0">
         <dt class="col-sm-3">Tipo</dt>
-        <dd class="col-sm-9">{{ $asignatura->tipo ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $asignatura->tipo ?? 'â€”' }}</dd>
 
         <dt class="col-sm-3">Estado</dt>
-        <dd class="col-sm-9">{{ $asignatura->estado ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $asignatura->estado ?? 'â€”' }}</dd>
 
         <dt class="col-sm-3">Carrera</dt>
-        <dd class="col-sm-9">{{ $asignatura->carrera->nombre ?? '—' }}</dd>
+        <dd class="col-sm-9">{{ $asignatura->carrera->nombre ?? 'â€”' }}</dd>
 
-        <dt class="col-sm-3">Docente responsable</dt>
-        <dd class="col-sm-9">{{ optional($asignatura->docente)->nombre ? $asignatura->docente->nombre . ' ' . $asignatura->docente->apellido : '—' }}</dd>
+        <dt class="col-sm-3">Asesora tecnica pedagogica</dt>
+        <dd class="col-sm-9">{{ optional($asignatura->docente)->nombre ? $asignatura->docente->nombre . ' ' . $asignatura->docente->apellido : 'â€”' }}</dd>
       </dl>
     </div>
   </div>
 </div>
 @endsection
+

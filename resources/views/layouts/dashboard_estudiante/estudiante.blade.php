@@ -102,6 +102,21 @@
       border-bottom: 1px solid #e5e7eb;
       padding: 1rem 1.5rem;
     }
+    .student-topbar__info {
+      color: #6b6c7f;
+      font-size: .95rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .student-topbar__info span {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .student-topbar__info i {
+      color: var(--tone-600);
+    }
     .student-topbar .topbar-icon {
       color: var(--tone-600);
       font-size: 1.25rem;
@@ -188,6 +203,10 @@
   <main class="student-main">
     <header class="student-topbar">
       <div class="container-fluid d-flex justify-content-end align-items-center gap-3">
+        <div class="student-topbar__info">
+          <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
+          <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
+        </div>
         <a class="text-decoration-none topbar-icon" href="{{ route('logout') }}"
            onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Salir">
           <i class="fas fa-right-from-bracket"></i>
