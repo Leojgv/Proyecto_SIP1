@@ -78,7 +78,7 @@ class AsignaturaController extends Controller
 
     private function docentes()
     {
-        return User::withRole('Docente')
+        return User::withRole('Asesora Tecnica Pedagogica')
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->get();

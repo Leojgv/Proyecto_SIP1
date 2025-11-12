@@ -78,7 +78,7 @@ class EntrevistaController extends Controller
 
     private function asesores()
     {
-        return User::withRole('Asesor')
+        return User::withRole('Asesora Pedagogica')
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->get();

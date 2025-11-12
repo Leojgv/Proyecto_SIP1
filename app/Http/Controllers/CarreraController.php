@@ -33,7 +33,6 @@ class CarreraController extends Controller
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'jornada' => ['nullable', 'string', 'max:255'],
-            'facultad' => ['nullable', 'string', 'max:255'],
             'grado' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -66,7 +65,6 @@ class CarreraController extends Controller
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'jornada' => ['nullable', 'string', 'max:255'],
-            'facultad' => ['nullable', 'string', 'max:255'],
             'grado' => ['nullable', 'string', 'max:255'],
         ]);
 

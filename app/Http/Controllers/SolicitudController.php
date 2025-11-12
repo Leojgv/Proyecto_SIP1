@@ -21,8 +21,8 @@ class SolicitudController extends Controller
     public function create()
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
-        $asesores = $this->usuariosPorRol('Asesor');
-        $directores = $this->usuariosPorRol('Director de Carrera');
+        $asesores = $this->usuariosPorRol('Asesora Pedagogica');
+        $directores = $this->usuariosPorRol('Director de carrera');
 
         return view('solicitudes.create', compact('estudiantes', 'asesores', 'directores'));
     }
@@ -53,8 +53,8 @@ class SolicitudController extends Controller
     public function edit(Solicitud $solicitud)
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
-        $asesores = $this->usuariosPorRol('Asesor');
-        $directores = $this->usuariosPorRol('Director de Carrera');
+        $asesores = $this->usuariosPorRol('Asesora Pedagogica');
+        $directores = $this->usuariosPorRol('Director de carrera');
 
         return view('solicitudes.edit', compact('solicitud', 'estudiantes', 'asesores', 'directores'));
     }
