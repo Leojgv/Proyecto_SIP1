@@ -11,10 +11,11 @@ class RolSeeder extends Seeder
     {
         $roles = [
             ['nombre' => 'Admin', 'descripcion' => 'Administrador del sistema'],
+            ['nombre' => 'Asesora Pedagogica', 'descripcion' => 'Acompaña los procesos pedagógicos'],
+            ['nombre' => 'Asesora Tecnica Pedagogica', 'descripcion' => 'Especialista en apoyo técnico pedagógico'],
+            ['nombre' => 'Coordinadora de inclusion', 'descripcion' => 'Responsable de la inclusión educativa'],
+            ['nombre' => 'Director de carrera', 'descripcion' => 'Director responsable de la carrera'],
             ['nombre' => 'Estudiante', 'descripcion' => 'Usuario estudiante'],
-            ['nombre' => 'Asesor', 'descripcion' => 'Asesor pedagogico'],
-            ['nombre' => 'Docente', 'descripcion' => 'Profesor de asignaturas'],
-            ['nombre' => 'Director de Carrera', 'descripcion' => 'Director responsable de la carrera'],
         ];
 
         foreach ($roles as $rol) {
