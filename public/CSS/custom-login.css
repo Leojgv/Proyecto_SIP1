@@ -6,6 +6,26 @@ body, html {
     overflow: hidden; /* Evita el scroll en la página de login */
 }
 
+body.auth-page {
+    min-height: 100vh;
+    background-color: #0d0f14;
+    background-image: var(--auth-bg, url('/images/auth/background.jpg'));
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+
+body.auth-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 15, 20, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 0;
+}
+
 .login-container {
     display: flex;
     height: 100vh;
@@ -15,7 +35,8 @@ body, html {
     align-items: center;
     padding: 1.5rem; 
     box-sizing: border-box;
-    position: relative; 
+    position: relative;
+    z-index: 1;
 }
 
 .login-background {
@@ -29,12 +50,12 @@ body, html {
 .login-form-wrapper {
     /* NUEVO: Estilo de tarjeta centrada */
     width: 100%; /* Ancho completo hasta el max-width */
-    max-width: 440px; /* Ancho máximo del formulario */
+    max-width: 440px; /* Ancho mÃ¡ximo del formulario */
     background-color: #ffffff;
     padding: 2.5rem;
     border-radius: 8px; /* Bordes redondeados */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra */
-    position: relative; /* Para que esté sobre el fondo */
+    position: relative; /* Para que estÃ© sobre el fondo */
     z-index: 10;
     overflow-y: auto; /* Mantener por si el formulario es largo */
 }
@@ -71,7 +92,7 @@ body, html {
 .input-group input[type="text"],
 .input-group input[type="password"] {
     width: 100%;
-    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Padding para el ícono */
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Padding para el Ã­cono */
     border: 1px solid #ddd;
     border-radius: 5px;
     box-sizing: border-box; /* Importante para el padding */
@@ -86,12 +107,12 @@ body, html {
     color: #888;
 }
 
-/* Ajuste de íconos para todos los campos */
+/* Ajuste de Ã­conos para todos los campos */
 .input-group input[name="email"] + .input-icon,
 .input-group input[name="name"] + .input-icon,
 .input-group input[name="password"] + .input-icon,
 .input-group input[name="password_confirmation"] + .input-icon {
-    top: calc(50% + 10px); /* Ajuste específico */
+    top: calc(50% + 10px); /* Ajuste especÃ­fico */
 }
 
 
@@ -138,10 +159,10 @@ body, html {
 }
 
 .login-button:hover {
-    background-color: #b30000; /* Azul más oscuro */
+    background-color: #b30000; /* Azul mÃ¡s oscuro */
 }
 
-/* Estilos para mostrar errores de validación de Laravel */
+/* Estilos para mostrar errores de validaciÃ³n de Laravel */
 .invalid-feedback {
     color: #dc3545; /* Rojo */
     font-size: 0.875rem;
