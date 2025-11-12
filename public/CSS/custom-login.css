@@ -11,7 +11,7 @@ body.auth-page {
     background-color: #0d0f14;
     background-image: var(--auth-bg, url('/images/auth/background.jpg'));
     background-size: cover;
-    background-position: center;
+    background-position: contain;
     background-repeat: no-repeat;
     background-attachment: fixed;
     position: relative;
@@ -21,8 +21,6 @@ body.auth-page::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(13, 15, 20, 0.35);
-    backdrop-filter: blur(2px);
     z-index: 0;
 }
 
