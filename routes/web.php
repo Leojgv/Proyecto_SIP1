@@ -13,6 +13,7 @@ use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Dashboard\AsesoraTecnicaDashboardController;
 use App\Http\Controllers\Dashboard\CoordinadoraDashboardController;
 use App\Http\Controllers\Dashboard\CoordinadoraEstudianteController;
 use App\Http\Controllers\Dashboard\EstudianteDashboardController;
@@ -72,5 +73,10 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
     Route::middleware('role:Coordinadora de inclusion')->group(function () {
         Route::get('coordinadora/dashboard', [CoordinadoraDashboardController::class, 'show'])->name('coordinadora.dashboard');
         Route::get('coordinadora/estudiantes', [CoordinadoraEstudianteController::class, 'index'])->name('coordinadora.estudiantes');
+    });
+
+    Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
+        Route::get('asesora-tecnica/dashboard', [AsesoraTecnicaDashboardController::class, 'show'])
+            ->name('asesora-tecnica.dashboard');
     });
 });
