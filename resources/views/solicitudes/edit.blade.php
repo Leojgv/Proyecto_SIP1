@@ -18,9 +18,17 @@
             <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="{{ old('fecha_solicitud', optional($solicitud->fecha_solicitud)->format('Y-m-d')) }}" class="form-control @error('fecha_solicitud') is-invalid @enderror" required>
             @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
+          @php
+            $estadoOptions = ['Pendiente', 'En proceso', 'Terminado'];
+          @endphp
           <div class="col-md-4">
             <label for="estado" class="form-label">Estado</label>
-            <input type="text" id="estado" name="estado" value="{{ old('estado', $solicitud->estado) }}" class="form-control @error('estado') is-invalid @enderror">
+            <select id="estado" name="estado" class="form-select @error('estado') is-invalid @enderror">
+              <option value="">Selecciona un estado</option>
+              @foreach ($estadoOptions as $estadoOption)
+                <option value="{{ $estadoOption }}" @selected(old('estado', $solicitud->estado ?? 'Pendiente') === $estadoOption)>{{ $estadoOption }}</option>
+              @endforeach
+            </select>
             @error('estado')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-4">

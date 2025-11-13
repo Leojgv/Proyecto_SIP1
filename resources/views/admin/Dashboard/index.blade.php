@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-  <div class="container-fluid">
+  <div class="container-fluid dashboard-shell">
     <div class="row align-items-center mb-4">
       <div class="col-12">
         <h1 class="h3 mb-1">Dashboard Administrador</h1>
