@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Estudiante;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 
 class CoordinadoraEstudianteController extends Controller
@@ -17,32 +18,48 @@ class CoordinadoraEstudianteController extends Controller
             ->whereMonth('created_at', Carbon::now()->month)
             ->count();
 
-        $estudiantes = Estudiante::with(['carrera', 'solicitudes'])
+        $estudiantesCollection = Estudiante::with(['carrera', 'solicitudes'])
             ->orderBy('nombre')
             ->orderBy('apellido')
-            ->get()
-            ->map(function ($estudiante) {
-                $casosActivos = $estudiante->solicitudes->count();
-                return [
-                    'nombre' => $estudiante->nombre,
-                    'apellido' => $estudiante->apellido,
-                    'rut' => $estudiante->rut,
-                    'email' => $estudiante->email,
-                    'carrera' => $estudiante->carrera?->nombre,
-                    'semestre' => '—',
-                    'tipo_discapacidad' => 'No definido',
-                    'estado' => $casosActivos > 0 ? 'Activo' : 'Sin casos',
-                    'casos' => $casosActivos,
-                    'id' => $estudiante->id,
-                ];
-            });
+            ->get();
+
+        $estudiantes = $estudiantesCollection->map(function ($estudiante) {
+            $casosActivos = $estudiante->solicitudes->count();
+
+            return [
+                'nombre' => $estudiante->nombre,
+                'apellido' => $estudiante->apellido,
+                'rut' => $estudiante->rut,
+                'email' => $estudiante->email,
+                'carrera' => $estudiante->carrera?->nombre,
+                'semestre' => '-',
+                'tipo_discapacidad' => 'No definido',
+                'estado' => $casosActivos > 0 ? 'Activo' : 'Sin casos',
+                'casos' => $casosActivos,
+                'id' => $estudiante->id,
+            ];
+        });
+
+        $estudiantesOptions = $estudiantesCollection;
+        $asesores = User::withRole('Asesora Pedagogica')
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
+        $directores = User::withRole('Director de carrera')
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
 
         return view('coordinadora.estudiantes.index', compact(
             'total',
             'activos',
             'conCasos',
             'nuevosMes',
-            'estudiantes'
+            'estudiantes',
+            'estudiantesOptions',
+            'asesores',
+            'directores'
         ));
     }
 }
+

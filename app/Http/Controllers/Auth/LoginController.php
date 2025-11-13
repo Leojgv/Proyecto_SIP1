@@ -71,6 +71,18 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($roleNames->contains('coordinadora de inclusion')) {
+            return redirect()->route('coordinadora.dashboard');
+        }
+
+        if ($roleNames->contains('asesora pedagogica')) {
+            return redirect()->route('asesora.dashboard');
+        }
+
+        if ($roleNames->contains('asesora tecnica pedagogica')) {
+            return redirect()->route('asesora-tecnica.dashboard');
+        }
+
         return redirect()->intended($this->redirectPath());
     }
 }
