@@ -41,38 +41,6 @@
     </div>
   </div>
 
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <h5 class="card-title mb-3">Acciones rapidas</h5>
-      <div class="row g-3">
-        <div class="col-md-3">
-          <a href="{{ route('admin.users.index') }}" class="quick-link">
-            <span>Gestion de Usuarios</span>
-            <small>Administra permisos y cuentas</small>
-          </a>
-        </div>
-        <div class="col-md-3">
-          <a href="{{ route('estudiantes.create') }}" class="quick-link">
-            <span>Nuevo Estudiante</span>
-            <small>Registrar nuevo estudiante</small>
-          </a>
-        </div>
-        <div class="col-md-3">
-          <a href="{{ route('entrevistas.index') }}" class="quick-link">
-            <span>Ver Reportes</span>
-            <small>Ultimos casos y metricas</small>
-          </a>
-        </div>
-        <div class="col-md-3">
-          <a href="{{ route('home') }}" class="quick-link">
-            <span>Configuracion</span>
-            <small>Catalogos y carreras</small>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="row g-4 mb-4">
     <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">

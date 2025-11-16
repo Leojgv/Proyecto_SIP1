@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Estudiantes')
 
@@ -8,7 +8,6 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">Estudiantes</h1>
-    <a href="{{ route('estudiantes.create') }}" class="btn btn-primary">Nuevo estudiante</a>
   </div>
 
   <div class="card">
@@ -20,7 +19,7 @@
             <th scope="col">Nombre</th>
             <th scope="col">Apellido</th>
             <th scope="col">Correo</th>
-            <th scope="col">Teléfono</th>
+            <th scope="col">TelÃ©fono</th>
             <th scope="col">Carrera</th>
             <th scope="col" class="text-end">Acciones</th>
           </tr>
@@ -57,3 +56,4 @@
   </div>
 </div>
 @endsection
+

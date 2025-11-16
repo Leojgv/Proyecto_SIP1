@@ -12,7 +12,6 @@
       <h1 class="h4 mb-1">Gestion de Estudiantes</h1>
       <p class="text-muted mb-0">Registra y gestiona informacion de estudiantes con necesidades especiales.</p>
     </div>
-    <a href="{{ route('estudiantes.create') }}" class="btn btn-danger"><i class="fas fa-user-plus me-2"></i>Registrar Estudiante</a>
   </div>
 
   <div class="row g-3 mb-4">
