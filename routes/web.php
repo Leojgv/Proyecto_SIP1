@@ -13,9 +13,18 @@ use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Dashboard\AsesoraPedagogicaDashboardController;
 use App\Http\Controllers\Dashboard\AsesoraTecnicaDashboardController;
+use App\Http\Controllers\Dashboard\AsesoraTecnicaAjusteController;
+use App\Http\Controllers\Dashboard\AsesoraTecnicaCasoController;
+use App\Http\Controllers\Dashboard\AsesoraTecnicaEntrevistaController;
+use App\Http\Controllers\Dashboard\AsesoraTecnicaEstudianteController;
 use App\Http\Controllers\Dashboard\CoordinadoraDashboardController;
 use App\Http\Controllers\Dashboard\CoordinadoraEstudianteController;
+use App\Http\Controllers\Dashboard\CoordinadoraAgendaController;
+use App\Http\Controllers\Dashboard\CoordinadoraEntrevistaController;
+use App\Http\Controllers\Dashboard\DirectorCarreraDashboardController;
+use App\Http\Controllers\Dashboard\DocenteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteEntrevistaController;
 
@@ -25,6 +34,7 @@ $staffRoles = implode(',', [
     'Asesora Tecnica Pedagogica',
     'Coordinadora de inclusion',
     'Director de carrera',
+    'Docente',
 ]);
 
 Route::get('/', function () {
@@ -73,10 +83,41 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
     Route::middleware('role:Coordinadora de inclusion')->group(function () {
         Route::get('coordinadora/dashboard', [CoordinadoraDashboardController::class, 'show'])->name('coordinadora.dashboard');
         Route::get('coordinadora/estudiantes', [CoordinadoraEstudianteController::class, 'index'])->name('coordinadora.estudiantes');
+        Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
+        Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
+        Route::post('coordinadora/agenda/bloqueos', [CoordinadoraAgendaController::class, 'storeBloqueo'])->name('coordinadora.agenda.bloqueos.store');
+        Route::delete('coordinadora/agenda/bloqueos/{bloqueo}', [CoordinadoraAgendaController::class, 'destroyBloqueo'])->name('coordinadora.agenda.bloqueos.destroy');
+    });
+
+    Route::middleware('role:Director de carrera')->group(function () {
+        Route::get('director-carrera/dashboard', [DirectorCarreraDashboardController::class, 'show'])
+            ->name('director.dashboard');
+    });
+
+    Route::middleware('role:Asesora Pedagogica')->group(function () {
+        Route::get('asesora-pedagogica/dashboard', [AsesoraPedagogicaDashboardController::class, 'show'])
+            ->name('asesora-pedagogica.dashboard');
     });
 
     Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
         Route::get('asesora-tecnica/dashboard', [AsesoraTecnicaDashboardController::class, 'show'])
             ->name('asesora-tecnica.dashboard');
+        Route::get('asesora-tecnica/estudiantes', [AsesoraTecnicaEstudianteController::class, 'index'])
+            ->name('asesora-tecnica.estudiantes');
+        Route::get('asesora-tecnica/entrevistas', [AsesoraTecnicaEntrevistaController::class, 'index'])
+            ->name('asesora-tecnica.entrevistas.index');
+        Route::get('asesora-tecnica/casos', [AsesoraTecnicaCasoController::class, 'index'])
+            ->name('asesora-tecnica.casos.index');
+        Route::get('asesora-tecnica/ajustes/formular', [AsesoraTecnicaAjusteController::class, 'create'])
+            ->name('asesora-tecnica.ajustes.create');
+        Route::post('asesora-tecnica/ajustes', [AsesoraTecnicaAjusteController::class, 'store'])
+            ->name('asesora-tecnica.ajustes.store');
+    });
+
+    Route::middleware('role:Docente')->group(function () {
+        Route::get('docente/dashboard', [DocenteDashboardController::class, 'show'])
+            ->name('docente.dashboard');
+        Route::get('docente/estudiantes', [DocenteDashboardController::class, 'students'])
+            ->name('docente.estudiantes');
     });
 });

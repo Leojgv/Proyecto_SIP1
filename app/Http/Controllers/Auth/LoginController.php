@@ -76,11 +76,19 @@ class LoginController extends Controller
         }
 
         if ($roleNames->contains('asesora pedagogica')) {
-            return redirect()->route('asesora.dashboard');
+            return redirect()->route('asesora-pedagogica.dashboard');
         }
 
         if ($roleNames->contains('asesora tecnica pedagogica')) {
             return redirect()->route('asesora-tecnica.dashboard');
+        }
+
+        if ($roleNames->contains('docente')) {
+            return redirect()->route('docente.dashboard');
+        }
+
+        if ($roleNames->contains('director de carrera')) {
+            return redirect()->route('director.dashboard');
         }
 
         return redirect()->intended($this->redirectPath());
