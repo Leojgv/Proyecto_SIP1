@@ -12,10 +12,7 @@ class AsesoraTecnicaDashboardController extends Controller
 {
     public function show(Request $request)
     {
-        $user = $request->user();
-
-        $solicitudesBase = Solicitud::query()
-            ->when($user, fn ($query) => $query->where('asesor_id', $user->id));
+        $solicitudesBase = Solicitud::query();
 
         $casosPendientes = (clone $solicitudesBase)
             ->where(function ($query) {
@@ -29,11 +26,10 @@ class AsesoraTecnicaDashboardController extends Controller
             ->count();
 
         $casosCompletados = AjusteRazonable::query()
-            ->whereHas('solicitud', fn ($query) => $query->whereIn('estado', ['Completado', 'Cerrado'])
-                ->when($user, fn ($sub) => $sub->where('asesor_id', $user->id)))
+            ->whereHas('solicitud', fn ($query) => $query->whereIn('estado', ['Completado', 'Cerrado']))
             ->count();
 
-        $tiempoPromedioDias = $this->calcularTiempoPromedioRespuesta($user);
+        $tiempoPromedioDias = $this->calcularTiempoPromedioRespuesta(null);
 
         $metrics = [
             [
@@ -82,8 +78,6 @@ class AsesoraTecnicaDashboardController extends Controller
 
         $recentAdjustments = AjusteRazonable::query()
             ->with(['estudiante.carrera'])
-            ->whereHas('solicitud', fn ($query) => $query
-                ->when($user, fn ($sub) => $sub->where('asesor_id', $user->id)))
             ->latest('updated_at')
             ->take(3)
             ->get()
@@ -98,38 +92,10 @@ class AsesoraTecnicaDashboardController extends Controller
                 ];
             })->toArray();
 
-        $quickActions = [
-            [
-                'label' => 'Ver todos los casos',
-                'helper' => 'Gestiona el pipeline completo',
-                'icon' => 'fa-list-check',
-                'url' => route('solicitudes.index'),
-            ],
-            [
-                'label' => 'Historial de ajustes',
-                'helper' => 'Consulta ajustes enviados',
-                'icon' => 'fa-file-pen',
-                'url' => route('ajustes-razonables.index'),
-            ],
-            [
-                'label' => 'Nuevo ajuste',
-                'helper' => 'Registra un ajuste puntual',
-                'icon' => 'fa-circle-plus',
-                'url' => route('ajustes-razonables.create'),
-            ],
-            [
-                'label' => 'Notificaciones',
-                'helper' => 'Últimas alertas del sistema',
-                'icon' => 'fa-bell',
-                'url' => route('notificaciones.index'),
-            ],
-        ];
-
         return view('asesora tecnica.dashboard', [
             'metrics' => $metrics,
             'assignedCases' => $assignedCases,
             'recentAdjustments' => $recentAdjustments,
-            'quickActions' => $quickActions,
         ]);
     }
 
@@ -138,8 +104,7 @@ class AsesoraTecnicaDashboardController extends Controller
         $ajustes = AjusteRazonable::query()
             ->whereNotNull('fecha_solicitud')
             ->whereNotNull('fecha_inicio')
-            ->whereHas('solicitud', fn ($query) => $query
-                ->when($user, fn ($sub) => $sub->where('asesor_id', $user->id)))
+            ->whereHas('solicitud')
             ->get();
 
         if ($ajustes->isEmpty()) {
