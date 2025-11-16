@@ -12,6 +12,8 @@ class Entrevista extends Model
 
     protected $fillable = [
         'fecha',
+        'fecha_hora_inicio',
+        'fecha_hora_fin',
         'observaciones',
         'solicitud_id',
         'asesor_id',
@@ -19,6 +21,8 @@ class Entrevista extends Model
 
     protected $casts = [
         'fecha' => 'date',
+        'fecha_hora_inicio' => 'datetime',
+        'fecha_hora_fin' => 'datetime',
     ];
 
     public function solicitud(): BelongsTo
