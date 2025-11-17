@@ -43,7 +43,7 @@
               <h5 class="card-title mb-1">Casos pendientes de aprobacion</h5>
               <small class="text-muted">Solicitudes que requieren tu decision para continuar.</small>
             </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-outline-danger btn-sm">Ver todos los casos</a>
+            <a href="{{ route('director.casos') }}" class="btn btn-outline-danger btn-sm">Ver todos los casos</a>
           </div>
           @forelse ($pendingCases as $case)
             <div class="case-card">
@@ -73,7 +73,10 @@
                 </div>
               </div>
               <div class="case-card__actions">
-                <a href="{{ $case['approve_url'] }}" class="btn btn-danger btn-sm">Aprobar</a>
+                <form action="{{ $case['approve_url'] }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-danger btn-sm">Aprobar</button>
+                </form>
                 <a href="{{ $case['reject_url'] }}" class="btn btn-outline-danger btn-sm">Rechazar</a>
                 <a href="{{ $case['detail_url'] }}" class="btn btn-link btn-sm text-decoration-none">Ver detalles</a>
               </div>

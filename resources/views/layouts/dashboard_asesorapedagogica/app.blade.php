@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>@yield('title', 'Panel Asesora Pedagogica')</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg?v=2') }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico?v=2') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -129,8 +131,8 @@
     <div class="dashboard-sidebar__brand"><i class="fas fa-book-open-reader"></i>Panel Asesora Pedagogica</div>
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.dashboard') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('estudiantes.*') ? 'active' : '' }}" href="{{ route('estudiantes.index') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('solicitudes.*') ? 'active' : '' }}" href="{{ route('solicitudes.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.estudiantes') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.casos.index') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('ajustes-razonables.*') ? 'active' : '' }}" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="dashboard-sidebar__link" href="{{ route('home') }}"><i class="fas fa-cog"></i>Configuracion</a>

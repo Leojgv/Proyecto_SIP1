@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>@yield('title', 'Panel Director de Carrera')</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg?v=2') }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico?v=2') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -128,8 +130,8 @@
     <div class="dashboard-sidebar__brand"><i class="fas fa-user-tie"></i>Director de Carrera</div>
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.dashboard') ? 'active' : '' }}" href="{{ route('director.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
-      <a class="dashboard-sidebar__link" href="{{ route('solicitudes.index') }}"><i class="fas fa-folder-open"></i>Casos</a>
-      <a class="dashboard-sidebar__link" href="{{ route('estudiantes.index') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('director.casos') ? 'active' : '' }}" href="{{ route('director.casos') }}"><i class="fas fa-folder-open"></i>Casos</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('director.estudiantes') ? 'active' : '' }}" href="{{ route('director.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
       <a class="dashboard-sidebar__link" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="dashboard-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="dashboard-sidebar__link" href="{{ route('home') }}"><i class="fas fa-gear"></i>Configuracion</a>

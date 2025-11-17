@@ -131,7 +131,7 @@
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.estudiantes') ? 'active' : '' }}" href="{{ route('coordinadora.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.agenda.*') ? 'active' : '' }}" href="{{ route('coordinadora.agenda.index') }}"><i class="fas fa-calendar-check"></i>Agenda</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.entrevistas.*') ? 'active' : '' }}" href="{{ route('coordinadora.entrevistas.index') }}"><i class="fas fa-comments"></i>Entrevistas</a>
-      <a class="coordinadora-sidebar__link" href="{{ route('solicitudes.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
+      <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.casos.*') ? 'active' : '' }}" href="{{ route('coordinadora.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
       <a class="coordinadora-sidebar__link" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="coordinadora-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="coordinadora-sidebar__link" href="{{ route('home') }}"><i class="fas fa-cog"></i>Configuracion</a>

@@ -130,7 +130,6 @@
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('docente.dashboard') ? 'active' : '' }}" href="{{ route('docente.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('docente.estudiantes') ? 'active' : '' }}" href="{{ route('docente.estudiantes') }}"><i class="fas fa-user-graduate"></i>Mis Estudiantes</a>
-      <a class="dashboard-sidebar__link" href="{{ route('entrevistas.index') }}"><i class="fas fa-calendar-check"></i>Agenda</a>
       <a class="dashboard-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="dashboard-sidebar__link" href="{{ route('home') }}"><i class="fas fa-gear"></i>Configuracion</a>
     </nav>

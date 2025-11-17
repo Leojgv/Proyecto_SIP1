@@ -58,7 +58,14 @@
                 <p class="text-muted small mb-0">Recibido: {{ $case['received_at'] }}</p>
                 <div class="mt-2 d-flex gap-2 justify-content-end flex-wrap">
                   <a href="{{ $case['case_id'] ? route('solicitudes.edit', $case['case_id']) : route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Editar ajuste</a>
-                  <a href="{{ $case['case_id'] ? route('solicitudes.show', $case['case_id']) : route('solicitudes.index') }}" class="btn btn-sm btn-danger">Autorizar y enviar</a>
+                  @if (!empty($case['send_url']))
+                    <form action="{{ $case['send_url'] }}" method="POST">
+                      @csrf
+                      <button type="submit" class="btn btn-sm btn-danger">Autorizar y enviar</button>
+                    </form>
+                  @else
+                    <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-danger">Autorizar y enviar</a>
+                  @endif
                 </div>
               </div>
             </div>
