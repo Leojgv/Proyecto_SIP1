@@ -14,6 +14,8 @@ use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Dashboard\AsesoraPedagogicaDashboardController;
+use App\Http\Controllers\Dashboard\AsesoraPedagogicaEstudianteController;
+use App\Http\Controllers\Dashboard\AsesoraPedagogicaCasoController;
 use App\Http\Controllers\Dashboard\AsesoraTecnicaDashboardController;
 use App\Http\Controllers\Dashboard\AsesoraTecnicaAjusteController;
 use App\Http\Controllers\Dashboard\AsesoraTecnicaCasoController;
@@ -23,7 +25,10 @@ use App\Http\Controllers\Dashboard\CoordinadoraDashboardController;
 use App\Http\Controllers\Dashboard\CoordinadoraEstudianteController;
 use App\Http\Controllers\Dashboard\CoordinadoraAgendaController;
 use App\Http\Controllers\Dashboard\CoordinadoraEntrevistaController;
+use App\Http\Controllers\Dashboard\CoordinadoraCasoController;
 use App\Http\Controllers\Dashboard\DirectorCarreraDashboardController;
+use App\Http\Controllers\Dashboard\DirectorCarreraEstudianteController;
+use App\Http\Controllers\Dashboard\DirectorCarreraCasoController;
 use App\Http\Controllers\Dashboard\DocenteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteEntrevistaController;
@@ -85,6 +90,7 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
         Route::get('coordinadora/estudiantes', [CoordinadoraEstudianteController::class, 'index'])->name('coordinadora.estudiantes');
         Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
         Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
+        Route::get('coordinadora/casos', [CoordinadoraCasoController::class, 'index'])->name('coordinadora.casos.index');
         Route::post('coordinadora/agenda/bloqueos', [CoordinadoraAgendaController::class, 'storeBloqueo'])->name('coordinadora.agenda.bloqueos.store');
         Route::delete('coordinadora/agenda/bloqueos/{bloqueo}', [CoordinadoraAgendaController::class, 'destroyBloqueo'])->name('coordinadora.agenda.bloqueos.destroy');
     });
@@ -92,11 +98,27 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
     Route::middleware('role:Director de carrera')->group(function () {
         Route::get('director-carrera/dashboard', [DirectorCarreraDashboardController::class, 'show'])
             ->name('director.dashboard');
+        Route::get('director-carrera/estudiantes', [DirectorCarreraEstudianteController::class, 'index'])
+            ->name('director.estudiantes');
+        Route::get('director-carrera/casos', [DirectorCarreraCasoController::class, 'index'])
+            ->name('director.casos');
+        Route::get('director-carrera/casos/{solicitud}', [DirectorCarreraCasoController::class, 'show'])
+            ->name('director.casos.show');
+        Route::post('director-carrera/casos/{solicitud}/aprobar', [DirectorCarreraCasoController::class, 'approve'])
+            ->name('director.casos.approve');
+        Route::post('director-carrera/casos/{solicitud}/rechazar', [DirectorCarreraCasoController::class, 'reject'])
+            ->name('director.casos.reject');
     });
 
     Route::middleware('role:Asesora Pedagogica')->group(function () {
         Route::get('asesora-pedagogica/dashboard', [AsesoraPedagogicaDashboardController::class, 'show'])
             ->name('asesora-pedagogica.dashboard');
+        Route::get('asesora-pedagogica/estudiantes', [AsesoraPedagogicaEstudianteController::class, 'index'])
+            ->name('asesora-pedagogica.estudiantes');
+        Route::get('asesora-pedagogica/casos', [AsesoraPedagogicaCasoController::class, 'index'])
+            ->name('asesora-pedagogica.casos.index');
+        Route::post('asesora-pedagogica/casos/{solicitud}/enviar', [AsesoraPedagogicaCasoController::class, 'sendToDirector'])
+            ->name('asesora-pedagogica.casos.send');
     });
 
     Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
