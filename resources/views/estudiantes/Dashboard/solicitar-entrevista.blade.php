@@ -63,14 +63,14 @@
 
             <div class="col-12">
               <label for="cupo" class="form-label">Selecciona un cupo disponible</label>
-              @if($cuposDisponibles->isEmpty())
+              @if($lista_de_cupos->isEmpty())
                 <div class="alert alert-warning mb-0">
                   No hay cupos disponibles en las proximas semanas. Vuelve a intentarlo mas tarde o contacta a la coordinadora.
                 </div>
               @else
                 <select name="cupo" id="cupo" class="form-select @error('cupo') is-invalid @enderror" required>
                   <option value="" disabled {{ old('cupo') ? '' : 'selected' }}>Elige un horario</option>
-                  @foreach($cuposDisponibles as $cupo)
+                  @foreach($lista_de_cupos as $cupo)
                     <option value="{{ $cupo['valor'] }}" {{ old('cupo') === $cupo['valor'] ? 'selected' : '' }}>
                       {{ \Illuminate\Support\Str::of($cupo['label'])->ucfirst() }}
                     </option>
@@ -93,7 +93,7 @@
 
             <div class="col-12 d-flex justify-content-end gap-2 mt-2">
               <a href="{{ route('estudiantes.dashboard') }}" class="btn btn-outline-danger">Cancelar</a>
-              <button type="submit" class="btn btn-danger" {{ $cuposDisponibles->isEmpty() ? 'disabled' : '' }}>Enviar Solicitud</button>
+              <button type="submit" class="btn btn-danger" {{ $lista_de_cupos->isEmpty() ? 'disabled' : '' }}>Enviar Solicitud</button>
             </div>
           </form>
         </div>

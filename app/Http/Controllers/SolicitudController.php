@@ -82,6 +82,71 @@ class SolicitudController extends Controller
         return redirect()->route('solicitudes.index')->with('success', 'Solicitud eliminada correctamente.');
     }
 
+    public function registrarCaso(Request $request, Solicitud $solicitud)
+    {
+        $solicitud->update([
+            'estado' => 'Pendiente de formulación del caso',
+            'coordinadora_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Caso registrado y enviado a formulación.');
+    }
+
+    public function formularAjuste(Request $request, Solicitud $solicitud)
+    {
+        $solicitud->update([
+            'estado' => 'Pendiente de formulación de ajuste',
+            'asesor_tecnico_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Caso enviado para formulación de ajuste.');
+    }
+
+    public function preaprobarCaso(Request $request, Solicitud $solicitud)
+    {
+        $solicitud->update([
+            'estado' => 'Pendiente de Aprobación',
+            'asesor_pedagogico_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Caso enviado a aprobación del director.');
+    }
+
+    public function aprobarCaso(Solicitud $solicitud)
+    {
+        $solicitud->update(['estado' => 'Aprobado']);
+
+        return back()->with('success', 'Caso aprobado.');
+    }
+
+    public function rechazarCaso(Request $request, Solicitud $solicitud)
+    {
+        $request->validate([
+            'motivo_rechazo' => ['required', 'string'],
+        ]);
+
+        $solicitud->update([
+            'estado' => 'Rechazado',
+            'motivo_rechazo' => $request->input('motivo_rechazo'),
+        ]);
+
+        return back()->with('success', 'Caso rechazado.');
+    }
+
+    public function devolverACoordinadora(Solicitud $solicitud)
+    {
+        $solicitud->update(['estado' => 'Pendiente de formulación del caso']);
+
+        return back()->with('success', 'Caso devuelto a la coordinadora.');
+    }
+
+    public function devolverAAsesorTecnico(Solicitud $solicitud)
+    {
+        $solicitud->update(['estado' => 'Pendiente de formulación de ajuste']);
+
+        return back()->with('success', 'Caso devuelto a la asesora técnica.');
+    }
+
     private function usuariosPorRol(string $rol)
     {
         return User::withRole($rol)

@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
         Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
         Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
         Route::get('coordinadora/casos', [CoordinadoraCasoController::class, 'index'])->name('coordinadora.casos.index');
+        Route::post('solicitud/{solicitud}/registrar', [SolicitudController::class, 'registrarCaso'])->name('solicitudes.registrarCaso');
         Route::post('coordinadora/agenda/bloqueos', [CoordinadoraAgendaController::class, 'storeBloqueo'])->name('coordinadora.agenda.bloqueos.store');
         Route::delete('coordinadora/agenda/bloqueos/{bloqueo}', [CoordinadoraAgendaController::class, 'destroyBloqueo'])->name('coordinadora.agenda.bloqueos.destroy');
     });
@@ -108,6 +109,9 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.casos.approve');
         Route::post('director-carrera/casos/{solicitud}/rechazar', [DirectorCarreraCasoController::class, 'reject'])
             ->name('director.casos.reject');
+        Route::post('solicitud/{solicitud}/aprobar', [SolicitudController::class, 'aprobarCaso'])->name('solicitudes.aprobar');
+        Route::post('solicitud/{solicitud}/rechazar', [SolicitudController::class, 'rechazarCaso'])->name('solicitudes.rechazar');
+        Route::post('solicitud/{solicitud}/devolver-tecnica', [SolicitudController::class, 'devolverAAsesorTecnico'])->name('solicitudes.devolver.tecnica');
     });
 
     Route::middleware('role:Asesora Pedagogica')->group(function () {
@@ -119,6 +123,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-pedagogica.casos.index');
         Route::post('asesora-pedagogica/casos/{solicitud}/enviar', [AsesoraPedagogicaCasoController::class, 'sendToDirector'])
             ->name('asesora-pedagogica.casos.send');
+        Route::post('solicitud/{solicitud}/preaprobar', [SolicitudController::class, 'preaprobarCaso'])->name('solicitudes.preaprobar');
+        Route::post('solicitud/{solicitud}/devolver-coordinadora', [SolicitudController::class, 'devolverACoordinadora'])->name('solicitudes.devolver.coordinadora');
     });
 
     Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
@@ -134,6 +140,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-tecnica.ajustes.create');
         Route::post('asesora-tecnica/ajustes', [AsesoraTecnicaAjusteController::class, 'store'])
             ->name('asesora-tecnica.ajustes.store');
+        Route::post('solicitud/{solicitud}/formular-ajuste', [SolicitudController::class, 'formularAjuste'])->name('solicitudes.formularAjuste');
+        Route::post('solicitud/{solicitud}/devolver-coordinadora', [SolicitudController::class, 'devolverACoordinadora'])->name('solicitudes.tecnica.devolver');
     });
 
     Route::middleware('role:Docente')->group(function () {

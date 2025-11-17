@@ -19,9 +19,19 @@ return new class extends Migration
             $table->id();
             $table->date('fecha_solicitud');
             $table->text('descripcion')->nullable();
-            $table->string('estado')->default('pendiente');
+            $table->enum('estado', [
+                'Pendiente de entrevista',
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+                'Pendiente de Aprobación',
+                'Aprobado',
+                'Rechazado',
+            ])->default('Pendiente de entrevista');
             $table->foreignId('estudiante_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('asesor_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('coordinadora_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('asesor_tecnico_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('asesor_pedagogico_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('director_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\BloqueoAgenda;
+use App\Models\DisponibilidadCoordinadora;
 use App\Models\Estudiante;
 use App\Models\Entrevista;
 use App\Models\Solicitud;
@@ -34,7 +35,7 @@ class EstudianteEntrevistaController extends Controller
 
         return view('estudiantes.Dashboard.solicitar-entrevista', [
             'estudiante' => $estudiante,
-            'cuposDisponibles' => $cupos,
+            'lista_de_cupos' => $cupos,
         ]);
     }
 
@@ -83,8 +84,9 @@ class EstudianteEntrevistaController extends Controller
             'descripcion' => $descripcion,
             'estudiante_id' => $estudiante->id,
             'estado' => 'Pendiente de entrevista',
-            // Asignacion de asesor y director sera posterior (nullable en BD)
-            'asesor_id' => null,
+            'coordinadora_id' => $coordinadora?->id,
+            'asesor_tecnico_id' => null,
+            'asesor_pedagogico_id' => null,
             'director_id' => null,
         ]);
 
@@ -169,16 +171,18 @@ class EstudianteEntrevistaController extends Controller
 
         $ocupaciones = $bloqueos->concat($entrevistas);
         $cupos = collect();
-        $horaInicioJornada = '07:00';
-        $horaFinJornada = '21:00';
+        $disponibilidades = DisponibilidadCoordinadora::where('user_id', $coordinadora->id)
+            ->get()
+            ->keyBy('dia_semana');
 
         for ($fecha = $desde->copy(); $fecha->lessThanOrEqualTo($hasta); $fecha->addDay()) {
-            if ($fecha->isWeekend()) {
+            $disponibilidadDia = $disponibilidades->get($fecha->dayOfWeek);
+            if (! $disponibilidadDia) {
                 continue;
             }
 
-            $inicioDia = $fecha->copy()->setTimeFromTimeString($horaInicioJornada);
-            $finDia = $fecha->copy()->setTimeFromTimeString($horaFinJornada);
+            $inicioDia = $fecha->copy()->setTimeFromTimeString($disponibilidadDia->hora_inicio);
+            $finDia = $fecha->copy()->setTimeFromTimeString($disponibilidadDia->hora_fin);
 
             $cupoInicio = $inicioDia->copy();
             while ($cupoInicio->copy()->addMinutes(45)->lte($finDia)) {

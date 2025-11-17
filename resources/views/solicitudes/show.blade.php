@@ -19,9 +19,9 @@
     <a href="{{ route('solicitudes.index') }}" class="btn btn-secondary">Volver</a>
   </div>
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body">
-      <dl class="row mb-0">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <dl class="row mb-0">
         <dt class="col-sm-3">Estudiante</dt>
         <dd class="col-sm-9">
           {{ optional($solicitud->estudiante)->nombre ?? 'Sin nombre' }}
@@ -63,6 +63,51 @@
         <dt class="col-sm-3">Descripción</dt>
         <dd class="col-sm-9">{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}</dd>
       </dl>
+
+      <div class="mt-4 d-flex gap-2 flex-wrap">
+        @if (auth()->user()->hasRole('Coordinadora de inclusion') && $solicitud->estado === 'Pendiente de entrevista')
+          <form method="POST" action="{{ route('solicitudes.registrarCaso', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-danger">Registrar Caso</button>
+          </form>
+        @endif
+
+        @if (auth()->user()->hasRole('Asesora Tecnica Pedagogica') && $solicitud->estado === 'Pendiente de formulación del caso')
+          <form method="POST" action="{{ route('solicitudes.formularAjuste', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-primary">Formular Ajuste</button>
+          </form>
+        @endif
+
+        @if (auth()->user()->hasRole('Asesora Pedagogica') && $solicitud->estado === 'Pendiente de formulación de ajuste')
+          <form method="POST" action="{{ route('solicitudes.preaprobar', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-warning">Enviar a preaprobación</button>
+          </form>
+          <form method="POST" action="{{ route('solicitudes.devolver.coordinadora', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary">Devolver a Coordinadora</button>
+          </form>
+        @endif
+
+        @if (auth()->user()->hasRole('Director de carrera') && $solicitud->estado === 'Pendiente de Aprobación')
+          <form method="POST" action="{{ route('solicitudes.aprobar', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-success">Aprobar</button>
+          </form>
+          <form method="POST" action="{{ route('solicitudes.rechazar', $solicitud) }}">
+            @csrf
+            <div class="input-group">
+              <input type="text" name="motivo_rechazo" class="form-control" placeholder="Motivo de rechazo" required>
+              <button type="submit" class="btn btn-outline-danger">Rechazar</button>
+            </div>
+          </form>
+          <form method="POST" action="{{ route('solicitudes.devolver.tecnica', $solicitud) }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary">Devolver a Asesora Técnica</button>
+          </form>
+        @endif
+      </div>
     </div>
   </div>
 </div>

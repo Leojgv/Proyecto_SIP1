@@ -19,7 +19,9 @@ class Solicitud extends Model
         'estado',
         'motivo_rechazo',
         'estudiante_id',
-        'asesor_id',
+        'coordinadora_id',
+        'asesor_tecnico_id',
+        'asesor_pedagogico_id',
         'director_id',
     ];
 
@@ -32,9 +34,24 @@ class Solicitud extends Model
         return $this->belongsTo(Estudiante::class);
     }
 
+    public function coordinadora(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'coordinadora_id');
+    }
+
+    public function asesorTecnico(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'asesor_tecnico_id');
+    }
+
+    public function asesorPedagogico(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'asesor_pedagogico_id');
+    }
+
     public function asesor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'asesor_id');
+        return $this->asesorPedagogico();
     }
 
     public function director(): BelongsTo
