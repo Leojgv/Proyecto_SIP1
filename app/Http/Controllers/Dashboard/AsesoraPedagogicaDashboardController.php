@@ -148,6 +148,7 @@ class AsesoraPedagogicaDashboardController extends Controller
                     'proposed_adjustment' => $solicitud->descripcion ?? 'Sin descripcion registrada.',
                     'received_at' => optional($solicitud->fecha_solicitud ?? $solicitud->created_at)
                         ?->format('Y-m-d') ?? 's/f',
+                    'send_url' => route('asesora-pedagogica.casos.send', $solicitud),
                 ];
             })
             ->values()

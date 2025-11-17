@@ -125,9 +125,9 @@ class DirectorCarreraDashboardController extends Controller
                     'submitted_at' => $submittedAt instanceof Carbon ? $submittedAt->format('d/m/Y') : 'Sin fecha',
                     'priority' => $this->priorityLabel($priorityLevel),
                     'priority_level' => $priorityLevel,
-                    'approve_url' => route('solicitudes.edit', $solicitud),
-                    'reject_url' => route('solicitudes.edit', $solicitud),
-                    'detail_url' => route('solicitudes.show', $solicitud),
+                    'approve_url' => route('director.casos.approve', $solicitud),
+                    'reject_url' => route('director.casos.show', ['solicitud' => $solicitud, 'rechazar' => 1]),
+                    'detail_url' => route('director.casos.show', $solicitud),
                 ];
             })
             ->values()
@@ -278,7 +278,8 @@ class DirectorCarreraDashboardController extends Controller
         return $normalized === '' ||
             str_contains($normalized, 'pend') ||
             str_contains($normalized, 'rev') ||
-            str_contains($normalized, 'espera');
+            str_contains($normalized, 'espera') ||
+            str_contains($normalized, 'enviado');
     }
 
     protected function isApproved(?string $estado): bool

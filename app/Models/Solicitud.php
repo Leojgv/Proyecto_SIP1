@@ -17,6 +17,7 @@ class Solicitud extends Model
         'fecha_solicitud',
         'descripcion',
         'estado',
+        'motivo_rechazo',
         'estudiante_id',
         'asesor_id',
         'director_id',
