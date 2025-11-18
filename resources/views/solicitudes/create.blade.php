@@ -17,20 +17,7 @@
             <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="{{ old('fecha_solicitud') }}" class="form-control @error('fecha_solicitud') is-invalid @enderror" required>
             @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          @php
-            $estadoOptions = ['Pendiente', 'En proceso', 'Terminado'];
-          @endphp
-          <div class="col-md-4">
-            <label for="estado" class="form-label">Estado</label>
-            <select id="estado" name="estado" class="form-select @error('estado') is-invalid @enderror">
-              <option value="">Selecciona un estado</option>
-              @foreach ($estadoOptions as $estadoOption)
-                <option value="{{ $estadoOption }}" @selected(old('estado', 'Pendiente') === $estadoOption)>{{ $estadoOption }}</option>
-              @endforeach
-            </select>
-            @error('estado')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-8">
             <label for="estudiante_id" class="form-label">Estudiante</label>
             <select id="estudiante_id" name="estudiante_id" class="form-select @error('estudiante_id') is-invalid @enderror" required>
               <option value="">Selecciona un estudiante</option>
@@ -61,7 +48,7 @@
             @error('director_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-12">
-            <label for="descripcion" class="form-label">DescripciÃ³n</label>
+            <label for="descripcion" class="form-label">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="4" class="form-control @error('descripcion') is-invalid @enderror">{{ old('descripcion') }}</textarea>
             @error('descripcion')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
@@ -75,7 +62,3 @@
   </div>
 </div>
 @endsection
-
-
-
-

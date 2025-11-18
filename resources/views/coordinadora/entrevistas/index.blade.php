@@ -46,12 +46,12 @@
                 @forelse($entrevistas as $entrevista)
                   <tr>
                     <td>
-                      {{ $entrevista->solicitud->estudiante->nombre ?? 'Sin nombre' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}
-                      <div class="text-muted small">{{ $entrevista->solicitud->estudiante->carrera->nombre ?? 'Sin carrera' }}</div>
+                      {{ optional($entrevista->solicitud)->estudiante->nombre ?? 'Sin nombre' }} {{ optional($entrevista->solicitud)->estudiante->apellido ?? '' }}
+                      <div class="text-muted small">{{ optional(optional($entrevista->solicitud)->estudiante)->carrera->nombre ?? 'Sin carrera' }}</div>
                     </td>
                     <td>{{ $entrevista->fecha?->format('d/m/Y') ?? 's/f' }}</td>
                     <td>{{ $entrevista->fecha_hora_inicio?->format('H:i') ?? '--' }}</td>
-                    <td class="text-muted small">{{ \Illuminate\Support\Str::limit($entrevista->solicitud->descripcion, 40) }}</td>
+                    <td class="text-muted small">{{ \Illuminate\Support\Str::limit(optional($entrevista->solicitud)->descripcion ?? 'Sin descripción', 40) }}</td>
                     <td class="text-end">
                       <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver</a>
                     </td>

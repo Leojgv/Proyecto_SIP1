@@ -67,6 +67,83 @@
     </div>
   </div>
 
+  {{-- Modal Agenda Estudiante --}}
+  <div class="modal fade" id="agendaEstudianteModal" tabindex="-1" aria-labelledby="agendaEstudianteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content shadow">
+        <div class="modal-header border-0">
+          <div>
+            <h5 class="modal-title" id="agendaEstudianteModalLabel">Agenda del mes</h5>
+            <small class="text-muted">Entrevistas programadas</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary" id="prevMonthBtnEst" type="button">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <div class="fw-bold" id="calendarMonthLabelEst"></div>
+              <button class="btn btn-sm btn-outline-secondary" id="nextMonthBtnEst" type="button">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <span class="badge bg-danger-subtle text-danger"><i class="fas fa-calendar-day me-1"></i>Entrevistas</span>
+          </div>
+          <div id="calendarGridEst" class="calendar-grid rounded-3"></div>
+          <div class="mt-3">
+            <p class="small text-muted mb-2">Próximas entrevistas</p>
+            <div class="d-flex flex-wrap gap-2" id="calendarEventsListEst"></div>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- Modal Detalle Entrevista --}}
+  <div class="modal fade" id="modalDetalleEntrevista" tabindex="-1" aria-labelledby="modalDetalleEntrevistaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow">
+        <div class="modal-header border-0">
+          <div>
+            <h5 class="modal-title" id="modalDetalleEntrevistaLabel">Detalle de entrevista</h5>
+            <small class="text-muted">Información de la cita</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Fecha</p>
+            <div class="fw-semibold" id="det-fecha">--</div>
+          </div>
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Hora</p>
+            <div class="fw-semibold" id="det-hora">--</div>
+          </div>
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Estudiante</p>
+            <div class="fw-semibold" id="det-estudiante">--</div>
+          </div>
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Asesor</p>
+            <div class="fw-semibold" id="det-asesor">--</div>
+          </div>
+          <div>
+            <p class="mb-1 text-muted small">Descripción</p>
+            <div class="text-muted" id="det-descripcion">--</div>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4 mb-4">
     <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">
@@ -90,7 +167,18 @@
                     <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesora: {{ $solicitud->asesor->nombre_completo }}</small>
                   @endif
                 </div>
-                <a href="{{ route('solicitudes.show', $solicitud) }}" class="btn btn-sm btn-outline-secondary">Ver detalle</a>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalSolicitudDetalle" 
+                        data-solicitud-id="{{ $solicitud->id }}"
+                        data-solicitud-fecha="{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}"
+                        data-solicitud-estado="{{ $solicitud->estado ?? 'Sin estado' }}"
+                        data-solicitud-descripcion="{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}"
+                        data-solicitud-asesor="{{ $solicitud->asesor ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : 'Sin asignar' }}"
+                        data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
+                        data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
+                        data-solicitud-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) { return ['nombre' => $a->nombre, 'estado' => $a->estado, 'fecha_inicio' => $a->fecha_inicio?->format('d/m/Y'), 'fecha_termino' => $a->fecha_termino?->format('d/m/Y')]; })) }}"
+                        data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar']; })) }}">
+                  Ver detalle
+                </button>
               </div>
             @empty
               <p class="text-muted text-center my-4">Aún no registras solicitudes.</p>
@@ -107,7 +195,9 @@
               <h5 class="card-title mb-0">Próximas Entrevistas</h5>
               <small class="text-muted">Tu agenda personal</small>
             </div>
-            <a href="{{ route('entrevistas.index') }}" class="btn btn-sm btn-outline-danger">Ver agenda</a>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#agendaEstudianteModal">
+              Ver agenda
+            </button>
           </div>
           <div class="list-group list-group-flush">
             @forelse ($proximasEntrevistas as $entrevista)
@@ -118,7 +208,19 @@
                     <small class="text-muted"><i class="fas fa-user me-1"></i>{{ $entrevista->asesor->nombre_completo }}</small>
                   @endif
                 </div>
-                <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalDetalleEntrevista"
+                  data-fecha="{{ $entrevista->fecha?->format('d/m/Y') ?? 's/f' }}"
+                  data-hora="{{ $entrevista->fecha_hora_inicio?->format('H:i') ?? ($entrevista->fecha_hora_fin?->format('H:i') ?? '--') }}"
+                  data-estudiante="{{ trim(($entrevista->solicitud->estudiante->nombre ?? 'Sin nombre').' '.($entrevista->solicitud->estudiante->apellido ?? '')) }}"
+                  data-asesor="{{ $entrevista->asesor->nombre_completo ?? 'Sin asignar' }}"
+                  data-descripcion="{{ \Illuminate\Support\Str::limit($entrevista->solicitud->descripcion ?? 'Sin descripción registrada', 200) }}"
+                >
+                  Ver detalles
+                </button>
               </div>
             @empty
               <p class="text-muted text-center my-4">No tienes entrevistas programadas.</p>
@@ -236,4 +338,360 @@
   </div>
 </div>
 
+<!-- Modal Detalle de Solicitud -->
+<div class="modal fade" id="modalSolicitudDetalle" tabindex="-1" aria-labelledby="modalSolicitudDetalleLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-semibold" id="modalSolicitudDetalleLabel">Detalle de Solicitud</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Fecha de solicitud -->
+        <div class="mb-4 pb-3 border-bottom">
+          <p class="text-muted small mb-1 fw-semibold">Fecha de solicitud</p>
+          <h6 class="mb-0 fw-normal" id="modal-fecha-solicitud">-</h6>
+        </div>
+
+        <!-- Información general -->
+        <div class="mb-4">
+          <dl class="row mb-0 g-3">
+            <dt class="col-sm-4 text-muted small fw-semibold">Estado</dt>
+            <dd class="col-sm-8 mb-0">
+              <span class="badge bg-secondary" id="modal-estado">-</span>
+            </dd>
+
+            <dt class="col-sm-4 text-muted small fw-semibold">Asesora pedagógica</dt>
+            <dd class="col-sm-8 mb-0" id="modal-asesor">-</dd>
+
+            <dt class="col-sm-4 text-muted small fw-semibold">Director de carrera</dt>
+            <dd class="col-sm-8 mb-0" id="modal-director">-</dd>
+
+            @if(isset($estudiante))
+            <dt class="col-sm-4 text-muted small fw-semibold">Carrera</dt>
+            <dd class="col-sm-8 mb-0">{{ $estudiante->carrera->nombre ?? 'Sin carrera asignada' }}</dd>
+            @endif
+          </dl>
+        </div>
+
+        <!-- Motivo de rechazo -->
+        <div class="mb-4" id="modal-motivo-container" style="display: none;">
+          <p class="text-muted small mb-2 fw-semibold">Motivo de rechazo</p>
+          <div class="alert alert-warning mb-0 py-2 px-3" id="modal-motivo-rechazo">-</div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="mb-4 pb-3 border-bottom">
+          <p class="text-muted small mb-2 fw-semibold">Descripción</p>
+          <p class="mb-0 text-break" id="modal-descripcion" style="line-height: 1.6;">-</p>
+        </div>
+
+        <!-- Ajustes Razonables -->
+        <div class="mb-4" id="modal-ajustes-container">
+          <h6 class="mb-3 fw-semibold d-flex align-items-center">
+            <i class="fas fa-sliders me-2 text-danger"></i>Ajustes Razonables
+          </h6>
+          <div id="modal-ajustes-lista">
+            <p class="text-muted small mb-0">No hay ajustes razonables asociados a esta solicitud.</p>
+          </div>
+        </div>
+
+        <!-- Entrevistas -->
+        <div class="mb-0" id="modal-entrevistas-container">
+          <h6 class="mb-3 fw-semibold d-flex align-items-center">
+            <i class="fas fa-comments me-2 text-danger"></i>Entrevistas
+          </h6>
+          <div id="modal-entrevistas-lista">
+            <p class="text-muted small mb-0">No hay entrevistas asociadas a esta solicitud.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: .5rem;
+    background: #f9f7fb;
+    padding: .75rem;
+  }
+  .calendar-weekday {
+    text-align: center;
+    font-weight: 600;
+    color: #555;
+    padding: .35rem 0;
+  }
+  .calendar-cell {
+    background: #fff;
+    border: 1px solid #f0f0f5;
+    border-radius: 12px;
+    min-height: 70px;
+    padding: .5rem;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0,0,0,.03);
+  }
+  .calendar-cell.is-today {
+    border-color: #d62828;
+    box-shadow: 0 6px 14px rgba(214, 40, 40, .18);
+  }
+  .calendar-cell .day {
+    font-weight: 700;
+    color: #444;
+  }
+  .calendar-cell .event-dot {
+    position: absolute;
+    bottom: .5rem;
+    left: .5rem;
+    background: #d62828;
+    color: #fff;
+    border-radius: 999px;
+    padding: .2rem .5rem;
+    font-size: .75rem;
+  }
+  .event-chip {
+    border: 1px solid #f0f0f5;
+    border-radius: 999px;
+    padding: .4rem .75rem;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  }
+  .event-chip i { color: #d62828; }
+</style>
+
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('modalSolicitudDetalle');
+  
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      
+      // Obtener datos de los atributos data
+      const fechaSolicitud = button.getAttribute('data-solicitud-fecha');
+      const estado = button.getAttribute('data-solicitud-estado');
+      const descripcion = button.getAttribute('data-solicitud-descripcion');
+      const asesor = button.getAttribute('data-solicitud-asesor');
+      const director = button.getAttribute('data-solicitud-director');
+      const motivo = button.getAttribute('data-solicitud-motivo');
+      const ajustesJson = button.getAttribute('data-solicitud-ajustes');
+      const entrevistasJson = button.getAttribute('data-solicitud-entrevistas');
+
+      // Actualizar contenido del modal
+      document.getElementById('modal-fecha-solicitud').textContent = fechaSolicitud || 's/f';
+      document.getElementById('modal-estado').textContent = estado || 'Sin estado';
+      document.getElementById('modal-descripcion').textContent = descripcion || 'Sin descripción registrada';
+      document.getElementById('modal-asesor').textContent = asesor || 'Sin asignar';
+      document.getElementById('modal-director').textContent = director || 'No asignado';
+
+      // Motivo de rechazo (si existe)
+      const motivoContainer = document.getElementById('modal-motivo-container');
+      const motivoRechazo = document.getElementById('modal-motivo-rechazo');
+      if (motivo && motivo.trim() !== '') {
+        motivoRechazo.textContent = motivo;
+        motivoContainer.style.display = 'block';
+      } else {
+        motivoContainer.style.display = 'none';
+      }
+
+      // Ajustes razonables
+      const ajustesContainer = document.getElementById('modal-ajustes-lista');
+      if (ajustesJson && ajustesJson !== 'null' && ajustesJson !== '[]') {
+        try {
+          const ajustes = JSON.parse(ajustesJson);
+          if (ajustes && ajustes.length > 0) {
+            ajustesContainer.innerHTML = ajustes.map(ajuste => `
+              <div class="card mb-3 border shadow-sm">
+                <div class="card-body p-3">
+                  <h6 class="card-title mb-2 fw-semibold">${ajuste.nombre || 'Ajuste sin nombre'}</h6>
+                  <div class="row g-2 small">
+                    <div class="col-12">
+                      <span class="text-muted">Estado:</span>
+                      <span class="badge bg-info ms-2">${ajuste.estado || 'Sin estado'}</span>
+                    </div>
+                    ${ajuste.fecha_inicio ? `
+                      <div class="col-12 col-md-6">
+                        <span class="text-muted"><i class="fas fa-calendar-check me-1"></i>Inicio:</span>
+                        <span class="ms-1">${ajuste.fecha_inicio}</span>
+                      </div>
+                    ` : ''}
+                    ${ajuste.fecha_termino ? `
+                      <div class="col-12 col-md-6">
+                        <span class="text-muted"><i class="fas fa-calendar-times me-1"></i>Término:</span>
+                        <span class="ms-1">${ajuste.fecha_termino}</span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
+          }
+        } catch (e) {
+          ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
+        }
+      } else {
+        ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
+      }
+
+      // Entrevistas
+      const entrevistasContainer = document.getElementById('modal-entrevistas-lista');
+      if (entrevistasJson && entrevistasJson !== 'null' && entrevistasJson !== '[]') {
+        try {
+          const entrevistas = JSON.parse(entrevistasJson);
+          if (entrevistas && entrevistas.length > 0) {
+            entrevistasContainer.innerHTML = entrevistas.map(entrevista => `
+              <div class="card mb-3 border shadow-sm">
+                <div class="card-body p-3">
+                  <h6 class="card-title mb-2 fw-semibold d-flex align-items-center">
+                    <i class="fas fa-calendar-day me-2 text-danger"></i>${entrevista.fecha || 's/f'}
+                  </h6>
+                  <div class="row g-2 small">
+                    ${entrevista.hora_inicio && entrevista.hora_fin ? `
+                      <div class="col-12">
+                        <span class="text-muted"><i class="fas fa-clock me-1"></i>Horario:</span>
+                        <span class="ms-1">${entrevista.hora_inicio} - ${entrevista.hora_fin}</span>
+                      </div>
+                    ` : ''}
+                    <div class="col-12">
+                      <span class="text-muted"><i class="fas fa-user me-1"></i>Asesor:</span>
+                      <span class="ms-1">${entrevista.asesor || 'Sin asignar'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
+          }
+        } catch (e) {
+          entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
+        }
+      } else {
+        entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
+      }
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  const events = @json(
+    ($proximasEntrevistas ?? collect())->map(function ($entrevista) {
+        return [
+            'date' => optional($entrevista->fecha_hora_inicio ?? $entrevista->fecha)->format('Y-m-d'),
+            'label' => trim(($entrevista->solicitud->estudiante->nombre ?? 'Entrevista') . ' ' . ($entrevista->solicitud->estudiante->apellido ?? '')),
+        ];
+    })
+  );
+
+  const grid = document.getElementById('calendarGridEst');
+  const eventsList = document.getElementById('calendarEventsListEst');
+  const monthLabel = document.getElementById('calendarMonthLabelEst');
+  const prevBtn = document.getElementById('prevMonthBtnEst');
+  const nextBtn = document.getElementById('nextMonthBtnEst');
+
+  if (!grid || !eventsList || !monthLabel) {
+    return;
+  }
+
+  const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  const activeDate = events.length ? new Date(events[0].date + 'T00:00:00') : new Date();
+
+  function render(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    monthLabel.textContent = date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+    grid.innerHTML = '';
+    weekdayLabels.forEach(label => {
+      const el = document.createElement('div');
+      el.className = 'calendar-weekday';
+      el.textContent = label;
+      grid.appendChild(el);
+    });
+
+    const start = new Date(year, month, 1);
+    const startOffset = (start.getDay() + 6) % 7; // lunes como inicio
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement('div');
+      grid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(year, month, day);
+      const dateStr = cellDate.toISOString().slice(0, 10);
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      if (dateStr === todayStr) cell.classList.add('is-today');
+
+      const dayLabel = document.createElement('div');
+      dayLabel.className = 'day';
+      dayLabel.textContent = day;
+      cell.appendChild(dayLabel);
+
+      const dayEvents = events.filter(ev => ev.date === dateStr);
+      if (dayEvents.length) {
+        const dot = document.createElement('div');
+        dot.className = 'event-dot';
+        dot.textContent = `${dayEvents.length} entrevista${dayEvents.length > 1 ? 's' : ''}`;
+        cell.appendChild(dot);
+      }
+
+      grid.appendChild(cell);
+    }
+
+    eventsList.innerHTML = '';
+    events.forEach(ev => {
+      const chip = document.createElement('span');
+      chip.className = 'event-chip';
+      chip.innerHTML = `<i class="fas fa-calendar-day me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.label}`;
+      eventsList.appendChild(chip);
+    });
+  }
+
+  prevBtn?.addEventListener('click', () => {
+    activeDate.setMonth(activeDate.getMonth() - 1);
+    render(activeDate);
+  });
+  nextBtn?.addEventListener('click', () => {
+    activeDate.setMonth(activeDate.getMonth() + 1);
+    render(activeDate);
+  });
+
+  render(activeDate);
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  const modal = document.getElementById('modalDetalleEntrevista');
+  if (!modal) return;
+
+  modal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    if (!button) return;
+
+    const fecha = button.getAttribute('data-fecha') || '--';
+    const hora = button.getAttribute('data-hora') || '--';
+    const estudiante = button.getAttribute('data-estudiante') || '--';
+    const asesor = button.getAttribute('data-asesor') || '--';
+    const descripcion = button.getAttribute('data-descripcion') || '--';
+
+    document.getElementById('det-fecha').textContent = fecha;
+    document.getElementById('det-hora').textContent = hora;
+    document.getElementById('det-estudiante').textContent = estudiante;
+    document.getElementById('det-asesor').textContent = asesor;
+    document.getElementById('det-descripcion').textContent = descripcion;
+  });
+});
+</script>
+@endpush

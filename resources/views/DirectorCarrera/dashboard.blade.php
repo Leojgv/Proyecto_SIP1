@@ -6,6 +6,20 @@
 
 @section('content')
 <div class="dashboard-page">
+  @if(session('status'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
+  @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
   <div class="page-header mb-4">
     <div>
       <p class="text-danger text-uppercase fw-semibold small mb-1">Supervision académica</p>
