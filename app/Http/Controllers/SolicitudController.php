@@ -32,13 +32,14 @@ class SolicitudController extends Controller
         $validated = $request->validate([
             'fecha_solicitud' => ['required', 'date'],
             'descripcion' => ['nullable', 'string'],
-            'estado' => ['nullable', 'string', 'max:255'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],
             'director_id' => ['required', 'exists:users,id'],
         ]);
 
-        Solicitud::create($validated);
+        Solicitud::create($validated + [
+            'estado' => 'Pendiente de entrevista',
+        ]);
 
         return redirect()->route('solicitudes.index')->with('success', 'Solicitud creada correctamente.');
     }
@@ -64,7 +65,6 @@ class SolicitudController extends Controller
         $validated = $request->validate([
             'fecha_solicitud' => ['required', 'date'],
             'descripcion' => ['nullable', 'string'],
-            'estado' => ['nullable', 'string', 'max:255'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],
             'director_id' => ['required', 'exists:users,id'],
@@ -90,3 +90,4 @@ class SolicitudController extends Controller
             ->get();
     }
 }
+

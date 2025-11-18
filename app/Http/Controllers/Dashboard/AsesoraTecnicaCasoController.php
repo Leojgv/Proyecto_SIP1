@@ -12,7 +12,7 @@ class AsesoraTecnicaCasoController extends Controller
     {
         $user = $request->user();
 
-        $solicitudes = Solicitud::with(['estudiante.carrera'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'ajustesRazonables'])
             ->when($user, fn ($query) => $query->where('asesor_id', $user->id))
             ->latest('fecha_solicitud')
             ->paginate(10);

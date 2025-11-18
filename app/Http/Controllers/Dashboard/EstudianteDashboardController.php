@@ -76,7 +76,7 @@ class EstudianteDashboardController extends Controller
             ->get();
 
         $misSolicitudes = $estudiante->solicitudes()
-            ->with(['asesor', 'director'])
+            ->with(['asesor', 'director', 'ajustesRazonables', 'entrevistas.asesor'])
             ->orderByDesc('fecha_solicitud')
             ->take(5)
             ->get();

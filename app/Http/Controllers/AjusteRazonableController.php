@@ -31,13 +31,19 @@ class AjusteRazonableController extends Controller
             'fecha_solicitud' => ['required', 'date'],
             'fecha_inicio' => ['nullable', 'date'],
             'fecha_termino' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
-            'estado' => ['nullable', 'string', 'max:255'],
             'porcentaje_avance' => ['nullable', 'integer', 'between:0,100'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
         ]);
 
-        AjusteRazonable::create($validated);
+        $solicitud = Solicitud::find($validated['solicitud_id']);
+        if ($solicitud && $solicitud->estado === 'Pendiente de formulación del caso') {
+            $solicitud->update(['estado' => 'Pendiente de formulación de ajuste']);
+        }
+
+        AjusteRazonable::create($validated + [
+            'estado' => 'Pendiente de formulación de ajuste',
+        ]);
 
         return redirect()->route('ajustes-razonables.index')->with('success', 'Ajuste razonable creado correctamente.');
     }
@@ -68,7 +74,6 @@ class AjusteRazonableController extends Controller
             'fecha_solicitud' => ['required', 'date'],
             'fecha_inicio' => ['nullable', 'date'],
             'fecha_termino' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
-            'estado' => ['nullable', 'string', 'max:255'],
             'porcentaje_avance' => ['nullable', 'integer', 'between:0,100'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],

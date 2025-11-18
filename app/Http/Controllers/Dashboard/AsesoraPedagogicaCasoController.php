@@ -25,14 +25,24 @@ class AsesoraPedagogicaCasoController extends Controller
 
     public function sendToDirector(Request $request, Solicitud $solicitud): RedirectResponse
     {
+        // Verificar que el estado actual permita esta transición
+        $estadosPermitidos = ['Pendiente de formulación del caso', 'Pendiente de formulación de ajuste'];
+        if (!in_array($solicitud->estado, $estadosPermitidos)) {
+            return back()->with('error', 'El estado actual de la solicitud no permite enviar a Dirección.');
+        }
+
         $estudiante = $solicitud->estudiante;
         $directorId = $estudiante?->carrera?->director_id ?? $solicitud->director_id;
 
+        if (!$directorId) {
+            return back()->with('error', 'No se ha asignado un Director de Carrera para este estudiante.');
+        }
+
         $solicitud->update([
-            'estado' => 'Enviado a Direccion',
+            'estado' => 'Pendiente de Aprobación',
             'director_id' => $directorId,
         ]);
 
-        return back()->with('status', 'Solicitud enviada a Dirección de Carrera.');
+        return back()->with('status', 'Solicitud enviada a Dirección de Carrera para aprobación.');
     }
 }

@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
         Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
         Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
         Route::get('coordinadora/casos', [CoordinadoraCasoController::class, 'index'])->name('coordinadora.casos.index');
+        Route::post('coordinadora/casos/{solicitud}/informar-ctp', [CoordinadoraCasoController::class, 'informarACTP'])->name('coordinadora.casos.informar-ctp');
         Route::post('coordinadora/agenda/bloqueos', [CoordinadoraAgendaController::class, 'storeBloqueo'])->name('coordinadora.agenda.bloqueos.store');
         Route::delete('coordinadora/agenda/bloqueos/{bloqueo}', [CoordinadoraAgendaController::class, 'destroyBloqueo'])->name('coordinadora.agenda.bloqueos.destroy');
     });
@@ -108,6 +109,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.casos.approve');
         Route::post('director-carrera/casos/{solicitud}/rechazar', [DirectorCarreraCasoController::class, 'reject'])
             ->name('director.casos.reject');
+        Route::post('director-carrera/casos/{solicitud}/devolver-ctp', [DirectorCarreraCasoController::class, 'devolverACTP'])
+            ->name('director.casos.devolver-ctp');
     });
 
     Route::middleware('role:Asesora Pedagogica')->group(function () {
@@ -134,6 +137,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-tecnica.ajustes.create');
         Route::post('asesora-tecnica/ajustes', [AsesoraTecnicaAjusteController::class, 'store'])
             ->name('asesora-tecnica.ajustes.store');
+        Route::post('asesora-tecnica/solicitudes/{solicitud}/enviar-director', [AsesoraTecnicaAjusteController::class, 'enviarADirector'])
+            ->name('asesora-tecnica.solicitudes.enviar-director');
     });
 
     Route::middleware('role:Docente')->group(function () {
