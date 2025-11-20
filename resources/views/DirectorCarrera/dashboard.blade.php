@@ -33,7 +33,7 @@
   </div>
 
   @php
-    $cardColors = ['#fff2f2', '#ffe2e2', '#ffd1d1', '#ffc2c2'];
+    $cardColors = ['#dc2626', '#dc2626', '#dc2626', '#dc2626'];
   @endphp
   <div class="row g-3 mb-4">
     @foreach ($summaryStats as $index => $stat)
@@ -214,7 +214,7 @@
     position: relative;
     border: 1px solid #f0f0f5;
     box-shadow: 0 8px 20px rgba(15,23,42,.06);
-    color: #1f1f2d;
+    color: #fff;
   }
   .stats-card__value {
     font-size: 2rem;
@@ -225,14 +225,14 @@
     font-size: .95rem;
   }
   .stats-card__sub {
-    color: #6c6d7a;
+    color: rgba(255,255,255,.8);
     font-size: .85rem;
   }
   .stats-card__icon {
     position: absolute;
     right: 1rem;
     top: 1rem;
-    color: rgba(185, 34, 34, .4);
+    color: rgba(255,255,255,.25);
     font-size: 2rem;
   }
   .case-card {

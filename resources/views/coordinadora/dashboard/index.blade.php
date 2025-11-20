@@ -11,10 +11,10 @@
 
   @php
     $cards = [
-      ['title' => 'Entrevistas pendientes', 'value' => $stats['entrevistasPendientes'] ?? 0, 'sub' => '+0 esta semana', 'icon' => 'fa-calendar-check', 'bg' => '#d62828'],
-      ['title' => 'Entrevistas completadas', 'value' => $stats['entrevistasCompletadas'] ?? 0, 'sub' => 'Ver casos', 'icon' => 'fa-user-check', 'bg' => '#b51b1b'],
-      ['title' => 'Casos registrados', 'value' => $stats['casosRegistrados'] ?? 0, 'sub' => '0 este mes', 'icon' => 'fa-folder-open', 'bg' => '#951010'],
-      ['title' => 'Casos en proceso', 'value' => $stats['casosEnProceso'] ?? 0, 'sub' => 'Requieren revision', 'icon' => 'fa-hourglass-half', 'bg' => '#f4a5a5'],
+      ['title' => 'Entrevistas pendientes', 'value' => $stats['entrevistasPendientes'] ?? 0, 'sub' => '+0 esta semana', 'icon' => 'fa-calendar-check', 'bg' => '#dc2626'],
+      ['title' => 'Entrevistas completadas', 'value' => $stats['entrevistasCompletadas'] ?? 0, 'sub' => 'Ver casos', 'icon' => 'fa-user-check', 'bg' => '#dc2626'],
+      ['title' => 'Casos registrados', 'value' => $stats['casosRegistrados'] ?? 0, 'sub' => '0 este mes', 'icon' => 'fa-folder-open', 'bg' => '#dc2626'],
+      ['title' => 'Casos en proceso', 'value' => $stats['casosEnProceso'] ?? 0, 'sub' => 'Requieren revision', 'icon' => 'fa-hourglass-half', 'bg' => '#dc2626'],
     ];
   @endphp
 

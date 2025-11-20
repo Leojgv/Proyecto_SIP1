@@ -33,6 +33,21 @@
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
+          <div class="col-md-6">
+            <label for="director_id" class="form-label">Director de Carrera</label>
+            <select id="director_id" name="director_id" class="form-select @error('director_id') is-invalid @enderror">
+              <option value="">Sin asignar</option>
+              @foreach($directores ?? [] as $director)
+                <option value="{{ $director->id }}" @selected(old('director_id') == $director->id)>
+                  {{ $director->nombre }} {{ $director->apellido }}
+                </option>
+              @endforeach
+            </select>
+            @error('director_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="form-text text-muted">Solo se pueden asignar usuarios con el rol "Director de carrera".</small>
+          </div>
         </div>
         <div class="mt-4 d-flex justify-content-end gap-2">
           <a href="{{ route('carreras.index') }}" class="btn btn-secondary">Cancelar</a>

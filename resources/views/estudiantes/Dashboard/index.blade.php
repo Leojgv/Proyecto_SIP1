@@ -8,28 +8,28 @@
             'value' => $stats['solicitudes_activas'],
             'helper' => 'Casos en seguimiento',
             'icon' => 'fa-file-alt',
-            'variant' => '#b91c1c',
+            'variant' => '#dc2626',
         ],
         [
             'title' => 'Ajustes activos',
             'value' => $stats['ajustes_activos'],
             'helper' => 'Apoyos vigentes',
             'icon' => 'fa-sliders',
-            'variant' => '#c53030',
+            'variant' => '#dc2626',
         ],
         [
             'title' => 'Problemas detectados',
             'value' => $stats['problemas_detectados'],
             'helper' => 'Requieren atención',
             'icon' => 'fa-triangle-exclamation',
-            'variant' => '#f87171',
+            'variant' => '#dc2626',
         ],
         [
             'title' => 'Próximas entrevistas',
             'value' => $stats['entrevistas_programadas'],
             'helper' => 'Agenda confirmada',
             'icon' => 'fa-comments',
-            'variant' => '#fda4af',
+            'variant' => '#dc2626',
         ],
     ];
 @endphp

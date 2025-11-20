@@ -6,7 +6,7 @@
 
 @section('content')
 @php
-  $metricColors = ['#fce5e5', '#fbcaca', '#f9afaf'];
+  $metricColors = ['#dc2626', '#dc2626', '#dc2626'];
 @endphp
 <div class="dashboard-page">
   <div class="page-header mb-4">
@@ -41,9 +41,8 @@
           <div class="student-item__header">
             <div>
               <h5 class="mb-0">{{ $student['student'] }}</h5>
-              <small class="text-muted d-block">RUT: {{ $student['rut'] }} � {{ $student['program'] }}</small>
+              <small class="text-muted d-block">RUT: {{ $student['rut'] }} � {{ $student['program'] }}</small>
             </div>
-            <span class="badge status-pill status-{{ Str::slug(strtolower($student['status'])) }}">{{ $student['status'] }}</span>
           </div>
           <div class="student-item__body">
             <p class="text-muted text-uppercase small mb-1">Ajustes aplicados</p>
@@ -58,9 +57,15 @@
                 <a href="{{ $student['student_id'] ? route('estudiantes.show', $student['student_id']) : route('estudiantes.index') }}" class="btn btn-outline-secondary btn-sm">
                   <i class="fas fa-eye me-1"></i>Ver historial
                 </a>
-                <a href="{{ $student['student_id'] ? route('estudiantes.edit', $student['student_id']) : route('estudiantes.index') }}" class="btn btn-danger btn-sm">
-                  <i class="fas fa-check me-1"></i>Confirmar
-                </a>
+                @if($student['student_id'])
+                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#detallesAjustesModal{{ $student['student_id'] }}">
+                    <i class="fas fa-info-circle me-1"></i>Ver Detalles
+                  </button>
+                @else
+                  <button type="button" class="btn btn-danger btn-sm" disabled>
+                    <i class="fas fa-info-circle me-1"></i>Ver Detalles
+                  </button>
+                @endif
               </div>
             </div>
           </div>
@@ -70,6 +75,106 @@
       @endforelse
     </div>
   </div>
+
+  {{-- Modales de detalles de ajustes --}}
+  @foreach ($studentAdjustments as $student)
+    @if($student['student_id'])
+      <div class="modal fade" id="detallesAjustesModal{{ $student['student_id'] }}" tabindex="-1" aria-labelledby="detallesAjustesModalLabel{{ $student['student_id'] }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="detallesAjustesModalLabel{{ $student['student_id'] }}">
+                Detalles de Ajustes - {{ $student['student'] }}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-4">
+                <h6 class="text-muted mb-2">Información del Estudiante</h6>
+                <p class="mb-1"><strong>Nombre:</strong> {{ $student['student'] }}</p>
+                <p class="mb-1"><strong>RUT:</strong> {{ $student['rut'] }}</p>
+                <p class="mb-0"><strong>Carrera:</strong> {{ $student['program'] }}</p>
+              </div>
+
+              <hr>
+
+              <div class="mb-3">
+                <h6 class="text-muted mb-3">Ajustes Razonables Formulados por la Asesora Técnica</h6>
+                @if(!empty($student['adjustments']))
+                  @foreach($student['adjustments'] as $index => $ajuste)
+                    <div class="card border mb-3">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h6 class="card-title mb-0">{{ $ajuste['name'] ?? 'Ajuste sin título' }}</h6>
+                          <span class="badge rounded-pill bg-light text-danger text-capitalize">{{ $ajuste['category'] ?? 'General' }}</span>
+                        </div>
+                        <p class="text-muted small mb-3">{{ $ajuste['description'] ?? 'Sin descripción disponible.' }}</p>
+                        
+                        <div class="row g-2 mb-2">
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-calendar-alt me-1"></i>
+                              <strong>Fecha de solicitud:</strong> {{ $ajuste['fecha_solicitud'] ?? 'No especificada' }}
+                            </small>
+                          </div>
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-tag me-1"></i>
+                              <strong>Estado:</strong> {{ $ajuste['status'] ?? 'Activo' }}
+                            </small>
+                          </div>
+                          @if(isset($ajuste['fecha_inicio']) && $ajuste['fecha_inicio'] !== 'No especificada')
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-play-circle me-1"></i>
+                              <strong>Fecha de inicio:</strong> {{ $ajuste['fecha_inicio'] }}
+                            </small>
+                          </div>
+                          @endif
+                          @if(isset($ajuste['fecha_termino']) && $ajuste['fecha_termino'] !== 'No especificada')
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-stop-circle me-1"></i>
+                              <strong>Fecha de término:</strong> {{ $ajuste['fecha_termino'] }}
+                            </small>
+                          </div>
+                          @endif
+                          @if(isset($ajuste['porcentaje_avance']) && $ajuste['porcentaje_avance'] > 0)
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-chart-line me-1"></i>
+                              <strong>Avance:</strong> {{ $ajuste['porcentaje_avance'] }}%
+                            </small>
+                          </div>
+                          @endif
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-clock me-1"></i>
+                              <strong>Formulado el:</strong> {{ $ajuste['created_at'] ?? 'No disponible' }}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @endforeach
+                @else
+                  <p class="text-muted">No hay ajustes registrados para este estudiante.</p>
+                @endif
+              </div>
+
+              <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Estos ajustes fueron formulados por la Asesora Técnica Pedagógica (CTP) y están pendientes de implementación.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    @endif
+  @endforeach
 
   <div class="card border-0 shadow-sm">
     <div class="card-body">
@@ -112,7 +217,7 @@
     position: relative;
     border: 1px solid #f0f0f5;
     box-shadow: 0 8px 20px rgba(15,23,42,.06);
-    color: #1f1f2d;
+    color: #fff;
   }
   .stats-card__value {
     font-size: 2rem;
@@ -123,14 +228,14 @@
     font-size: .95rem;
   }
   .stats-card__sub {
-    color: #6c6d7a;
+    color: rgba(255,255,255,.8);
     font-size: .85rem;
   }
   .stats-card__icon {
     position: absolute;
     right: 1rem;
     top: 1rem;
-    color: rgba(185, 34, 34, .4);
+    color: rgba(255,255,255,.25);
     font-size: 2rem;
   }
   .student-item {

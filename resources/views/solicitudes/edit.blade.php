@@ -28,7 +28,7 @@
             </select>
             @error('"'"'estudiante_id'"'"')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
-          <div class="col-md-6">
+          <div class="col-md-12">
             <label for="asesor_id" class="form-label">Asesora pedagogica</label>
             <select id="asesor_id" name="asesor_id" class="form-select @error('"'"'asesor_id'"'"') is-invalid @enderror" required>
               <option value="">Selecciona una asesora</option>
@@ -37,16 +37,7 @@
               @endforeach
             </select>
             @error('"'"'asesor_id'"'"')<div class="invalid-feedback">{{ $message }}</div>@enderror
-          </div>
-          <div class="col-md-6">
-            <label for="director_id" class="form-label">Director de carrera</label>
-            <select id="director_id" name="director_id" class="form-select @error('"'"'director_id'"'"') is-invalid @enderror" required>
-              <option value="">Selecciona un director de carrera</option>
-              @foreach($directores as $director)
-                <option value="{{ $director->id }}" @selected(old('"'"'director_id'"'"', $solicitud->director_id) == $director->id)>{{ $director->nombre }} {{ $director->apellido }}</option>
-              @endforeach
-            </select>
-            @error('"'"'director_id'"'"')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <small class="form-text text-muted">El Director de Carrera se asignará automáticamente según la carrera del estudiante seleccionado.</small>
           </div>
           <div class="col-12">
             <label for="descripcion" class="form-label">Descripción</label>

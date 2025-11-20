@@ -12,7 +12,7 @@
   </div>
 
   @php
-    $cardPalette = ['#d62828', '#b51b1b', '#951010', '#f4a5a5'];
+    $cardPalette = ['#dc2626', '#dc2626', '#dc2626', '#dc2626'];
   @endphp
 
   <div class="row g-3 mb-4">

@@ -19,12 +19,30 @@
     <div class="col-12 col-xl-4">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
-          <h5 class="card-title mb-3">Horario laboral</h5>
-          <p class="card-text text-muted">Tus cupos se generan automaticamente todos los dias entre {{ $horarioLaboral['inicio'] }} y {{ $horarioLaboral['fin'] }} (45 minutos de entrevista + 15 minutos de descanso).</p>
-          <ul class="small text-muted mb-0">
-            <li>Los estudiantes veran cupos en ese rango mientras no exista una entrevista o bloqueo.</li>
-            <li>Usa los bloqueos para marcar vacaciones, reuniones o ausencias puntuales.</li>
-          </ul>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Calendario de Entrevistas</h5>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#calendarioEntrevistasModal">
+              Ver calendario completo
+            </button>
+          </div>
+          <p class="card-text text-muted small mb-3">Todas las entrevistas agendadas por los estudiantes.</p>
+          
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <button class="btn btn-sm btn-outline-secondary" id="prevMonthBtnAgenda" type="button">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="fw-bold flex-grow-1 text-center" id="calendarMonthLabelAgenda"></div>
+            <button class="btn btn-sm btn-outline-secondary" id="nextMonthBtnAgenda" type="button">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          
+          <div id="calendarGridAgenda" class="calendar-grid-agenda rounded-3 mb-3"></div>
+          
+          <div class="mt-3">
+            <p class="small text-muted mb-2">Próximas entrevistas</p>
+            <div class="d-flex flex-wrap gap-2" id="calendarEventsListAgenda"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -99,4 +117,322 @@
     </div>
   </div>
 </div>
+
+{{-- Modal calendario completo --}}
+<div class="modal fade" id="calendarioEntrevistasModal" tabindex="-1" aria-labelledby="calendarioEntrevistasModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title" id="calendarioEntrevistasModalLabel">Calendario de Entrevistas</h5>
+          <small class="text-muted">Todas las entrevistas agendadas</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="prevMonthBtnModal" type="button">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="fw-bold" id="calendarMonthLabelModal"></div>
+            <button class="btn btn-sm btn-outline-secondary" id="nextMonthBtnModal" type="button">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <span class="badge bg-danger-subtle text-danger"><i class="fas fa-calendar-day me-1"></i>Entrevistas</span>
+        </div>
+        <div id="calendarGridModal" class="calendar-grid rounded-3"></div>
+        <div class="mt-3">
+          <p class="small text-muted mb-2">Próximas entrevistas</p>
+          <div class="d-flex flex-wrap gap-2" id="calendarEventsListModal"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .calendar-grid-agenda {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: .35rem;
+    background: #f9f7fb;
+    padding: .5rem;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: .5rem;
+    background: #f9f7fb;
+    padding: .75rem;
+  }
+  .calendar-weekday {
+    text-align: center;
+    font-weight: 600;
+    color: #555;
+    padding: .35rem 0;
+    font-size: .85rem;
+  }
+  .calendar-cell {
+    background: #fff;
+    border: 1px solid #f0f0f5;
+    border-radius: 8px;
+    min-height: 50px;
+    padding: .4rem;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0,0,0,.03);
+  }
+  .calendar-grid-agenda .calendar-cell {
+    min-height: 40px;
+    padding: .3rem;
+    font-size: .8rem;
+  }
+  .calendar-cell.is-today {
+    border-color: #dc2626;
+    box-shadow: 0 6px 14px rgba(220, 38, 38, .18);
+  }
+  .calendar-cell .day {
+    font-weight: 700;
+    color: #444;
+    font-size: .9rem;
+  }
+  .calendar-grid-agenda .calendar-cell .day {
+    font-size: .75rem;
+  }
+  .calendar-cell .event-dot {
+    position: absolute;
+    bottom: .3rem;
+    left: .3rem;
+    right: .3rem;
+    color: #fff;
+    border-radius: 4px;
+    padding: .15rem .3rem;
+    font-size: .65rem;
+    text-align: center;
+    margin-bottom: .2rem;
+  }
+  .calendar-cell .event-dot:first-of-type {
+    bottom: .3rem;
+  }
+  .calendar-cell .event-dot:last-of-type {
+    bottom: .1rem;
+  }
+  .calendar-cell .event-dot-entrevista {
+    background: #dc2626;
+  }
+  .calendar-cell .event-dot-bloqueo {
+    background: #6b7280;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot {
+    font-size: .6rem;
+    padding: .1rem .2rem;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot:last-of-type {
+    bottom: .05rem;
+  }
+  .event-chip {
+    border: 1px solid #f0f0f5;
+    border-radius: 999px;
+    padding: .4rem .75rem;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
+    font-size: .85rem;
+  }
+  .event-chip i { color: #dc2626; }
+  .event-chip-bloqueo {
+    border-color: #d1d5db;
+    background: #f9fafb;
+  }
+  .event-chip-bloqueo i { color: #6b7280; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const events = @json($eventosCalendario ?? []);
+
+  const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  
+  // Calendario pequeño en la tarjeta
+  const gridAgenda = document.getElementById('calendarGridAgenda');
+  const eventsListAgenda = document.getElementById('calendarEventsListAgenda');
+  const monthLabelAgenda = document.getElementById('calendarMonthLabelAgenda');
+  const prevBtnAgenda = document.getElementById('prevMonthBtnAgenda');
+  const nextBtnAgenda = document.getElementById('nextMonthBtnAgenda');
+  
+  // Calendario en el modal
+  const gridModal = document.getElementById('calendarGridModal');
+  const eventsListModal = document.getElementById('calendarEventsListModal');
+  const monthLabelModal = document.getElementById('calendarMonthLabelModal');
+  const prevBtnModal = document.getElementById('prevMonthBtnModal');
+  const nextBtnModal = document.getElementById('nextMonthBtnModal');
+
+  const activeDateAgenda = events.length ? new Date(events[0].date + 'T00:00:00') : new Date();
+  const activeDateModal = new Date(activeDateAgenda);
+
+  function renderAgenda(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    monthLabelAgenda.textContent = date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+    gridAgenda.innerHTML = '';
+    weekdayLabels.forEach(label => {
+      const el = document.createElement('div');
+      el.className = 'calendar-weekday';
+      el.textContent = label;
+      gridAgenda.appendChild(el);
+    });
+
+    const start = new Date(year, month, 1);
+    const startOffset = (start.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement('div');
+      gridAgenda.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(year, month, day);
+      const dateStr = cellDate.toISOString().slice(0, 10);
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      if (dateStr === todayStr) cell.classList.add('is-today');
+
+      const dayLabel = document.createElement('div');
+      dayLabel.className = 'day';
+      dayLabel.textContent = day;
+      cell.appendChild(dayLabel);
+
+      const dayEvents = events.filter(ev => ev.date === dateStr);
+      if (dayEvents.length) {
+        const entrevistas = dayEvents.filter(ev => ev.type === 'entrevista');
+        const bloqueos = dayEvents.filter(ev => ev.type === 'bloqueo');
+        
+        if (entrevistas.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-entrevista';
+          dot.textContent = `${entrevistas.length} entrevista${entrevistas.length > 1 ? 's' : ''}`;
+          cell.appendChild(dot);
+        }
+        
+        if (bloqueos.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-bloqueo';
+          dot.textContent = `${bloqueos.length} bloqueo${bloqueos.length > 1 ? 's' : ''}`;
+          cell.appendChild(dot);
+        }
+      }
+
+      gridAgenda.appendChild(cell);
+    }
+
+    eventsListAgenda.innerHTML = '';
+    const proximas = events.filter(ev => ev.date >= todayStr).slice(0, 5);
+    proximas.forEach(ev => {
+      const chip = document.createElement('span');
+      chip.className = ev.type === 'bloqueo' ? 'event-chip event-chip-bloqueo' : 'event-chip';
+      const icon = ev.type === 'bloqueo' ? 'fa-ban' : 'fa-calendar-day';
+      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+      eventsListAgenda.appendChild(chip);
+    });
+  }
+
+  function renderModal(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    monthLabelModal.textContent = date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+    gridModal.innerHTML = '';
+    weekdayLabels.forEach(label => {
+      const el = document.createElement('div');
+      el.className = 'calendar-weekday';
+      el.textContent = label;
+      gridModal.appendChild(el);
+    });
+
+    const start = new Date(year, month, 1);
+    const startOffset = (start.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement('div');
+      gridModal.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(year, month, day);
+      const dateStr = cellDate.toISOString().slice(0, 10);
+      const cell = document.createElement('div');
+      cell.className = 'calendar-cell';
+      if (dateStr === todayStr) cell.classList.add('is-today');
+
+      const dayLabel = document.createElement('div');
+      dayLabel.className = 'day';
+      dayLabel.textContent = day;
+      cell.appendChild(dayLabel);
+
+      const dayEvents = events.filter(ev => ev.date === dateStr);
+      if (dayEvents.length) {
+        const entrevistas = dayEvents.filter(ev => ev.type === 'entrevista');
+        const bloqueos = dayEvents.filter(ev => ev.type === 'bloqueo');
+        
+        if (entrevistas.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-entrevista';
+          dot.textContent = `${entrevistas.length} entrevista${entrevistas.length > 1 ? 's' : ''}`;
+          cell.appendChild(dot);
+        }
+        
+        if (bloqueos.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-bloqueo';
+          dot.textContent = `${bloqueos.length} bloqueo${bloqueos.length > 1 ? 's' : ''}`;
+          cell.appendChild(dot);
+        }
+      }
+
+      gridModal.appendChild(cell);
+    }
+
+    eventsListModal.innerHTML = '';
+    events.forEach(ev => {
+      const chip = document.createElement('span');
+      chip.className = ev.type === 'bloqueo' ? 'event-chip event-chip-bloqueo' : 'event-chip';
+      const icon = ev.type === 'bloqueo' ? 'fa-ban' : 'fa-calendar-day';
+      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+      eventsListModal.appendChild(chip);
+    });
+  }
+
+  if (prevBtnAgenda && nextBtnAgenda) {
+    prevBtnAgenda.addEventListener('click', () => {
+      activeDateAgenda.setMonth(activeDateAgenda.getMonth() - 1);
+      renderAgenda(activeDateAgenda);
+    });
+    nextBtnAgenda.addEventListener('click', () => {
+      activeDateAgenda.setMonth(activeDateAgenda.getMonth() + 1);
+      renderAgenda(activeDateAgenda);
+    });
+  }
+
+  if (prevBtnModal && nextBtnModal) {
+    prevBtnModal.addEventListener('click', () => {
+      activeDateModal.setMonth(activeDateModal.getMonth() - 1);
+      renderModal(activeDateModal);
+    });
+    nextBtnModal.addEventListener('click', () => {
+      activeDateModal.setMonth(activeDateModal.getMonth() + 1);
+      renderModal(activeDateModal);
+    });
+  }
+
+  // Inicializar calendarios
+  if (gridAgenda) renderAgenda(activeDateAgenda);
+  if (gridModal) renderModal(activeDateModal);
+});
+</script>
 @endsection

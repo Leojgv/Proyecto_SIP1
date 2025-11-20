@@ -14,7 +14,7 @@
   <div class="row g-3 mb-4">
     @foreach ($metrics as $metric)
       <div class="col-12 col-md-6 col-xl-3">
-        <div class="stats-card" style="background: #d62828;">
+        <div class="stats-card" style="background: #dc2626;">
           <div class="stats-card__value">{{ $metric['value'] }}</div>
           <div class="stats-card__icon"><i class="fas {{ $metric['icon'] ?? 'fa-circle' }}"></i></div>
           <p class="stats-card__title">{{ $metric['label'] }}</p>
