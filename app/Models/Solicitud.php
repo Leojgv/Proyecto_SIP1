@@ -23,6 +23,12 @@ class Solicitud extends Model
         'director_id',
     ];
 
+    /**
+     * El estado se gestiona automáticamente según el flujo del proceso.
+     * No debe ser modificado manualmente excepto por los controladores específicos
+     * que implementan las transiciones del flujo.
+     */
+
     protected $casts = [
         'fecha_solicitud' => 'date',
     ];
@@ -55,5 +61,44 @@ class Solicitud extends Model
     public function entrevistas(): HasMany
     {
         return $this->hasMany(Entrevista::class);
+    }
+
+    /**
+     * Obtiene el director de carrera automáticamente según la carrera del estudiante.
+     * 
+     * @return int|null ID del director de carrera o null si no se encuentra
+     */
+    public function obtenerDirectorId(): ?int
+    {
+        $estudiante = $this->estudiante;
+        
+        if (!$estudiante) {
+            return null;
+        }
+
+        $carrera = $estudiante->carrera;
+        
+        if (!$carrera) {
+            return null;
+        }
+
+        return $carrera->director_id;
+    }
+
+    /**
+     * Asigna automáticamente el director de carrera según la carrera del estudiante.
+     * 
+     * @return bool True si se asignó correctamente, false si no se pudo asignar
+     */
+    public function asignarDirectorAutomatico(): bool
+    {
+        $directorId = $this->obtenerDirectorId();
+        
+        if ($directorId) {
+            $this->update(['director_id' => $directorId]);
+            return true;
+        }
+
+        return false;
     }
 }
