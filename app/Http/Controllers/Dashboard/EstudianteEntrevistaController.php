@@ -78,14 +78,23 @@ class EstudianteEntrevistaController extends Controller
 
         $descripcion = '['.$validated['titulo'].'] '.trim($validated['descripcion']);
 
+        // Obtener el director automáticamente según la carrera del estudiante
+        $estudiante->load('carrera');
+        $directorId = $estudiante->carrera?->director_id;
+
+        if (!$directorId) {
+            return back()
+                ->withErrors(['cupo' => 'No se ha asignado un Director de Carrera para tu carrera. Por favor contacta con administración.'])
+                ->withInput();
+        }
+
         $solicitud = Solicitud::create([
             'fecha_solicitud' => now()->toDateString(),
             'descripcion' => $descripcion,
             'estudiante_id' => $estudiante->id,
             'estado' => 'Pendiente de entrevista',
-            // Asignacion de asesor y director sera posterior (nullable en BD)
-            'asesor_id' => null,
-            'director_id' => null,
+            'asesor_id' => null, // Se asignará posteriormente
+            'director_id' => $directorId, // Asignado automáticamente según la carrera
         ]);
 
         Entrevista::create([

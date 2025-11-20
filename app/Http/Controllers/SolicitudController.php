@@ -22,9 +22,8 @@ class SolicitudController extends Controller
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
         $asesores = $this->usuariosPorRol('Asesora Pedagogica');
-        $directores = $this->usuariosPorRol('Director de carrera');
 
-        return view('solicitudes.create', compact('estudiantes', 'asesores', 'directores'));
+        return view('solicitudes.create', compact('estudiantes', 'asesores'));
     }
 
     public function store(Request $request)
@@ -34,11 +33,21 @@ class SolicitudController extends Controller
             'descripcion' => ['nullable', 'string'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],
-            'director_id' => ['required', 'exists:users,id'],
         ]);
 
-        Solicitud::create($validated + [
+        // Obtener el estudiante para determinar su carrera y director
+        $estudiante = Estudiante::with('carrera')->findOrFail($validated['estudiante_id']);
+        $directorId = $estudiante->carrera?->director_id;
+
+        if (!$directorId) {
+            return back()
+                ->withErrors(['estudiante_id' => 'El estudiante no tiene una carrera asignada o la carrera no tiene un director asignado.'])
+                ->withInput();
+        }
+
+        $solicitud = Solicitud::create($validated + [
             'estado' => 'Pendiente de entrevista',
+            'director_id' => $directorId,
         ]);
 
         return redirect()->route('solicitudes.index')->with('success', 'Solicitud creada correctamente.');
@@ -55,9 +64,8 @@ class SolicitudController extends Controller
     {
         $estudiantes = Estudiante::orderBy('nombre')->orderBy('apellido')->get();
         $asesores = $this->usuariosPorRol('Asesora Pedagogica');
-        $directores = $this->usuariosPorRol('Director de carrera');
 
-        return view('solicitudes.edit', compact('solicitud', 'estudiantes', 'asesores', 'directores'));
+        return view('solicitudes.edit', compact('solicitud', 'estudiantes', 'asesores'));
     }
 
     public function update(Request $request, Solicitud $solicitud)
@@ -67,10 +75,23 @@ class SolicitudController extends Controller
             'descripcion' => ['nullable', 'string'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],
-            'director_id' => ['required', 'exists:users,id'],
         ]);
 
-        $solicitud->update($validated);
+        // Obtener el director automáticamente según la carrera del estudiante
+        $estudiante = Estudiante::with('carrera')->findOrFail($validated['estudiante_id']);
+        $directorId = $estudiante->carrera?->director_id;
+
+        if (!$directorId) {
+            return back()
+                ->withErrors(['estudiante_id' => 'El estudiante no tiene una carrera asignada o la carrera no tiene un director asignado.'])
+                ->withInput();
+        }
+
+        // El estado NO se puede actualizar manualmente, se gestiona automáticamente
+        // El director se asigna automáticamente según la carrera del estudiante
+        $solicitud->update($validated + [
+            'director_id' => $directorId,
+        ]);
 
         return redirect()->route('solicitudes.index')->with('success', 'Solicitud actualizada correctamente.');
     }

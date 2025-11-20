@@ -10,10 +10,17 @@ class AsesoraTecnicaCasoController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
-
+        // La Asesora Técnica (CTP) solo ve casos que están en su fase del proceso:
+        // - Pendiente de formulación del caso (cuando Coordinadora informa)
+        // - Pendiente de formulación de ajuste (cuando está formulando ajustes)
+        // - Pendiente de preaprobación (si aplica)
+        // También puede ver casos devueltos por el Director
         $solicitudes = Solicitud::with(['estudiante.carrera', 'ajustesRazonables'])
-            ->when($user, fn ($query) => $query->where('asesor_id', $user->id))
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+            ])
             ->latest('fecha_solicitud')
             ->paginate(10);
 

@@ -31,11 +31,13 @@ class AsesoraPedagogicaCasoController extends Controller
             return back()->with('error', 'El estado actual de la solicitud no permite enviar a Dirección.');
         }
 
+        // Obtener el director automáticamente según la carrera del estudiante
         $estudiante = $solicitud->estudiante;
-        $directorId = $estudiante?->carrera?->director_id ?? $solicitud->director_id;
+        $estudiante->load('carrera');
+        $directorId = $estudiante?->carrera?->director_id;
 
         if (!$directorId) {
-            return back()->with('error', 'No se ha asignado un Director de Carrera para este estudiante.');
+            return back()->with('error', 'No se ha asignado un Director de Carrera para la carrera del estudiante. Por favor, verifica que la carrera del estudiante tenga un director asignado.');
         }
 
         $solicitud->update([

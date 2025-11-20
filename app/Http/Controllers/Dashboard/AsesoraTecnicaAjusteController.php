@@ -13,7 +13,13 @@ class AsesoraTecnicaAjusteController extends Controller
 {
     public function create()
     {
+        // Solo mostrar solicitudes que están en fase de CTP para crear ajustes
         $solicitudes = Solicitud::with('estudiante')
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+            ])
             ->orderByDesc('fecha_solicitud')
             ->get();
 
@@ -76,12 +82,13 @@ class AsesoraTecnicaAjusteController extends Controller
             return back()->with('error', 'El estado actual de la solicitud no permite enviar a Dirección.');
         }
 
-        // Obtener el director de la carrera del estudiante
+        // Obtener el director de la carrera del estudiante automáticamente
         $estudiante = $solicitud->estudiante;
-        $directorId = $estudiante?->carrera?->director_id ?? $solicitud->director_id;
+        $estudiante->load('carrera');
+        $directorId = $estudiante?->carrera?->director_id;
 
         if (!$directorId) {
-            return back()->with('error', 'No se ha asignado un Director de Carrera para este estudiante.');
+            return back()->with('error', 'No se ha asignado un Director de Carrera para la carrera del estudiante. Por favor, verifica que la carrera del estudiante tenga un director asignado.');
         }
 
         $solicitud->update([

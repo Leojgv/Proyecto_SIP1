@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\BloqueoAgenda;
+use App\Models\Entrevista;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,12 +23,58 @@ class CoordinadoraAgendaController extends Controller
             ->orderBy('hora_inicio')
             ->get();
 
+        // Obtener todas las entrevistas de los estudiantes para esta coordinadora
+        $entrevistas = Entrevista::with(['solicitud.estudiante'])
+            ->where('asesor_id', $user->id)
+            ->orderBy('fecha')
+            ->orderBy('fecha_hora_inicio')
+            ->get();
+
+        // Preparar datos de entrevistas para el calendario
+        $entrevistasCalendario = $entrevistas->map(function ($entrevista) {
+            $fecha = optional($entrevista->fecha_hora_inicio ?? $entrevista->fecha)->format('Y-m-d');
+            $nombreEstudiante = $entrevista->solicitud->estudiante->nombre ?? 'Estudiante';
+            $apellidoEstudiante = $entrevista->solicitud->estudiante->apellido ?? '';
+            $nombre = trim($nombreEstudiante . ' ' . $apellidoEstudiante);
+            $hora = $entrevista->fecha_hora_inicio ? $entrevista->fecha_hora_inicio->format('H:i') : '';
+            $full = $hora ? $nombre . ' - ' . $hora : $nombre;
+            
+            return [
+                'date' => $fecha,
+                'label' => $nombre,
+                'hora' => $hora,
+                'full' => $full,
+                'type' => 'entrevista',
+            ];
+        });
+
+        // Preparar datos de bloqueos para el calendario
+        $bloqueosCalendario = $bloqueos->map(function ($bloqueo) {
+            $fecha = $bloqueo->fecha->format('Y-m-d');
+            $motivo = $bloqueo->motivo ?? 'Bloqueo';
+            $horario = $bloqueo->hora_inicio . ' - ' . $bloqueo->hora_fin;
+            $full = $motivo . ' (' . $horario . ')';
+            
+            return [
+                'date' => $fecha,
+                'label' => $motivo,
+                'hora' => $horario,
+                'full' => $full,
+                'type' => 'bloqueo',
+            ];
+        });
+
+        // Combinar entrevistas y bloqueos
+        $eventosCalendario = $entrevistasCalendario->concat($bloqueosCalendario);
+
         return view('coordinadora.agenda.index', [
             'horarioLaboral' => [
                 'inicio' => $this->horaInicioJornada,
                 'fin' => $this->horaFinJornada,
             ],
             'bloqueos' => $bloqueos,
+            'entrevistas' => $entrevistas,
+            'eventosCalendario' => $eventosCalendario,
         ]);
     }
 

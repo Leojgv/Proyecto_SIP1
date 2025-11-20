@@ -16,11 +16,19 @@ class DirectorCarreraCasoController extends Controller
     {
         $directorId = $request->user()->id;
 
+        // El Director de Carrera solo ve casos que están en su fase:
+        // - Pendiente de Aprobación (casos que debe revisar y aprobar/rechazar)
+        // También puede ver casos ya procesados (Aprobado/Rechazado) para historial
         $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor'])
             ->where(function ($query) use ($directorId) {
                 $query->where('director_id', $directorId)
                     ->orWhereHas('estudiante.carrera', fn ($sub) => $sub->where('director_id', $directorId));
             })
+            ->whereIn('estado', [
+                'Pendiente de Aprobación',
+                'Aprobado',
+                'Rechazado',
+            ])
             ->latest('fecha_solicitud')
             ->paginate(12);
 
@@ -180,10 +188,18 @@ class DirectorCarreraCasoController extends Controller
             return;
         }
 
-        // Buscar asignaturas relacionadas con el estudiante
-        $asignaturas = \App\Models\Asignatura::whereHas('estudiantes', function ($query) use ($estudiante) {
-            $query->where('estudiantes.id', $estudiante->id);
-        })->get();
+        // Cargar la carrera del estudiante
+        $estudiante->load('carrera');
+        
+        if (!$estudiante->carrera) {
+            return;
+        }
+
+        // Buscar asignaturas de la carrera del estudiante
+        $asignaturas = \App\Models\Asignatura::where('carrera_id', $estudiante->carrera_id)
+            ->whereNotNull('docente_id')
+            ->with('docente')
+            ->get();
 
         $docentes = $asignaturas->map(function ($asignatura) {
             return $asignatura->docente;
