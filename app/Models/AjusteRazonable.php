@@ -13,19 +13,13 @@ class AjusteRazonable extends Model
     protected $fillable = [
         'nombre',
         'fecha_solicitud',
-        'fecha_inicio',
-        'fecha_termino',
         'estado',
-        'porcentaje_avance',
         'solicitud_id',
         'estudiante_id',
     ];
 
     protected $casts = [
         'fecha_solicitud' => 'date',
-        'fecha_inicio' => 'date',
-        'fecha_termino' => 'date',
-        'porcentaje_avance' => 'integer',
     ];
 
     public function solicitud(): BelongsTo

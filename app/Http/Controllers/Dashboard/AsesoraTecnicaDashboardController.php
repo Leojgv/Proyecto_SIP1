@@ -88,7 +88,7 @@ class AsesoraTecnicaDashboardController extends Controller
                     'program' => $carrera ?: 'Programa no asignado',
                     'description' => $ajuste->nombre ?? 'Ajuste sin título',
                     'status' => $ajuste->estado ?? 'Enviado',
-                    'completed_at' => optional($ajuste->updated_at ?? $ajuste->fecha_termino)->format('Y-m-d') ?? 's/f',
+                    'completed_at' => optional($ajuste->updated_at)->format('Y-m-d') ?? 's/f',
                 ];
             })->toArray();
 
@@ -103,7 +103,7 @@ class AsesoraTecnicaDashboardController extends Controller
     {
         $ajustes = AjusteRazonable::query()
             ->whereNotNull('fecha_solicitud')
-            ->whereNotNull('fecha_inicio')
+            ->whereNotNull('fecha_solicitud')
             ->whereHas('solicitud')
             ->get();
 
@@ -112,7 +112,7 @@ class AsesoraTecnicaDashboardController extends Controller
         }
 
         $promedio = $ajustes->avg(function (AjusteRazonable $ajuste) {
-            $inicio = $ajuste->fecha_inicio ?? $ajuste->updated_at;
+            $inicio = $ajuste->fecha_solicitud ?? $ajuste->updated_at;
             $solicitud = $ajuste->fecha_solicitud ?? $ajuste->created_at;
             if (! $inicio || ! $solicitud) {
                 return null;

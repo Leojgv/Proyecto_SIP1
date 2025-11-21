@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 class AsesoraPedagogicaDashboardController extends Controller
 {
     private const REVIEW_STATES = [
+        'Pendiente de preaprobación',
         'Pendiente',
         'Pendiente Revision',
         'Requiere ajuste',
@@ -86,6 +87,7 @@ class AsesoraPedagogicaDashboardController extends Controller
             ],
         ];
 
+        // Obtener casos en preaprobación para el dashboard
         $casesForReview = $this->buildCasesForReview(clone $solicitudesBase, 4);
 
         $authorizedCases = AjusteRazonable::query()
@@ -105,11 +107,9 @@ class AsesoraPedagogicaDashboardController extends Controller
                     'student' => $nombreEstudiante,
                     'program' => $programa,
                     'status' => $ajuste->estado ?? 'En seguimiento',
-                    'authorized_at' => optional($ajuste->updated_at ?? $ajuste->fecha_inicio ?? $ajuste->fecha_solicitud)
+                    'authorized_at' => optional($ajuste->updated_at ?? $ajuste->fecha_solicitud)
                         ?->format('Y-m-d') ?? 's/f',
-                    'follow_up' => $ajuste->porcentaje_avance
-                        ? $ajuste->porcentaje_avance . '% avance'
-                        : 'Enviado a Direccion',
+                    'follow_up' => 'Enviado a Direccion',
                 ];
             })
             ->values()
@@ -124,11 +124,15 @@ class AsesoraPedagogicaDashboardController extends Controller
 
     protected function buildCasesForReview(Builder $query, int $limit): array
     {
+        // Priorizar casos en "Pendiente de preaprobación"
         return $query
-            ->where(function ($builder) {
+            ->where('estado', 'Pendiente de preaprobación')
+            ->orWhere(function ($builder) {
                 $builder->whereNull('estado');
                 foreach (self::REVIEW_STATES as $state) {
-                    $builder->orWhere('estado', $state);
+                    if ($state !== 'Pendiente de preaprobación') {
+                        $builder->orWhere('estado', $state);
+                    }
                 }
             })
             ->latest('fecha_solicitud')
@@ -148,7 +152,10 @@ class AsesoraPedagogicaDashboardController extends Controller
                     'proposed_adjustment' => $solicitud->descripcion ?? 'Sin descripcion registrada.',
                     'received_at' => optional($solicitud->fecha_solicitud ?? $solicitud->created_at)
                         ?->format('Y-m-d') ?? 's/f',
-                    'send_url' => route('asesora-pedagogica.casos.send', $solicitud),
+                    'send_url' => $solicitud->estado === 'Pendiente de preaprobación' 
+                        ? route('asesora-pedagogica.casos.enviar-director', $solicitud)
+                        : null,
+                    'detail_url' => route('asesora-pedagogica.casos.show', $solicitud),
                 ];
             })
             ->values()

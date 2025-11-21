@@ -118,9 +118,6 @@ class DocenteDashboardController extends Controller
                             'status' => $ajuste->estado ?? 'Activo',
                             'category' => $this->resolveCategoriaAjuste($ajuste->estado),
                             'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
-                            'fecha_inicio' => optional($ajuste->fecha_inicio)->format('d/m/Y') ?? 'No especificada',
-                            'fecha_termino' => optional($ajuste->fecha_termino)->format('d/m/Y') ?? 'No especificada',
-                            'porcentaje_avance' => $ajuste->porcentaje_avance ?? 0,
                             'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
                         ];
                     })->values()->all(),

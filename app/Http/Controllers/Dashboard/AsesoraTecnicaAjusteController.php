@@ -39,9 +39,6 @@ class AsesoraTecnicaAjusteController extends Controller
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'fecha_solicitud' => ['required', 'date'],
-            'fecha_inicio' => ['nullable', 'date'],
-            'fecha_termino' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
-            'porcentaje_avance' => ['nullable', 'integer', 'between:0,100'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
         ]);
@@ -66,10 +63,10 @@ class AsesoraTecnicaAjusteController extends Controller
     }
 
     /**
-     * Envía los ajustes razonables al Director de Carrera para validación.
-     * Cambia el estado de la solicitud a "Pendiente de Aprobación".
+     * Envía los ajustes razonables a Asesoría Pedagógica para preaprobación.
+     * Cambia el estado de la solicitud a "Pendiente de preaprobación".
      */
-    public function enviarADirector(Request $request, Solicitud $solicitud): RedirectResponse
+    public function enviarAPreaprobacion(Request $request, Solicitud $solicitud): RedirectResponse
     {
         // Verificar que haya ajustes razonables asociados
         if ($solicitud->ajustesRazonables()->count() === 0) {
@@ -77,25 +74,22 @@ class AsesoraTecnicaAjusteController extends Controller
         }
 
         // Verificar que el estado actual permita esta transición
-        $estadosPermitidos = ['Pendiente de formulación de ajuste', 'Pendiente de preaprobación'];
+        $estadosPermitidos = ['Pendiente de formulación de ajuste'];
         if (!in_array($solicitud->estado, $estadosPermitidos)) {
-            return back()->with('error', 'El estado actual de la solicitud no permite enviar a Dirección.');
+            return back()->with('error', 'El estado actual de la solicitud no permite enviar a preaprobación.');
         }
 
-        // Obtener el director de la carrera del estudiante automáticamente
-        $estudiante = $solicitud->estudiante;
-        $estudiante->load('carrera');
-        $directorId = $estudiante?->carrera?->director_id;
+        // Obtener la asesora pedagógica asignada al caso
+        $asesoraPedagogicaId = $solicitud->asesor_id;
 
-        if (!$directorId) {
-            return back()->with('error', 'No se ha asignado un Director de Carrera para la carrera del estudiante. Por favor, verifica que la carrera del estudiante tenga un director asignado.');
+        if (!$asesoraPedagogicaId) {
+            return back()->with('error', 'No se ha asignado una Asesora Pedagógica para este caso. Por favor, verifica la asignación del caso.');
         }
 
         $solicitud->update([
-            'estado' => 'Pendiente de Aprobación',
-            'director_id' => $directorId,
+            'estado' => 'Pendiente de preaprobación',
         ]);
 
-        return back()->with('status', 'Ajustes razonables enviados al Director de Carrera para aprobación.');
+        return back()->with('status', 'Ajustes razonables enviados a Asesoría Pedagógica para preaprobación.');
     }
 }

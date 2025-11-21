@@ -52,7 +52,7 @@ class EstudianteEntrevistaController extends Controller
             'telefono' => ['required', 'string', 'max:255'],
             'titulo' => ['required', 'string', 'max:255'],
             'descripcion' => ['required', 'string'],
-            'cupo' => ['required', 'date'],
+            'cupo' => ['required', 'date_format:Y-m-d H:i'],
             'autorizacion' => ['accepted'],
         ]);
 
@@ -216,5 +216,85 @@ class EstudianteEntrevistaController extends Controller
         return $ocupaciones->contains(function ($intervalo) use ($inicio, $fin) {
             return $inicio->lt($intervalo['fin']) && $fin->gt($intervalo['inicio']);
         });
+    }
+
+    /**
+     * Obtiene los horarios disponibles para un día específico (AJAX)
+     */
+    public function getHorariosPorFecha(Request $request)
+    {
+        $request->validate([
+            'fecha' => ['required', 'date'],
+        ]);
+
+        $fecha = Carbon::parse($request->fecha);
+        $coordinadora = $this->resolveCoordinadora();
+
+        if (!$coordinadora) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay coordinadora disponible.',
+                'horarios' => [],
+            ]);
+        }
+
+        // Calcular horarios disponibles solo para ese día
+        $inicioDia = $fecha->copy()->startOfDay();
+        $finDia = $fecha->copy()->endOfDay();
+
+        $cupos = $this->calcularCuposDisponibles($coordinadora, $inicioDia, $finDia);
+
+        // Formatear horarios para el frontend
+        $horarios = $cupos->map(function ($cupo) {
+            return [
+                'valor' => $cupo['valor'],
+                'hora' => $cupo['inicio']->format('H:i'),
+                'label' => $cupo['inicio']->format('H:i') . ' - ' . $cupo['fin']->format('H:i'),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'fecha' => $fecha->format('Y-m-d'),
+            'fecha_formateada' => $fecha->locale('es')->translatedFormat('l j \\de F \\de Y'),
+            'horarios' => $horarios,
+        ]);
+    }
+
+    /**
+     * Obtiene los días con disponibilidad para el calendario (AJAX)
+     */
+    public function getDiasDisponibles(Request $request)
+    {
+        $coordinadora = $this->resolveCoordinadora();
+
+        if (!$coordinadora) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay coordinadora disponible.',
+                'dias' => [],
+            ]);
+        }
+
+        // Calcular cupos disponibles para las próximas 4 semanas
+        $desde = now()->startOfDay();
+        $hasta = now()->copy()->addWeeks(4)->endOfDay();
+
+        $cupos = $this->calcularCuposDisponibles($coordinadora, $desde, $hasta);
+
+        // Agrupar por fecha y obtener días con disponibilidad
+        $diasDisponibles = $cupos->groupBy(function ($cupo) {
+            return $cupo['inicio']->format('Y-m-d');
+        })->map(function ($cuposDia, $fecha) {
+            return [
+                'fecha' => $fecha,
+                'cantidad' => $cuposDia->count(),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'dias' => $diasDisponibles,
+        ]);
     }
 }

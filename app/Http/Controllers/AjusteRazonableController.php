@@ -29,9 +29,6 @@ class AjusteRazonableController extends Controller
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'fecha_solicitud' => ['required', 'date'],
-            'fecha_inicio' => ['nullable', 'date'],
-            'fecha_termino' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
-            'porcentaje_avance' => ['nullable', 'integer', 'between:0,100'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
         ]);
@@ -72,9 +69,6 @@ class AjusteRazonableController extends Controller
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'fecha_solicitud' => ['required', 'date'],
-            'fecha_inicio' => ['nullable', 'date'],
-            'fecha_termino' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],
-            'porcentaje_avance' => ['nullable', 'integer', 'between:0,100'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
         ]);
