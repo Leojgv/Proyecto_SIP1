@@ -40,7 +40,7 @@
     <div>
       <p class="text-danger text-uppercase fw-semibold small mb-1">Tu espacio académico</p>
       <h1 class="h4 mb-1">Mi Dashboard</h1>
-      <p class="text-muted mb-0">Gestiona tus solicitudes y ajustes académicos de forma centralizada.</p>
+      <p class="text-muted mb-0">Revisa el estado de tus solicitudes, consulta tus ajustes académicos aprobados, gestiona tus entrevistas y mantente al día con tus notificaciones.</p>
     </div>
   </div>
 
@@ -175,7 +175,7 @@
                         data-solicitud-asesor="{{ $solicitud->asesor ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : 'Sin asignar' }}"
                         data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
                         data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
-                        data-solicitud-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) { return ['nombre' => $a->nombre, 'estado' => $a->estado, 'fecha_inicio' => $a->fecha_inicio?->format('d/m/Y'), 'fecha_termino' => $a->fecha_termino?->format('d/m/Y')]; })) }}"
+                        data-solicitud-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) { return ['nombre' => $a->nombre, 'estado' => $a->estado]; })) }}"
                         data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar']; })) }}">
                   Ver detalle
                 </button>
@@ -244,12 +244,146 @@
           </div>
           <div class="list-group list-group-flush">
             @forelse ($misAjustes as $ajuste)
-              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2">
-                <div>
-                  <h6 class="mb-1">{{ $ajuste->nombre }}</h6>
-                  <small class="text-muted">{{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}</small>
+              @php
+                // Función helper para determinar el ícono según el tipo de ajuste
+                $nombreLower = strtolower($ajuste->nombre ?? '');
+                $icono = 'fa-sliders'; // Ícono por defecto
+                
+                if (str_contains($nombreLower, 'tiempo') || str_contains($nombreLower, 'extendido')) {
+                  $icono = 'fa-clock';
+                } elseif (str_contains($nombreLower, 'visual') || str_contains($nombreLower, 'braille') || str_contains($nombreLower, 'lector') || str_contains($nombreLower, 'magnificador') || str_contains($nombreLower, 'lupa')) {
+                  $icono = 'fa-eye';
+                } elseif (str_contains($nombreLower, 'audit') || str_contains($nombreLower, 'seña') || str_contains($nombreLower, 'intérprete') || str_contains($nombreLower, 'subtítulo') || str_contains($nombreLower, 'fm')) {
+                  $icono = 'fa-ear-deaf';
+                } elseif (str_contains($nombreLower, 'motora') || str_contains($nombreLower, 'físico') || str_contains($nombreLower, 'acceso') || str_contains($nombreLower, 'adaptado')) {
+                  $icono = 'fa-wheelchair';
+                } elseif (str_contains($nombreLower, 'intelectual') || str_contains($nombreLower, 'aprendizaje')) {
+                  $icono = 'fa-brain';
+                } elseif (str_contains($nombreLower, 'asistente') || str_contains($nombreLower, 'notas') || str_contains($nombreLower, 'toma de notas')) {
+                  $icono = 'fa-user-check';
+                } elseif (str_contains($nombreLower, 'material') || str_contains($nombreLower, 'formato') || str_contains($nombreLower, 'contraste')) {
+                  $icono = 'fa-file-alt';
+                } elseif (str_contains($nombreLower, 'tecnología') || str_contains($nombreLower, 'asistiva')) {
+                  $icono = 'fa-laptop';
+                } elseif (str_contains($nombreLower, 'ubicación') || str_contains($nombreLower, 'preferencial')) {
+                  $icono = 'fa-map-marker-alt';
+                }
+              @endphp
+              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2 align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="text-danger" style="font-size: 1.5rem;">
+                    <i class="fas {{ $icono }}"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 d-flex align-items-center gap-2">
+                      {{ $ajuste->nombre }}
+                    </h6>
+                    <small class="text-muted">
+                      <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
+                          'aprobado' => 'bg-success',
+                          'pendiente de aprobación' => 'bg-warning text-dark',
+                          'pendiente de formulación de ajuste' => 'bg-info text-dark',
+                          'pendiente de preaprobación' => 'bg-primary',
+                          'rechazado' => 'bg-danger',
+                          default => 'bg-secondary'
+                      } }}">
+                        {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
+                      </span>
+                    </small>
+                  </div>
                 </div>
-                <a href="{{ route('ajustes-razonables.show', $ajuste) }}" class="btn btn-sm btn-outline-secondary">Ver seguimiento</a>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-secondary" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#modalSeguimiento{{ $ajuste->id }}"
+                >
+                  <i class="fas fa-eye me-1"></i>Ver seguimiento
+                </button>
+              </div>
+
+              <!-- Modal de Seguimiento -->
+              <div class="modal fade" id="modalSeguimiento{{ $ajuste->id }}" tabindex="-1" aria-labelledby="modalSeguimientoLabel{{ $ajuste->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title" id="modalSeguimientoLabel{{ $ajuste->id }}">
+                        <i class="fas {{ $icono }} me-2"></i>Detalle del Ajuste
+                      </h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <h6 class="text-danger mb-3">
+                            <i class="fas {{ $icono }} me-2"></i>{{ $ajuste->nombre }}
+                          </h6>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-tag me-1"></i><strong>Estado</strong>
+                            </small>
+                            <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
+                                'aprobado' => 'bg-success',
+                                'pendiente de aprobación' => 'bg-warning text-dark',
+                                'pendiente de formulación de ajuste' => 'bg-info text-dark',
+                                'pendiente de preaprobación' => 'bg-primary',
+                                'rechazado' => 'bg-danger',
+                                default => 'bg-secondary'
+                            } }} fs-6">
+                              {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-calendar-alt me-1"></i><strong>Fecha de Solicitud</strong>
+                            </small>
+                            <div class="fw-semibold">
+                              {{ $ajuste->fecha_solicitud?->format('d/m/Y') ?? 'No especificada' }}
+                            </div>
+                          </div>
+                        </div>
+
+                        @if($ajuste->solicitud)
+                          <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                              <small class="text-muted d-block mb-2">
+                                <i class="fas fa-file-alt me-1"></i><strong>Información de la Solicitud</strong>
+                              </small>
+                              <div class="mb-2">
+                                <strong>Fecha:</strong> {{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}
+                              </div>
+                              @if($ajuste->solicitud->descripcion)
+                                <div>
+                                  <strong>Descripción:</strong>
+                                  <p class="mb-0 mt-1 text-break">{{ $ajuste->solicitud->descripcion }}</p>
+                                </div>
+                              @endif
+                            </div>
+                          </div>
+                        @endif
+
+                        <div class="col-12">
+                          <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Información:</strong> Este ajuste se encuentra en proceso de revisión. 
+                            Cualquier actualización será notificada en tu panel de notificaciones.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             @empty
               <p class="text-muted text-center my-4">Aún no tienes ajustes académicos registrados.</p>
@@ -517,18 +651,6 @@ document.addEventListener('DOMContentLoaded', function() {
                       <span class="text-muted">Estado:</span>
                       <span class="badge bg-info ms-2">${ajuste.estado || 'Sin estado'}</span>
                     </div>
-                    ${ajuste.fecha_inicio ? `
-                      <div class="col-12 col-md-6">
-                        <span class="text-muted"><i class="fas fa-calendar-check me-1"></i>Inicio:</span>
-                        <span class="ms-1">${ajuste.fecha_inicio}</span>
-                      </div>
-                    ` : ''}
-                    ${ajuste.fecha_termino ? `
-                      <div class="col-12 col-md-6">
-                        <span class="text-muted"><i class="fas fa-calendar-times me-1"></i>Término:</span>
-                        <span class="ms-1">${ajuste.fecha_termino}</span>
-                      </div>
-                    ` : ''}
                   </div>
                 </div>
               </div>

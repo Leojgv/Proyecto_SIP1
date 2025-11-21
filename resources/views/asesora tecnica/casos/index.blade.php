@@ -44,8 +44,8 @@
             @forelse($solicitudes as $solicitud)
               @php
                 $ajustesCount = $solicitud->ajustesRazonables()->count();
-                $estadosPermitidos = ['Pendiente de formulación de ajuste', 'Pendiente de preaprobación'];
-                $puedeEnviarADirector = in_array($solicitud->estado, $estadosPermitidos) && $ajustesCount > 0;
+                $estadosPermitidos = ['Pendiente de formulación de ajuste'];
+                $puedeEnviarAPreaprobacion = in_array($solicitud->estado, $estadosPermitidos) && $ajustesCount > 0;
               @endphp
               <tr>
                 <td>{{ $solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $solicitud->estudiante->apellido ?? '' }}</td>
@@ -63,13 +63,15 @@
                   @endif
                 </td>
                 <td class="text-end">
-                  @if($puedeEnviarADirector)
-                    <form action="{{ route('asesora-tecnica.solicitudes.enviar-director', $solicitud) }}" method="POST" class="d-inline">
+                  @if($puedeEnviarAPreaprobacion)
+                    <form action="{{ route('asesora-tecnica.solicitudes.enviar-preaprobacion', $solicitud) }}" method="POST" class="d-inline">
                       @csrf
-                      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar esta solicitud al Director de Carrera? Esta acción cambiará el estado a \"Pendiente de Aprobación\".');">
-                        <i class="fas fa-paper-plane me-1"></i>Enviar a Director
+                      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar esta solicitud a Asesoría Pedagógica para preaprobación? Esta acción cambiará el estado a \"Pendiente de preaprobación\".');">
+                        <i class="fas fa-paper-plane me-1"></i>Enviar a Preaprobación
                       </button>
                     </form>
+                  @elseif($solicitud->estado === 'Pendiente de preaprobación')
+                    <span class="badge bg-warning text-dark">En preaprobación</span>
                   @elseif($solicitud->estado === 'Pendiente de Aprobación' || $solicitud->estado === 'Aprobado' || $solicitud->estado === 'Rechazado')
                     <span class="text-muted small">Enviado</span>
                   @else

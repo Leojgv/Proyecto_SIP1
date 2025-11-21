@@ -123,30 +123,6 @@
                               <strong>Estado:</strong> {{ $ajuste['status'] ?? 'Activo' }}
                             </small>
                           </div>
-                          @if(isset($ajuste['fecha_inicio']) && $ajuste['fecha_inicio'] !== 'No especificada')
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-play-circle me-1"></i>
-                              <strong>Fecha de inicio:</strong> {{ $ajuste['fecha_inicio'] }}
-                            </small>
-                          </div>
-                          @endif
-                          @if(isset($ajuste['fecha_termino']) && $ajuste['fecha_termino'] !== 'No especificada')
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-stop-circle me-1"></i>
-                              <strong>Fecha de término:</strong> {{ $ajuste['fecha_termino'] }}
-                            </small>
-                          </div>
-                          @endif
-                          @if(isset($ajuste['porcentaje_avance']) && $ajuste['porcentaje_avance'] > 0)
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-chart-line me-1"></i>
-                              <strong>Avance:</strong> {{ $ajuste['porcentaje_avance'] }}%
-                            </small>
-                          </div>
-                          @endif
                           <div class="col-md-6">
                             <small class="text-muted d-block">
                               <i class="fas fa-clock me-1"></i>

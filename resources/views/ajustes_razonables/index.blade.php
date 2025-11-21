@@ -22,7 +22,6 @@
             <th>Estudiante</th>
             <th>Solicitud</th>
             <th>Estado</th>
-            <th>Avance</th>
             <th class="text-end">Acciones</th>
           </tr>
         </thead>
@@ -33,7 +32,6 @@
               <td>{{ $ajuste->estudiante->nombre ?? '—' }} {{ $ajuste->estudiante->apellido ?? '' }}</td>
               <td>{{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}</td>
               <td>{{ $ajuste->estado ?? '—' }}</td>
-              <td>{{ $ajuste->porcentaje_avance !== null ? $ajuste->porcentaje_avance . '%' : '—' }}</td>
               <td class="text-end">
                 <a href="{{ route('ajustes-razonables.edit', $ajuste) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
                 <form action="{{ route('ajustes-razonables.destroy', $ajuste) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas eliminar este ajuste?');">
@@ -45,7 +43,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center py-4">No hay ajustes registrados.</td>
+              <td colspan="5" class="text-center py-4">No hay ajustes registrados.</td>
             </tr>
           @endforelse
         </tbody>

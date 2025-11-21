@@ -169,23 +169,6 @@
           @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
 
-        <div class="col-12 col-md-6">
-          <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
-          <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ old('fecha_inicio') }}" class="form-control @error('fecha_inicio') is-invalid @enderror">
-          @error('fecha_inicio')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
-
-        <div class="col-12 col-md-6">
-          <label for="fecha_termino" class="form-label">Fecha de término</label>
-          <input type="date" id="fecha_termino" name="fecha_termino" value="{{ old('fecha_termino') }}" class="form-control @error('fecha_termino') is-invalid @enderror">
-          @error('fecha_termino')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
-
-        <div class="col-12 col-md-6">
-          <label for="porcentaje_avance" class="form-label">Avance (%)</label>
-          <input type="number" id="porcentaje_avance" name="porcentaje_avance" value="{{ old('porcentaje_avance') }}" min="0" max="100" class="form-control @error('porcentaje_avance') is-invalid @enderror" placeholder="0-100">
-          @error('porcentaje_avance')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
 
         <div class="col-12 d-flex justify-content-end gap-2 mt-2">
           <a href="{{ route('asesora-tecnica.dashboard') }}" class="btn btn-outline-danger">Cancelar</a>

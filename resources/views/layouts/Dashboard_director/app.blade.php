@@ -8,6 +8,7 @@
   <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico?v=2') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="{{ asset('css/accessibility.css') }}">
   <style>
     :root {
       --red-50: #fff1f1;
@@ -132,7 +133,7 @@
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.dashboard') ? 'active' : '' }}" href="{{ route('director.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.casos') ? 'active' : '' }}" href="{{ route('director.casos') }}"><i class="fas fa-folder-open"></i>Casos</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.estudiantes') ? 'active' : '' }}" href="{{ route('director.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
-      <a class="dashboard-sidebar__link" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('director.ajustes.*') ? 'active' : '' }}" href="{{ route('director.ajustes.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="dashboard-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="dashboard-sidebar__link" href="{{ route('home') }}"><i class="fas fa-gear"></i>Configuracion</a>
     </nav>
@@ -142,6 +143,7 @@
       <div class="dashboard-topbar__items">
         <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \\de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
+        @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-director').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>
       </div>
       <form id="logout-form-director" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
@@ -152,6 +154,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('js/accessibility.js') }}"></script>
 @stack('scripts')
 </body>
 </html>

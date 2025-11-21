@@ -21,15 +21,8 @@
         <dt class="col-sm-3">Estado</dt>
         <dd class="col-sm-9">{{ $ajuste->estado ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Fechas</dt>
-        <dd class="col-sm-9">
-          Solicitud: {{ $ajuste->fecha_solicitud?->format('d/m/Y') ?? '—' }}<br>
-          Inicio: {{ $ajuste->fecha_inicio?->format('d/m/Y') ?? '—' }}<br>
-          Término: {{ $ajuste->fecha_termino?->format('d/m/Y') ?? '—' }}
-        </dd>
-
-        <dt class="col-sm-3">Avance</dt>
-        <dd class="col-sm-9">{{ $ajuste->porcentaje_avance !== null ? $ajuste->porcentaje_avance . '%' : '—' }}</dd>
+        <dt class="col-sm-3">Fecha de solicitud</dt>
+        <dd class="col-sm-9">{{ $ajuste->fecha_solicitud?->format('d/m/Y') ?? '—' }}</dd>
       </dl>
     </div>
   </div>

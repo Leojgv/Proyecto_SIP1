@@ -43,7 +43,7 @@
               <h5 class="card-title mb-0">Casos para revision</h5>
               <small class="text-muted">Solicitudes que requieren tu autorizacion</small>
             </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Ver todos</a>
+            <a href="{{ route('asesora-pedagogica.casos.index') }}" class="btn btn-sm btn-outline-danger">Ver todos</a>
           </div>
           @forelse ($casesForReview as $case)
             <div class="case-item">
@@ -57,14 +57,16 @@
                 <span class="badge status-badge">{{ $case['status'] }}</span>
                 <p class="text-muted small mb-0">Recibido: {{ $case['received_at'] }}</p>
                 <div class="mt-2 d-flex gap-2 justify-content-end flex-wrap">
-                  <a href="{{ $case['case_id'] ? route('solicitudes.edit', $case['case_id']) : route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Editar ajuste</a>
-                  @if (!empty($case['send_url']))
-                    <form action="{{ $case['send_url'] }}" method="POST">
+                  <a href="{{ $case['detail_url'] ?? route('asesora-pedagogica.casos.show', $case['case_id']) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye me-1"></i>Ver detalles
+                  </a>
+                  @if (!empty($case['send_url']) && $case['status'] === 'Pendiente de preaprobación')
+                    <form action="{{ $case['send_url'] }}" method="POST" class="d-inline">
                       @csrf
-                      <button type="submit" class="btn btn-sm btn-danger">Autorizar y enviar</button>
+                      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Enviar este caso a Dirección de Carrera para aprobación final?');">
+                        <i class="fas fa-paper-plane me-1"></i>Enviar a Dirección
+                      </button>
                     </form>
-                  @else
-                    <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-danger">Autorizar y enviar</a>
                   @endif
                 </div>
               </div>

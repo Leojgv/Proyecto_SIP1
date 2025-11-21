@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="{{ asset('css/accessibility.css') }}">
   <style>
     :root {
       --red-50: #fff1f1;
@@ -139,6 +140,7 @@
       <div class="dashboard-topbar__items">
         <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
+        @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-docente').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>
       </div>
       <form id="logout-form-docente" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
@@ -149,6 +151,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('js/accessibility.js') }}"></script>
 @stack('scripts')
 </body>
 </html>
