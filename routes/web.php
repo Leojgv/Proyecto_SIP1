@@ -83,6 +83,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
 
         Route::get('estudiantes/entrevistas/solicitar', [EstudianteEntrevistaController::class, 'create'])->name('estudiantes.entrevistas.create');
         Route::post('estudiantes/entrevistas', [EstudianteEntrevistaController::class, 'store'])->name('estudiantes.entrevistas.store');
+        Route::get('estudiantes/entrevistas/dias-disponibles', [EstudianteEntrevistaController::class, 'getDiasDisponibles'])->name('estudiantes.entrevistas.dias-disponibles');
+        Route::get('estudiantes/entrevistas/horarios-por-fecha', [EstudianteEntrevistaController::class, 'getHorariosPorFecha'])->name('estudiantes.entrevistas.horarios-por-fecha');
     });
 
     Route::middleware('role:Coordinadora de inclusion')->group(function () {
@@ -101,6 +103,12 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.dashboard');
         Route::get('director-carrera/estudiantes', [DirectorCarreraEstudianteController::class, 'index'])
             ->name('director.estudiantes');
+        Route::get('director-carrera/estudiantes/importar', [DirectorCarreraEstudianteController::class, 'showImportForm'])
+            ->name('director.estudiantes.import.form');
+        Route::post('director-carrera/estudiantes/importar', [DirectorCarreraEstudianteController::class, 'import'])
+            ->name('director.estudiantes.import');
+        Route::get('director-carrera/ajustes', [\App\Http\Controllers\Dashboard\DirectorCarreraAjusteController::class, 'index'])
+            ->name('director.ajustes.index');
         Route::get('director-carrera/casos', [DirectorCarreraCasoController::class, 'index'])
             ->name('director.casos');
         Route::get('director-carrera/casos/{solicitud}', [DirectorCarreraCasoController::class, 'show'])
@@ -120,8 +128,12 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-pedagogica.estudiantes');
         Route::get('asesora-pedagogica/casos', [AsesoraPedagogicaCasoController::class, 'index'])
             ->name('asesora-pedagogica.casos.index');
-        Route::post('asesora-pedagogica/casos/{solicitud}/enviar', [AsesoraPedagogicaCasoController::class, 'sendToDirector'])
-            ->name('asesora-pedagogica.casos.send');
+        Route::get('asesora-pedagogica/casos/{solicitud}', [AsesoraPedagogicaCasoController::class, 'show'])
+            ->name('asesora-pedagogica.casos.show');
+        Route::post('asesora-pedagogica/casos/{solicitud}/enviar-director', [AsesoraPedagogicaCasoController::class, 'enviarADirector'])
+            ->name('asesora-pedagogica.casos.enviar-director');
+        Route::post('asesora-pedagogica/casos/{solicitud}/devolver-actt', [AsesoraPedagogicaCasoController::class, 'devolverACTT'])
+            ->name('asesora-pedagogica.casos.devolver-actt');
     });
 
     Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
@@ -137,8 +149,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-tecnica.ajustes.create');
         Route::post('asesora-tecnica/ajustes', [AsesoraTecnicaAjusteController::class, 'store'])
             ->name('asesora-tecnica.ajustes.store');
-        Route::post('asesora-tecnica/solicitudes/{solicitud}/enviar-director', [AsesoraTecnicaAjusteController::class, 'enviarADirector'])
-            ->name('asesora-tecnica.solicitudes.enviar-director');
+        Route::post('asesora-tecnica/solicitudes/{solicitud}/enviar-preaprobacion', [AsesoraTecnicaAjusteController::class, 'enviarAPreaprobacion'])
+            ->name('asesora-tecnica.solicitudes.enviar-preaprobacion');
     });
 
     Route::middleware('role:Docente')->group(function () {
