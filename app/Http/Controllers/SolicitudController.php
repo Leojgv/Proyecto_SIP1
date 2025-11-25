@@ -30,6 +30,7 @@ class SolicitudController extends Controller
     {
         $validated = $request->validate([
             'fecha_solicitud' => ['required', 'date'],
+            'titulo' => ['nullable', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],
@@ -72,6 +73,7 @@ class SolicitudController extends Controller
     {
         $validated = $request->validate([
             'fecha_solicitud' => ['required', 'date'],
+            'titulo' => ['nullable', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
             'asesor_id' => ['required', 'exists:users,id'],

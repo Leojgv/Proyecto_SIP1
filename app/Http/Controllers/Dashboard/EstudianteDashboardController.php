@@ -83,6 +83,11 @@ class EstudianteDashboardController extends Controller
 
         $misAjustes = $estudiante->ajustesRazonables()
             ->with('solicitud')
+            ->whereHas('solicitud', function ($query) {
+                // Solo mostrar ajustes de solicitudes que NO estén rechazadas
+                $query->where('estado', '!=', 'Rechazado');
+            })
+            ->where('estado', '!=', 'Rechazado')
             ->orderByDesc('fecha_solicitud')
             ->take(5)
             ->get();

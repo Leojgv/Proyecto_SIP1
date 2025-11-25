@@ -58,6 +58,11 @@ class DirectorCarreraCasoController extends Controller
             'motivo_rechazo' => null,
         ]);
 
+        // Actualizar el estado de todos los ajustes razonables asociados a "Aprobado"
+        $solicitud->ajustesRazonables()->update([
+            'estado' => 'Aprobado',
+        ]);
+
         $this->notifyOnApproval($solicitud);
         
         // Notificar a docentes sobre los ajustes aprobados

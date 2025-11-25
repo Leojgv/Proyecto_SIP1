@@ -50,35 +50,7 @@ class DocenteDashboardController extends Controller
         $user = $request->user();
         $students = $this->collectStudentsWithAdjustments($user);
 
-        $metrics = [
-            [
-                'label' => 'Total Estudiantes',
-                'value' => $students->count(),
-                'helper' => 'Bajo tu supervision',
-                'icon' => 'fa-user-group',
-            ],
-            [
-                'label' => 'Ajustes Activos',
-                'value' => $this->countAdjustmentsMatching($students, fn ($estado) => $this->esAjusteActivo($estado)),
-                'helper' => 'En seguimiento',
-                'icon' => 'fa-sliders',
-            ],
-            [
-                'label' => 'Pendientes',
-                'value' => $this->countAdjustmentsMatching($students, fn ($estado) => str_contains(strtolower((string) $estado), 'pend')),
-                'helper' => 'Por confirmar',
-                'icon' => 'fa-clock',
-            ],
-            [
-                'label' => 'Total Ajustes',
-                'value' => $students->sum(fn ($student) => count($student['adjustments'])),
-                'helper' => 'Registrados',
-                'icon' => 'fa-list-check',
-            ],
-        ];
-
         return view('docente.students', [
-            'metrics' => $metrics,
             'students' => $students,
         ]);
     }

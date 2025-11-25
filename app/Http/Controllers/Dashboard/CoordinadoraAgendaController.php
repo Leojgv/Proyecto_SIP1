@@ -37,13 +37,18 @@ class CoordinadoraAgendaController extends Controller
             $apellidoEstudiante = $entrevista->solicitud->estudiante->apellido ?? '';
             $nombre = trim($nombreEstudiante . ' ' . $apellidoEstudiante);
             $hora = $entrevista->fecha_hora_inicio ? $entrevista->fecha_hora_inicio->format('H:i') : '';
+            $modalidad = $entrevista->modalidad ?? '';
             $full = $hora ? $nombre . ' - ' . $hora : $nombre;
+            if ($modalidad) {
+                $full .= ' (' . $modalidad . ')';
+            }
             
             return [
                 'date' => $fecha,
                 'label' => $nombre,
                 'hora' => $hora,
                 'full' => $full,
+                'modalidad' => $modalidad,
                 'type' => 'entrevista',
             ];
         });

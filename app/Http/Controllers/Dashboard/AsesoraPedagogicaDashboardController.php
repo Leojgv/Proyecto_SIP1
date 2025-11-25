@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\AjusteRazonable;
+use App\Models\Estudiante;
 use App\Models\Solicitud;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AsesoraPedagogicaDashboardController extends Controller
@@ -115,11 +117,64 @@ class AsesoraPedagogicaDashboardController extends Controller
             ->values()
             ->all();
 
+        // Obtener estudiantes para el modal de registro de solicitud
+        $estudiantes = Estudiante::with('carrera')
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
+
         return view('asesora pedagogica.dashboard', [
             'metrics' => $metrics,
             'casesForReview' => $casesForReview,
             'authorizedCases' => $authorizedCases,
+            'estudiantes' => $estudiantes,
         ]);
+    }
+
+    /**
+     * Guarda una nueva solicitud desde el dashboard de Asesora Pedagógica.
+     */
+    public function storeSolicitud(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Verificar que el usuario esté autenticado
+        if (!$user) {
+            return back()
+                ->withErrors(['error' => 'Debes estar autenticado para registrar una solicitud.'])
+                ->withInput();
+        }
+
+        $validated = $request->validate([
+            'estudiante_id' => ['required', 'exists:estudiantes,id'],
+            'titulo' => ['required', 'string', 'max:255'],
+            'descripcion' => ['required', 'string', 'min:10'],
+        ]);
+
+        // Obtener el estudiante para determinar su carrera y director
+        $estudiante = Estudiante::with('carrera')->findOrFail($validated['estudiante_id']);
+        $directorId = $estudiante->carrera?->director_id;
+
+        if (!$directorId) {
+            return back()
+                ->withErrors(['estudiante_id' => 'El estudiante no tiene una carrera asignada o la carrera no tiene un director asignado.'])
+                ->withInput();
+        }
+
+        // Crear la solicitud con la fecha actual y asignar automáticamente la asesora pedagógica actual
+        $solicitud = new Solicitud();
+        $solicitud->fecha_solicitud = now()->toDateString();
+        $solicitud->titulo = $validated['titulo'];
+        $solicitud->descripcion = $validated['descripcion'];
+        $solicitud->estudiante_id = $validated['estudiante_id'];
+        $solicitud->estado = 'Pendiente de entrevista';
+        $solicitud->asesor_id = $user->id; // Asignar automáticamente la asesora pedagógica actual
+        $solicitud->director_id = $directorId; // Asignado automáticamente según la carrera
+        $solicitud->save();
+
+        return redirect()
+            ->route('asesora-pedagogica.dashboard')
+            ->with('status', 'Solicitud registrada correctamente.');
     }
 
     protected function buildCasesForReview(Builder $query, int $limit): array

@@ -52,6 +52,7 @@ class EstudianteEntrevistaController extends Controller
             'telefono' => ['required', 'string', 'max:255'],
             'titulo' => ['required', 'string', 'max:255'],
             'descripcion' => ['required', 'string'],
+            'modalidad' => ['required', 'string', 'in:Virtual,Presencial'],
             'cupo' => ['required', 'date_format:Y-m-d H:i'],
             'autorizacion' => ['accepted'],
         ]);
@@ -76,8 +77,6 @@ class EstudianteEntrevistaController extends Controller
         $inicioEntrevista = $cupoSeleccionado['inicio']->copy();
         $finEntrevista = $cupoSeleccionado['fin']->copy();
 
-        $descripcion = '['.$validated['titulo'].'] '.trim($validated['descripcion']);
-
         // Obtener el director automáticamente según la carrera del estudiante
         $estudiante->load('carrera');
         $directorId = $estudiante->carrera?->director_id;
@@ -88,12 +87,22 @@ class EstudianteEntrevistaController extends Controller
                 ->withInput();
         }
 
+        // Obtener una asesora pedagógica disponible automáticamente
+        $asesoraPedagogica = $this->resolveAsesoraPedagogica();
+
+        if (!$asesoraPedagogica) {
+            return back()
+                ->withErrors(['cupo' => 'No hay Asesoras Pedagógicas disponibles en el sistema. Por favor contacta con administración.'])
+                ->withInput();
+        }
+
         $solicitud = Solicitud::create([
             'fecha_solicitud' => now()->toDateString(),
-            'descripcion' => $descripcion,
+            'titulo' => $validated['titulo'],
+            'descripcion' => trim($validated['descripcion']),
             'estudiante_id' => $estudiante->id,
             'estado' => 'Pendiente de entrevista',
-            'asesor_id' => null, // Se asignará posteriormente
+            'asesor_id' => $asesoraPedagogica->id, // Asignado automáticamente
             'director_id' => $directorId, // Asignado automáticamente según la carrera
         ]);
 
@@ -101,6 +110,7 @@ class EstudianteEntrevistaController extends Controller
             'fecha' => $inicioEntrevista->toDateString(),
             'fecha_hora_inicio' => $inicioEntrevista,
             'fecha_hora_fin' => $finEntrevista,
+            'modalidad' => $validated['modalidad'],
             'solicitud_id' => $solicitud->id,
             'asesor_id' => $coordinadora?->id,
         ]);
@@ -136,6 +146,13 @@ class EstudianteEntrevistaController extends Controller
     private function resolveCoordinadora(): ?User
     {
         return User::withRole('Coordinadora de inclusion')
+            ->orderBy('id')
+            ->first();
+    }
+
+    private function resolveAsesoraPedagogica(): ?User
+    {
+        return User::withRole('Asesora Pedagogica')
             ->orderBy('id')
             ->first();
     }
