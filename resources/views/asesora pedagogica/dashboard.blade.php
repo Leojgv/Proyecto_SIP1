@@ -6,6 +6,20 @@
 
 @section('content')
 <div class="dashboard-page">
+  @if(session('status'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
+  @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
   <div class="page-header mb-4">
     <h1 class="h4 mb-1">Dashboard Asesora Pedagogica</h1>
     <p class="text-muted mb-0">Resumen de casos, autorizaciones y accesos rapidos para la gestion institucional.</p>
@@ -30,7 +44,9 @@
         <h5 class="mb-1">Necesitas registrar un nuevo caso?</h5>
         <p class="text-muted mb-0">Centraliza desde aqui la creacion de solicitudes y su seguimiento.</p>
       </div>
-      <a href="{{ route('solicitudes.create') }}" class="btn btn-danger">+ Registrar solicitud</a>
+      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRegistrarSolicitud">
+        <i class="fas fa-plus me-2"></i>Registrar solicitud
+      </button>
     </div>
   </div>
 
@@ -67,6 +83,9 @@
                         <i class="fas fa-paper-plane me-1"></i>Enviar a Dirección
                       </button>
                     </form>
+                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalDevolverACTT{{ $case['case_id'] }}">
+                      <i class="fas fa-arrow-left me-1"></i>Devolver a A. Técnico
+                    </button>
                   @endif
                 </div>
               </div>
@@ -208,4 +227,158 @@
   }
 </style>
 @endpush
+
+<!-- Modal Registrar Solicitud -->
+<div class="modal fade" id="modalRegistrarSolicitud" tabindex="-1" aria-labelledby="modalRegistrarSolicitudLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalRegistrarSolicitudLabel">
+          <i class="fas fa-plus-circle me-2"></i>Registrar Nueva Solicitud
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('asesora-pedagogica.solicitud.store') }}" method="POST">
+        @csrf
+        <div class="modal-body">
+          @if($errors->any())
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
+
+          <div class="mb-3">
+            <label for="estudiante_id" class="form-label">
+              Estudiante <span class="text-danger">*</span>
+            </label>
+            <select 
+              name="estudiante_id" 
+              id="estudiante_id" 
+              class="form-select @error('estudiante_id') is-invalid @enderror" 
+              required
+            >
+              <option value="">Selecciona un estudiante</option>
+              @foreach($estudiantes ?? [] as $estudiante)
+                <option value="{{ $estudiante->id }}" @selected(old('estudiante_id') == $estudiante->id)>
+                  {{ $estudiante->nombre }} {{ $estudiante->apellido }}
+                  @if($estudiante->rut)
+                    ({{ $estudiante->rut }})
+                  @endif
+                  @if($estudiante->carrera)
+                    - {{ $estudiante->carrera->nombre }}
+                  @endif
+                </option>
+              @endforeach
+            </select>
+            @error('estudiante_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="titulo" class="form-label">
+              Título <span class="text-danger">*</span>
+            </label>
+            <input 
+              type="text" 
+              name="titulo" 
+              id="titulo" 
+              class="form-control @error('titulo') is-invalid @enderror" 
+              placeholder="Ingresa un título para la solicitud" 
+              value="{{ old('titulo') }}"
+              required
+            >
+            @error('titulo')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="descripcion" class="form-label">
+              Descripción para la Entrevista <span class="text-danger">*</span>
+            </label>
+            <textarea 
+              name="descripcion" 
+              id="descripcion" 
+              rows="5" 
+              class="form-control @error('descripcion') is-invalid @enderror" 
+              placeholder="Describe el motivo de la solicitud de entrevista..." 
+              required
+            >{{ old('descripcion') }}</textarea>
+            @error('descripcion')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="text-muted">Mínimo 10 caracteres.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-save me-2"></i>Registrar Solicitud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modales para Devolver a A. Técnico -->
+@foreach ($casesForReview as $case)
+  @if ($case['status'] === 'Pendiente de preaprobación')
+    <div class="modal fade" id="modalDevolverACTT{{ $case['case_id'] }}" tabindex="-1" aria-labelledby="modalDevolverACTTLabel{{ $case['case_id'] }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="modalDevolverACTTLabel{{ $case['case_id'] }}">
+              <i class="fas fa-arrow-left me-2"></i>Devolver a Asesora Técnica
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="{{ route('asesora-pedagogica.casos.devolver-actt', $case['case_id']) }}" method="POST">
+            @csrf
+            <div class="modal-body">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Estudiante:</strong> {{ $case['student'] }}<br>
+                <strong>Carrera:</strong> {{ $case['program'] }}
+              </div>
+              <div class="mb-3">
+                <label for="motivo_devolucion{{ $case['case_id'] }}" class="form-label">
+                  Motivo de devolución <span class="text-danger">*</span>
+                </label>
+                <textarea 
+                  name="motivo_devolucion" 
+                  id="motivo_devolucion{{ $case['case_id'] }}" 
+                  rows="4" 
+                  class="form-control @error('motivo_devolucion') is-invalid @enderror" 
+                  placeholder="Describe los motivos por los que necesitas devolver el caso a la Asesora Técnica..." 
+                  required
+                  minlength="10"
+                >{{ old('motivo_devolucion') }}</textarea>
+                @error('motivo_devolucion')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <small class="text-muted">Mínimo 10 caracteres</small>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Cancelar
+              </button>
+              <button type="submit" class="btn btn-warning">
+                <i class="fas fa-arrow-left me-2"></i>Devolver a A. Técnico
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @endif
+@endforeach
 @endsection

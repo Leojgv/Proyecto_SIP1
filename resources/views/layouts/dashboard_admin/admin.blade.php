@@ -294,7 +294,6 @@
     <header class="student-topbar">
       <div class="container-fluid d-flex justify-content-end align-items-center gap-3">
         <div class="student-topbar__info">
-          <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
           <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         </div>
         <a class="text-decoration-none topbar-icon" href="{{ route('logout') }}"

@@ -18,6 +18,17 @@
         <dt class="col-sm-3">Asesora pedagogica</dt>
         <dd class="col-sm-9">{{ optional($entrevista->asesor)->nombre ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : '—' }}</dd>
 
+        <dt class="col-sm-3">Modalidad</dt>
+        <dd class="col-sm-9">
+          @if($entrevista->modalidad)
+            <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">
+              {{ $entrevista->modalidad }}
+            </span>
+          @else
+            —
+          @endif
+        </dd>
+
         <dt class="col-sm-3">Observaciones</dt>
         <dd class="col-sm-9">{{ $entrevista->observaciones ?? '—' }}</dd>
       </dl>

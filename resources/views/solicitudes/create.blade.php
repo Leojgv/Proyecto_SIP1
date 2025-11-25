@@ -39,6 +39,11 @@
             <small class="form-text text-muted">El Director de Carrera se asignará automáticamente según la carrera del estudiante.</small>
           </div>
           <div class="col-12">
+            <label for="titulo" class="form-label">Título</label>
+            <input type="text" id="titulo" name="titulo" class="form-control @error('titulo') is-invalid @enderror" value="{{ old('titulo') }}" placeholder="Título de la solicitud">
+            @error('titulo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          </div>
+          <div class="col-12">
             <label for="descripcion" class="form-label">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="4" class="form-control @error('descripcion') is-invalid @enderror">{{ old('descripcion') }}</textarea>
             @error('descripcion')<div class="invalid-feedback">{{ $message }}</div>@enderror

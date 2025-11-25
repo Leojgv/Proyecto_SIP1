@@ -130,8 +130,6 @@
     <div class="coordinadora-sidebar__brand"><i class="fas fa-shield-heart"></i>Panel Asesora</div>
     <nav class="coordinadora-sidebar__nav">
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.dashboard') ? 'active' : '' }}" href="{{ route('asesora-tecnica.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
-      <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.estudiantes') ? 'active' : '' }}" href="{{ route('asesora-tecnica.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
-      <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.entrevistas.*') ? 'active' : '' }}" href="{{ route('asesora-tecnica.entrevistas.index') }}"><i class="fas fa-comments"></i>Entrevistas</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.casos.*') ? 'active' : '' }}" href="{{ route('asesora-tecnica.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.ajustes.*') ? 'active' : '' }}" href="{{ route('asesora-tecnica.ajustes.create') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="coordinadora-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
@@ -141,7 +139,6 @@
   <div class="coordinadora-main">
     <header class="coordinadora-topbar">
       <div class="coordinadora-topbar__items">
-        <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-asesora').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>

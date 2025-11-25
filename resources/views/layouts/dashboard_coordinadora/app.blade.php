@@ -132,9 +132,7 @@
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.dashboard') ? 'active' : '' }}" href="{{ route('coordinadora.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.estudiantes') ? 'active' : '' }}" href="{{ route('coordinadora.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.agenda.*') ? 'active' : '' }}" href="{{ route('coordinadora.agenda.index') }}"><i class="fas fa-calendar-check"></i>Agenda</a>
-      <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.entrevistas.*') ? 'active' : '' }}" href="{{ route('coordinadora.entrevistas.index') }}"><i class="fas fa-comments"></i>Entrevistas</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('coordinadora.casos.*') ? 'active' : '' }}" href="{{ route('coordinadora.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
-      <a class="coordinadora-sidebar__link" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="coordinadora-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
       <a class="coordinadora-sidebar__link" href="{{ route('home') }}"><i class="fas fa-cog"></i>Configuracion</a>
     </nav>
@@ -142,7 +140,6 @@
   <div class="coordinadora-main">
     <header class="coordinadora-topbar">
       <div class="coordinadora-topbar__items">
-        <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>

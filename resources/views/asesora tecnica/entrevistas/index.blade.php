@@ -29,6 +29,7 @@
                   <th>Estudiante</th>
                   <th>Fecha</th>
                   <th>Hora</th>
+                  <th>Modalidad</th>
                   <th>Solicitud</th>
                   <th></th>
                 </tr>
@@ -42,6 +43,15 @@
                     </td>
                     <td>{{ $entrevista->fecha?->format('d/m/Y') ?? 's/f' }}</td>
                     <td>{{ $entrevista->fecha_hora_inicio?->format('H:i') ?? '--' }}</td>
+                    <td>
+                      @if($entrevista->modalidad)
+                        <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">
+                          {{ $entrevista->modalidad }}
+                        </span>
+                      @else
+                        <span class="text-muted">—</span>
+                      @endif
+                    </td>
                     <td class="text-muted small">{{ \Illuminate\Support\Str::limit($entrevista->solicitud->descripcion, 40) }}</td>
                     <td class="text-end">
                       <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver</a>
@@ -49,7 +59,7 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="5" class="text-center text-muted py-4">Aun no registras entrevistas.</td>
+                    <td colspan="6" class="text-center text-muted py-4">Aun no registras entrevistas.</td>
                   </tr>
                 @endforelse
               </tbody>

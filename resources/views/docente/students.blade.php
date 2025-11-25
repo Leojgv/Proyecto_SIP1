@@ -5,26 +5,10 @@
 @section('title', 'Mis Estudiantes')
 
 @section('content')
-@php
-  $metricColors = ['#fde3e3', '#fcc6c6', '#fab2b2', '#f89c9c'];
-@endphp
 <div class="dashboard-page">
   <div class="page-header mb-4">
     <h1 class="h4 mb-1">Mis Estudiantes</h1>
     <p class="text-muted mb-0">Estudiantes con ajustes razonables bajo tu supervision.</p>
-  </div>
-
-  <div class="row g-3 mb-4">
-    @foreach ($metrics as $index => $metric)
-      <div class="col-12 col-lg-3 col-md-6">
-        <div class="stats-card" style="background: {{ $metricColors[$index % count($metricColors)] }};">
-          <div class="stats-card__value">{{ $metric['value'] }}</div>
-          <div class="stats-card__icon"><i class="fas {{ $metric['icon'] }}"></i></div>
-          <p class="stats-card__title">{{ $metric['label'] }}</p>
-          <small class="stats-card__sub">{{ $metric['helper'] }}</small>
-        </div>
-      </div>
-    @endforeach
   </div>
 
   <div class="card border-0 shadow-sm mb-4">

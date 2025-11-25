@@ -141,7 +141,6 @@
   <div class="dashboard-main">
     <header class="dashboard-topbar">
       <div class="dashboard-topbar__items">
-        <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \\de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-director').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>

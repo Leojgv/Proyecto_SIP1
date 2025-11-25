@@ -132,6 +132,10 @@
             <p class="mb-1 text-muted small">Asesor</p>
             <div class="fw-semibold" id="det-asesor">--</div>
           </div>
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Modalidad</p>
+            <div class="fw-semibold" id="det-modalidad">--</div>
+          </div>
           <div>
             <p class="mb-1 text-muted small">Descripción</p>
             <div class="text-muted" id="det-descripcion">--</div>
@@ -163,8 +167,8 @@
                     <span class="badge bg-light text-dark me-2">{{ $solicitud->fecha_solicitud?->format('d/m/Y') }}</span>
                     {{ \Illuminate\Support\Str::title($solicitud->estado ?? 'pendiente') }}
                   </h6>
-                  @if ($solicitud->asesor)
-                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Asesora: {{ $solicitud->asesor->nombre_completo }}</small>
+                  @if ($solicitud->entrevistas->first()?->asesor)
+                    <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Coordinadora: {{ $solicitud->entrevistas->first()->asesor->nombre_completo }}</small>
                   @endif
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalSolicitudDetalle" 
@@ -172,7 +176,7 @@
                         data-solicitud-fecha="{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}"
                         data-solicitud-estado="{{ $solicitud->estado ?? 'Sin estado' }}"
                         data-solicitud-descripcion="{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}"
-                        data-solicitud-asesor="{{ $solicitud->asesor ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : 'Sin asignar' }}"
+                        data-solicitud-coordinadora="{{ $solicitud->entrevistas->first()?->asesor ? $solicitud->entrevistas->first()->asesor->nombre . ' ' . $solicitud->entrevistas->first()->asesor->apellido : 'Sin asignar' }}"
                         data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
                         data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
                         data-solicitud-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) { return ['nombre' => $a->nombre, 'estado' => $a->estado]; })) }}"
@@ -207,6 +211,13 @@
                   @if ($entrevista->asesor)
                     <small class="text-muted"><i class="fas fa-user me-1"></i>{{ $entrevista->asesor->nombre_completo }}</small>
                   @endif
+                  @if($entrevista->modalidad)
+                    <div class="mt-1">
+                      <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">
+                        {{ $entrevista->modalidad }}
+                      </span>
+                    </div>
+                  @endif
                 </div>
                 <button
                   type="button"
@@ -218,6 +229,7 @@
                   data-estudiante="{{ trim(($entrevista->solicitud->estudiante->nombre ?? 'Sin nombre').' '.($entrevista->solicitud->estudiante->apellido ?? '')) }}"
                   data-asesor="{{ $entrevista->asesor->nombre_completo ?? 'Sin asignar' }}"
                   data-descripcion="{{ \Illuminate\Support\Str::limit($entrevista->solicitud->descripcion ?? 'Sin descripción registrada', 200) }}"
+                  data-modalidad="{{ $entrevista->modalidad ?? '' }}"
                 >
                   Ver detalles
                 </button>
@@ -495,8 +507,8 @@
               <span class="badge bg-secondary" id="modal-estado">-</span>
             </dd>
 
-            <dt class="col-sm-4 text-muted small fw-semibold">Asesora pedagógica</dt>
-            <dd class="col-sm-8 mb-0" id="modal-asesor">-</dd>
+            <dt class="col-sm-4 text-muted small fw-semibold">Coordinadora</dt>
+            <dd class="col-sm-8 mb-0" id="modal-coordinadora">-</dd>
 
             <dt class="col-sm-4 text-muted small fw-semibold">Director de carrera</dt>
             <dd class="col-sm-8 mb-0" id="modal-director">-</dd>
@@ -613,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const fechaSolicitud = button.getAttribute('data-solicitud-fecha');
       const estado = button.getAttribute('data-solicitud-estado');
       const descripcion = button.getAttribute('data-solicitud-descripcion');
-      const asesor = button.getAttribute('data-solicitud-asesor');
+      const coordinadora = button.getAttribute('data-solicitud-coordinadora');
       const director = button.getAttribute('data-solicitud-director');
       const motivo = button.getAttribute('data-solicitud-motivo');
       const ajustesJson = button.getAttribute('data-solicitud-ajustes');
@@ -623,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('modal-fecha-solicitud').textContent = fechaSolicitud || 's/f';
       document.getElementById('modal-estado').textContent = estado || 'Sin estado';
       document.getElementById('modal-descripcion').textContent = descripcion || 'Sin descripción registrada';
-      document.getElementById('modal-asesor').textContent = asesor || 'Sin asignar';
+      document.getElementById('modal-coordinadora').textContent = coordinadora || 'Sin asignar';
       document.getElementById('modal-director').textContent = director || 'No asignado';
 
       // Motivo de rechazo (si existe)
@@ -806,12 +818,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const hora = button.getAttribute('data-hora') || '--';
     const estudiante = button.getAttribute('data-estudiante') || '--';
     const asesor = button.getAttribute('data-asesor') || '--';
+    const modalidad = button.getAttribute('data-modalidad') || '';
     const descripcion = button.getAttribute('data-descripcion') || '--';
 
     document.getElementById('det-fecha').textContent = fecha;
     document.getElementById('det-hora').textContent = hora;
     document.getElementById('det-estudiante').textContent = estudiante;
     document.getElementById('det-asesor').textContent = asesor;
+    
+    const modalidadElement = document.getElementById('det-modalidad');
+    if (modalidad && modalidad.trim() !== '') {
+      modalidadElement.innerHTML = `<span class="badge ${modalidad === 'Virtual' ? 'bg-info' : 'bg-success'}">${modalidad}</span>`;
+    } else {
+      modalidadElement.textContent = '—';
+    }
+    
     document.getElementById('det-descripcion').textContent = descripcion;
   });
 });

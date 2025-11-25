@@ -62,6 +62,16 @@
             </div>
 
             <div class="col-12">
+              <label for="modalidad" class="form-label">Modalidad de la Entrevista <span class="text-danger">*</span></label>
+              <select name="modalidad" id="modalidad" class="form-select @error('modalidad') is-invalid @enderror" required>
+                <option value="">Selecciona una modalidad</option>
+                <option value="Virtual" {{ old('modalidad') === 'Virtual' ? 'selected' : '' }}>Virtual</option>
+                <option value="Presencial" {{ old('modalidad') === 'Presencial' ? 'selected' : '' }}>Presencial</option>
+              </select>
+              @error('modalidad')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="col-12">
               <label for="cupo" class="form-label">Selecciona un cupo disponible <span class="text-danger">*</span></label>
               <div class="input-group @error('cupo') is-invalid @enderror">
                 <input 

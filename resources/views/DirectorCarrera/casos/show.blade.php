@@ -34,10 +34,10 @@
       <a href="{{ route('director.casos') }}" class="btn btn-secondary">Volver</a>
       <form action="{{ route('director.casos.approve', $solicitud) }}" method="POST">
         @csrf
-        <button type="submit" class="btn btn-danger">Aprobar</button>
+        <button type="submit" class="btn btn-danger">Aprobar Caso</button>
       </form>
       <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#rechazoForm" aria-expanded="{{ request('rechazar') ? 'true' : 'false' }}" aria-controls="rechazoForm">
-        Rechazar
+        Rechazar/Devolver a A. Pedagogica
       </button>
     </div>
   </div>
@@ -136,7 +136,7 @@
   <div class="collapse {{ request('rechazar') ? 'show' : '' }}" id="rechazoForm">
     <div class="card border-0 shadow-sm mt-3">
       <div class="card-body">
-        <h5 class="card-title">Rechazar caso</h5>
+        <h5 class="card-title">Rechazar/Devolver a A. Pedagogica</h5>
         <p class="text-muted small mb-3">Ingresa el motivo para enviar de vuelta a la Asesora Pedagógica y al estudiante.</p>
         <form action="{{ route('director.casos.reject', $solicitud) }}" method="POST">
           @csrf
@@ -147,7 +147,7 @@
               <div class="invalid-feedback">{{ $message }}</div>
             @enderror
           </div>
-          <button type="submit" class="btn btn-outline-danger">Enviar rechazo</button>
+          <button type="submit" class="btn btn-outline-danger">Rechazar/Devolver a A. Pedagogica</button>
         </form>
       </div>
     </div>

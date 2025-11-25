@@ -100,7 +100,6 @@
                 <td><span class="badge bg-warning text-dark">{{ $est['casos'] }}</span></td>
                 <td>
                   <div class="d-flex gap-2">
-                    <a href="{{ route('estudiantes.show', $est['id']) }}" class="btn btn-sm btn-outline-secondary" title="Ver"><i class="fas fa-eye"></i></a>
                     <button
                       type="button"
                       class="btn btn-sm btn-primary"

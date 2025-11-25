@@ -22,6 +22,7 @@
               <th>Fecha solicitud</th>
               <th>Estado</th>
               <th>Descripción</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -32,10 +33,15 @@
                 <td>{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</td>
                 <td><span class="badge bg-warning text-dark">{{ $solicitud->estado ?? 'Pendiente' }}</span></td>
                 <td class="text-muted small">{{ \Illuminate\Support\Str::limit($solicitud->descripcion, 70) }}</td>
+                <td>
+                  <a href="{{ route('director.casos.show', $solicitud) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i>Ver detalles
+                  </a>
+                </td>
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">No hay casos registrados para tus carreras.</td>
+                <td colspan="6" class="text-center text-muted py-4">No hay casos registrados para tus carreras.</td>
               </tr>
             @endforelse
           </tbody>

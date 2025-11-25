@@ -89,9 +89,9 @@
               <div class="case-card__actions">
                 <form action="{{ $case['approve_url'] }}" method="POST" class="d-inline">
                   @csrf
-                  <button type="submit" class="btn btn-danger btn-sm">Aprobar</button>
+                  <button type="submit" class="btn btn-danger btn-sm">Aprobar Caso</button>
                 </form>
-                <a href="{{ $case['reject_url'] }}" class="btn btn-outline-danger btn-sm">Rechazar</a>
+                <a href="{{ $case['reject_url'] }}" class="btn btn-outline-danger btn-sm">Rechazar/Devolver a A. Pedagogica</a>
                 <a href="{{ $case['detail_url'] }}" class="btn btn-link btn-sm text-decoration-none">Ver detalles</a>
               </div>
             </div>

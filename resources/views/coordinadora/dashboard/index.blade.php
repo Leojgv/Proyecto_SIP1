@@ -31,13 +31,29 @@
     @endforeach
   </div>
 
+  @if(session('status'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>{{ session('status') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
+  @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
       <div>
         <h5 class="mb-1">¿Necesitas registrar un nuevo caso?</h5>
         <p class="text-muted mb-0">Centraliza desde aqui la creacion de solicitudes y su seguimiento.</p>
       </div>
-      <a href="{{ route('solicitudes.create') }}" class="btn btn-danger">+ Registrar solicitud</a>
+      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRegistrarSolicitud">
+        <i class="fas fa-plus me-2"></i>Registrar solicitud
+      </button>
     </div>
   </div>
 
@@ -58,7 +74,12 @@
             <div class="timeline-item">
               <div>
                 <strong>{{ $entrevista->solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</strong>
-                <p class="text-muted mb-0"><i class="far fa-calendar me-1"></i>{{ $entrevista->fecha?->format('d/m/Y') }} · {{ $entrevista->fecha?->format('H:i') }}</p>
+                <p class="text-muted mb-0">
+                  <i class="far fa-calendar me-1"></i>{{ $entrevista->fecha?->format('d/m/Y') }} · {{ $entrevista->fecha_hora_inicio?->format('H:i') ?? '--' }}
+                  @if($entrevista->modalidad)
+                    · <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">{{ $entrevista->modalidad }}</span>
+                  @endif
+                </p>
               </div>
               <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>
             </div>
@@ -346,5 +367,105 @@
     render(activeDate);
   });
 </script>
+
+<!-- Modal Registrar Solicitud -->
+<div class="modal fade" id="modalRegistrarSolicitud" tabindex="-1" aria-labelledby="modalRegistrarSolicitudLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalRegistrarSolicitudLabel">
+          <i class="fas fa-plus-circle me-2"></i>Registrar Nueva Solicitud
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('coordinadora.solicitud.store') }}" method="POST">
+        @csrf
+        <div class="modal-body">
+          @if($errors->any())
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
+
+          <div class="mb-3">
+            <label for="estudiante_id" class="form-label">
+              Estudiante <span class="text-danger">*</span>
+            </label>
+            <select 
+              name="estudiante_id" 
+              id="estudiante_id" 
+              class="form-select @error('estudiante_id') is-invalid @enderror" 
+              required
+            >
+              <option value="">Selecciona un estudiante</option>
+              @foreach($estudiantes ?? [] as $estudiante)
+                <option value="{{ $estudiante->id }}" @selected(old('estudiante_id') == $estudiante->id)>
+                  {{ $estudiante->nombre }} {{ $estudiante->apellido }}
+                  @if($estudiante->rut)
+                    ({{ $estudiante->rut }})
+                  @endif
+                  @if($estudiante->carrera)
+                    - {{ $estudiante->carrera->nombre }}
+                  @endif
+                </option>
+              @endforeach
+            </select>
+            @error('estudiante_id')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="titulo" class="form-label">
+              Título <span class="text-danger">*</span>
+            </label>
+            <input 
+              type="text" 
+              name="titulo" 
+              id="titulo" 
+              class="form-control @error('titulo') is-invalid @enderror" 
+              placeholder="Ingresa un título para la solicitud" 
+              value="{{ old('titulo') }}"
+              required
+            >
+            @error('titulo')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="mb-3">
+            <label for="descripcion" class="form-label">
+              Descripción para la Entrevista <span class="text-danger">*</span>
+            </label>
+            <textarea 
+              name="descripcion" 
+              id="descripcion" 
+              rows="5" 
+              class="form-control @error('descripcion') is-invalid @enderror" 
+              placeholder="Describe el motivo de la solicitud de entrevista..." 
+              required
+            >{{ old('descripcion') }}</textarea>
+            @error('descripcion')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="text-muted">Mínimo 10 caracteres.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-save me-2"></i>Registrar Solicitud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 @endsection
 

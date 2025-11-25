@@ -132,7 +132,6 @@
     <div class="dashboard-sidebar__brand"><i class="fas fa-book-open-reader"></i>Panel Asesora Pedagogica</div>
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.dashboard') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.estudiantes') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.casos.index') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('ajustes-razonables.*') ? 'active' : '' }}" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
@@ -142,7 +141,6 @@
   <div class="dashboard-main">
     <header class="dashboard-topbar">
       <div class="dashboard-topbar__items">
-        <span><i class="fas fa-calendar-day"></i>{{ now()->translatedFormat('d \de F, Y') }}</span>
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-asesora-pedagogica').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>
