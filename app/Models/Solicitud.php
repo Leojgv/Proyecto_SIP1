@@ -15,6 +15,7 @@ class Solicitud extends Model
 
     protected $fillable = [
         'fecha_solicitud',
+        'titulo',
         'descripcion',
         'estado',
         'motivo_rechazo',

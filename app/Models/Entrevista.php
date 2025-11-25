@@ -14,6 +14,7 @@ class Entrevista extends Model
         'fecha',
         'fecha_hora_inicio',
         'fecha_hora_fin',
+        'modalidad',
         'observaciones',
         'solicitud_id',
         'asesor_id',
