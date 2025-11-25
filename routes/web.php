@@ -89,6 +89,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
 
     Route::middleware('role:Coordinadora de inclusion')->group(function () {
         Route::get('coordinadora/dashboard', [CoordinadoraDashboardController::class, 'show'])->name('coordinadora.dashboard');
+        Route::post('coordinadora/solicitud', [CoordinadoraDashboardController::class, 'storeSolicitud'])
+            ->name('coordinadora.solicitud.store');
         Route::get('coordinadora/estudiantes', [CoordinadoraEstudianteController::class, 'index'])->name('coordinadora.estudiantes');
         Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
         Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
@@ -134,6 +136,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-pedagogica.casos.enviar-director');
         Route::post('asesora-pedagogica/casos/{solicitud}/devolver-actt', [AsesoraPedagogicaCasoController::class, 'devolverACTT'])
             ->name('asesora-pedagogica.casos.devolver-actt');
+        Route::post('asesora-pedagogica/solicitud', [AsesoraPedagogicaDashboardController::class, 'storeSolicitud'])
+            ->name('asesora-pedagogica.solicitud.store');
     });
 
     Route::middleware('role:Asesora Tecnica Pedagogica')->group(function () {
