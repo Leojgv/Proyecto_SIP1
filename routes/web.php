@@ -130,6 +130,9 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-pedagogica.estudiantes');
         Route::get('asesora-pedagogica/casos', [AsesoraPedagogicaCasoController::class, 'index'])
             ->name('asesora-pedagogica.casos.index');
+        Route::get('asesora-pedagogica/ajustes', [\App\Http\Controllers\Dashboard\AsesoraPedagogicaAjusteController::class, 'index'])
+            ->name('asesora-pedagogica.ajustes.index');
+
         Route::get('asesora-pedagogica/casos/{solicitud}', [AsesoraPedagogicaCasoController::class, 'show'])
             ->name('asesora-pedagogica.casos.show');
         Route::post('asesora-pedagogica/casos/{solicitud}/enviar-director', [AsesoraPedagogicaCasoController::class, 'enviarADirector'])

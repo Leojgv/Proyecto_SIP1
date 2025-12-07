@@ -80,6 +80,17 @@ html.dark-mode {
   color: var(--text-primary) !important;
 }
 
+.dark-mode .stats-card {
+  background-color: #0b1220 !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
+}
+
+.dark-mode .stats-card__icon {
+  color: rgba(255,255,255,.2) !important;
+}
+
 /* Modo oscuro para formularios */
 .dark-mode .form-control,
 .dark-mode .form-select,
@@ -128,6 +139,66 @@ html.dark-mode {
 .dark-mode .table-bordered td,
 .dark-mode .table-bordered th {
   border-color: var(--border-color) !important;
+}
+
+.dark-mode .table td,
+.dark-mode .table th {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table {
+  background-color: transparent !important;
+}
+
+.dark-mode .table tbody tr {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark-mode .table tbody tr td {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table tbody tr:nth-of-type(odd) {
+  background-color: #0f172a !important;
+}
+
+.dark-mode .table .text-muted {
+  color: var(--text-primary) !important;
+  opacity: 0.7 !important;
+}
+
+/* Ajustes específicos lista de estudiantes (coordinadora) */
+.dark-mode .students-page .table td .fw-semibold {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .students-page .table td .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .students-page .badge.bg-light {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .students-page .badge.bg-light.text-dark,
+.dark-mode .badge.bg-light.dark-mode-badge-light {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .students-page .badge.bg-warning.text-dark,
+.dark-mode .badge.bg-warning.dark-mode-badge-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .students-page .btn-primary {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
 }
 
 /* Modo oscuro para botones */
@@ -226,6 +297,116 @@ html.dark-mode {
 .dark-mode .badge.bg-light {
   background-color: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
+}
+
+.dark-mode .badge.bg-light.text-dark,
+.dark-mode .badge.bg-light.dark-mode-badge-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .badge.bg-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .badge.bg-warning.text-dark,
+.dark-mode .badge.bg-warning.dark-mode-badge-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .info-card {
+  background-color: #0b1220 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .info-card__icon {
+  border: 1px solid var(--border-color) !important;
+  background-color: #111827 !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .filters-group__input {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .filters-group__input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .table thead th {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  background-color: #0b1220 !important;
+}
+
+.dark-mode .badge.bg-danger-subtle,
+.dark-mode .badge.bg-warning-subtle {
+  background-color: #3b1f2b !important;
+  color: #fbcfe8 !important;
+}
+
+.dark-mode .timeline-item,
+.dark-mode .case-item,
+.dark-mode .student-item,
+.dark-mode .student-item__body {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .student-item__body {
+  background-color: #111827 !important;
+}
+
+.dark-mode .calendar-grid,
+.dark-mode .calendar-grid-agenda {
+  background-color: #111827 !important;
+}
+
+.dark-mode .calendar-weekday {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell {
+  background-color: #0b1220 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell .day {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell.is-today {
+  border-color: #dc2626 !important;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, .35) !important;
+}
+
+.dark-mode .event-dot {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .event-dot.event-dot-entrevista {
+  background-color: rgba(220,38,38,.18) !important;
+  color: #fecdd3 !important;
+}
+
+.dark-mode .event-dot.event-dot-bloqueo {
+  background-color: rgba(99,102,241,.2) !important;
+  color: #e0e7ff !important;
+}
+
+.dark-mode .event-chip {
+  background-color: #0b1220 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
 .dark-mode .badge.bg-secondary {
