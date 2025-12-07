@@ -68,7 +68,7 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparent;
     padding: 1rem;
     border-radius: 1.5rem;
   }
@@ -109,10 +109,10 @@
     gap: 1rem;
   }
   .adjustment-card {
-    border: 1px solid #f3e3e3;
+    border: 1px solid #e5e7eb;
     border-radius: 1rem;
     padding: 1rem;
-    background: #fff9f8;
+    background: #fff;
   }
   .status-pill,
   .status-chip {
@@ -140,6 +140,46 @@
   .status-general {
     background: #e0e7ff;
     color: #3730a3;
+  }
+  .dark-mode .dashboard-page {
+    color: #e5e7eb;
+  }
+  .dark-mode .page-header h1 {
+    color: #e5e7eb;
+  }
+  .dark-mode .text-muted {
+    color: #9ca3af !important;
+  }
+  .dark-mode .adjustment-card {
+    border-color: #1f2937;
+    background: #0f172a;
+    color: #e5e7eb;
+  }
+  .dark-mode .adjustment-card .text-muted {
+    color: #9ca3af !important;
+  }
+  .dark-mode .status-pill,
+  .dark-mode .status-chip {
+    border: 1px solid #1f2937;
+  }
+  .dark-mode .status-activo,
+  .dark-mode .status-chip.status-activo {
+    background: #b91c1c;
+    color: #fff;
+  }
+  .dark-mode .status-pendiente,
+  .dark-mode .status-chip.status-pendiente {
+    background: #b45309;
+    color: #fff;
+  }
+  .dark-mode .status-finalizado,
+  .dark-mode .status-chip.status-finalizado {
+    background: #047857;
+    color: #fff;
+  }
+  .dark-mode .status-general {
+    background: #1f2937;
+    color: #e5e7eb;
   }
 </style>
 @endpush

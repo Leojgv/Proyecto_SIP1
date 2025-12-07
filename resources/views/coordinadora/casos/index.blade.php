@@ -3,7 +3,7 @@
 @section('title', 'Casos')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid casos-page">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
       <h1 class="h4 mb-1">Casos de solicitudes</h1>
@@ -26,48 +26,64 @@
 
   <div class="card border-0 shadow-sm">
     <div class="card-body">
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>Estudiante</th>
-              <th>Carrera</th>
-              <th>Fecha solicitud</th>
-              <th>Estado</th>
-              <th>Descripción</th>
-              <th class="text-end">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($solicitudes as $solicitud)
-              <tr>
-                <td>{{ $solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $solicitud->estudiante->apellido ?? '' }}</td>
-                <td>{{ $solicitud->estudiante->carrera->nombre ?? 'Sin carrera' }}</td>
-                <td>{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</td>
-                <td><span class="badge bg-warning text-dark">{{ $solicitud->estado ?? 'Pendiente' }}</span></td>
-                <td class="text-muted small">{{ \Illuminate\Support\Str::limit($solicitud->descripcion, 70) }}</td>
-                <td class="text-end">
-                  @if($solicitud->estado === 'Pendiente de entrevista')
-                    <form action="{{ route('coordinadora.casos.informar-ctp', $solicitud) }}" method="POST" class="d-inline">
-                      @csrf
-                      <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Informar a CTP para formular el caso? Esta acción actualizará el estado.');">
+      <div class="accordion" id="casosAccordion">
+        @forelse($solicitudes as $solicitud)
+          @php
+            $collapseId = 'caso-' . $solicitud->id;
+            $headingId = 'heading-' . $solicitud->id;
+            $estado = $solicitud->estado ?? 'Pendiente';
+            $badgeClass = match($estado) {
+              'Pendiente de entrevista' => 'bg-warning text-dark',
+              'Pendiente de formulacion del caso' => 'bg-info text-dark',
+              'Informado a CTP' => 'bg-primary',
+              default => 'bg-secondary'
+            };
+          @endphp
+          <div class="accordion-item case-item border-0 mb-3 shadow-sm">
+            <h2 class="accordion-header" id="{{ $headingId }}">
+              <button class="accordion-button case-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="false" aria-controls="{{ $collapseId }}">
+                <div class="d-flex align-items-center gap-3 w-100">
+                  <div>
+                    <div class="fw-semibold">{{ $solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $solicitud->estudiante->apellido ?? '' }}</div>
+                    <small class="text-muted">{{ $solicitud->estudiante->carrera->nombre ?? 'Sin carrera' }}</small>
+                  </div>
+                  <span class="badge {{ $badgeClass }}">{{ $estado }}</span>
+                  <div class="text-muted small text-nowrap ms-auto">
+                    <i class="far fa-calendar me-1"></i>{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}
+                  </div>
+                </div>
+              </button>
+            </h2>
+            <div id="{{ $collapseId }}" class="accordion-collapse collapse" aria-labelledby="{{ $headingId }}" data-bs-parent="#casosAccordion">
+              <div class="accordion-body case-body">
+                <p class="text-muted mb-2"><strong>Descripcion:</strong> {{ $solicitud->descripcion ?: 'Sin descripcion registrada.' }}</p>
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <div class="text-muted small">Solicitado el {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</div>
+                  <div class="ms-auto">
+                    @if($solicitud->estado === 'Pendiente de entrevista')
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#informarCtpModal"
+                        data-action="{{ route('coordinadora.casos.informar-ctp', $solicitud) }}"
+                        data-estudiante="{{ trim(($solicitud->estudiante->nombre ?? 'Estudiante').' '.($solicitud->estudiante->apellido ?? '')) }}"
+                      >
                         <i class="fas fa-paper-plane me-1"></i>Informar a CTP
                       </button>
-                    </form>
-                  @elseif($solicitud->estado === 'Pendiente de formulación del caso')
-                    <span class="text-muted small">Informado a CTP</span>
-                  @else
-                    <span class="text-muted small">En proceso</span>
-                  @endif
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">No hay casos registrados.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+                    @elseif($solicitud->estado === 'Pendiente de formulacion del caso')
+                      <span class="text-muted small">Informado a CTP</span>
+                    @else
+                      <span class="text-muted small">En proceso</span>
+                    @endif
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @empty
+          <p class="text-center text-muted py-4 mb-0">No hay casos registrados.</p>
+@endforelse
       </div>
       <div class="d-flex justify-content-end mt-3">
         {{ $solicitudes->links() }}
@@ -75,4 +91,105 @@
     </div>
   </div>
 </div>
+
+{{-- Modal para informar a CTP con observaciones y adjunto --}}
+<div class="modal fade" id="informarCtpModal" tabindex="-1" aria-labelledby="informarCtpModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title" id="informarCtpModalLabel">Informar a CTP</h5>
+            <small class="text-muted">Confirma el envío e incluye las observaciones de la entrevista.</small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small mb-3">
+            Se informará el caso de <span class="fw-semibold" data-estudiante-name></span> al CTP.
+          </p>
+          <div class="mb-3">
+            <label class="form-label">Observaciones de la entrevista</label>
+            <textarea class="form-control" name="observaciones" rows="4" placeholder="Notas relevantes, acuerdos o hallazgos de la entrevista."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Adjuntar PDF con observaciones (opcional)</label>
+            <input type="file" class="form-control" name="observaciones_pdf" accept="application/pdf">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-paper-plane me-1"></i>Informar y enviar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var modalEl = document.getElementById('informarCtpModal');
+    if (!modalEl) return;
+
+    modalEl.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      if (!button) return;
+
+      var action = button.getAttribute('data-action');
+      var estudiante = button.getAttribute('data-estudiante') || 'este estudiante';
+      var form = modalEl.querySelector('form');
+      var nameHolder = modalEl.querySelector('[data-estudiante-name]');
+
+      if (form && action) {
+        form.setAttribute('action', action);
+        form.reset();
+      }
+      if (nameHolder) {
+        nameHolder.textContent = estudiante.trim();
+      }
+    });
+  });
+</script>
 @endsection
+
+@push('styles')
+<style>
+  .casos-page .case-item {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  .casos-page .case-button {
+    background: #eef2ff;
+    color: #1f2937;
+  }
+  .casos-page .case-button:focus {
+    box-shadow: none;
+  }
+  .casos-page .case-body {
+    background: #fff;
+    color: #1f2937;
+  }
+  .casos-page .case-body .text-muted {
+    color: #6b7280 !important;
+  }
+  .dark-mode .casos-page .case-item {
+    border-color: #1e293b;
+    box-shadow: 0 10px 30px rgba(3, 7, 18, .35);
+  }
+  .dark-mode .casos-page .case-button {
+    background: #0f172a;
+    color: #e5e7eb;
+  }
+  .dark-mode .casos-page .case-body {
+    background: #0b1220;
+    color: #e5e7eb;
+  }
+  .dark-mode .casos-page .case-body .text-muted {
+    color: #9ca3af !important;
+  }
+</style>
+@endpush

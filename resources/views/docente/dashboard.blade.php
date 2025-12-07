@@ -41,14 +41,14 @@
           <div class="student-item__header">
             <div>
               <h5 class="mb-0">{{ $student['student'] }}</h5>
-              <small class="text-muted d-block">RUT: {{ $student['rut'] }} � {{ $student['program'] }}</small>
+              <small class="text-muted d-block">RUT: {{ $student['rut'] }} - {{ $student['program'] }}</small>
             </div>
           </div>
           <div class="student-item__body">
             <p class="text-muted text-uppercase small mb-1">Ajustes aplicados</p>
             <div class="d-flex flex-wrap gap-2 mb-3">
               @foreach ($student['applied_adjustments'] as $adjustment)
-                <span class="badge rounded-pill bg-light text-danger">{{ $adjustment }}</span>
+                <span class="badge rounded-pill bg-light text-secondary">{{ $adjustment }}</span>
               @endforeach
             </div>
             <div class="d-flex justify-content-between flex-wrap align-items-center gap-2">
@@ -106,7 +106,7 @@
                       <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                           <h6 class="card-title mb-0">{{ $ajuste['name'] ?? 'Ajuste sin título' }}</h6>
-                          <span class="badge rounded-pill bg-light text-danger text-capitalize">{{ $ajuste['category'] ?? 'General' }}</span>
+                          <span class="badge rounded-pill bg-light text-secondary text-capitalize">{{ $ajuste['category'] ?? 'General' }}</span>
                         </div>
                         <p class="text-muted small mb-3">{{ $ajuste['description'] ?? 'Sin descripción disponible.' }}</p>
                         
@@ -138,10 +138,6 @@
                 @endif
               </div>
 
-              <div class="alert alert-info mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Nota:</strong> Estos ajustes fueron formulados por la Asesora Técnica Pedagógica (CTP) y están pendientes de implementación.
-              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -179,7 +175,7 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparent;
     padding: 1rem;
     border-radius: 1.5rem;
   }

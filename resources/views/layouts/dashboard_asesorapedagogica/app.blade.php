@@ -133,9 +133,7 @@
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.dashboard') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.casos.index') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('ajustes-razonables.*') ? 'active' : '' }}" href="{{ route('ajustes-razonables.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
-      <a class="dashboard-sidebar__link" href="{{ route('home') }}"><i class="fas fa-cog"></i>Configuracion</a>
+      <a class="dashboard-sidebar__link {{ request()->routeIs('asesora-pedagogica.ajustes.index') ? 'active' : '' }}" href="{{ route('asesora-pedagogica.ajustes.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
     </nav>
   </aside>
   <div class="dashboard-main">

@@ -65,7 +65,6 @@
         <li class="nav-header">Administracion</li>
         <li class="nav-item"><a href="{{ route('users.roles.index') }}" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Asignar roles</p></a></li>
         <li class="nav-item"><a href="{{ route('roles.index') }}" class="nav-link"><i class="nav-icon fas fa-id-badge"></i><p>Roles</p></a></li>
-        <li class="nav-item"><a href="{{ route('notificaciones.index') }}" class="nav-link"><i class="nav-icon fas fa-bell"></i><p>Notificaciones</p></a></li>
       </ul>
     </nav>
   </div>

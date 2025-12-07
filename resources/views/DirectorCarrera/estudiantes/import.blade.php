@@ -6,9 +6,9 @@
 <div class="dashboard-page">
   <div class="page-header mb-4">
     <div>
-      <p class="text-danger text-uppercase fw-semibold small mb-1">Gestión de estudiantes</p>
+      <p class="text-danger text-uppercase fw-semibold small mb-1">Gestion de estudiantes</p>
       <h1 class="h4 mb-1">Carga de Estudiantes</h1>
-      <p class="text-muted mb-0">Importa múltiples estudiantes desde un archivo Excel.</p>
+      <p class="text-muted mb-0">Importa multiples estudiantes desde un archivo Excel.</p>
     </div>
   </div>
 
@@ -28,7 +28,7 @@
 
   @if(session('import_errors'))
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores en la importación</h6>
+      <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Errores en la importacion</h6>
       <ul class="mb-0">
         @foreach(session('import_errors') as $failure)
           <li>Fila {{ $failure->row() }}: {{ $failure->errors()[0] ?? 'Error desconocido' }}</li>
@@ -63,7 +63,7 @@
                 <div class="invalid-feedback">{{ $message }}</div>
               @enderror
               <small class="form-text text-muted">
-                Formatos permitidos: .xlsx, .xls (máximo 10MB)
+                Formatos permitidos: .xlsx, .xls (maximo 10MB)
               </small>
             </div>
 
@@ -96,7 +96,8 @@
               <li><strong>nombre</strong> o <strong>name</strong> (requerido)</li>
               <li><strong>apellido</strong> o <strong>lastname</strong> (requerido)</li>
               <li><strong>email</strong> o <strong>correo</strong> (requerido)</li>
-              <li><strong>rut</strong> (opcional)</li>
+              <li><strong>carrera</strong> (nombre exacto de la carrera, requerido)</li>
+              <li><strong>rut</strong> (requerido)</li>
               <li><strong>telefono</strong> o <strong>phone</strong> (opcional)</li>
             </ul>
           </div>
@@ -104,35 +105,37 @@
           <div class="mb-3">
             <strong class="d-block mb-2">Notas importantes:</strong>
             <ul class="small mb-0">
-              <li>Los estudiantes se asignarán automáticamente a tu carrera.</li>
-              <li>Si un estudiante ya existe (por email), se actualizará su información.</li>
-              <li>Se creará un usuario con contraseña por defecto: <code>password123</code></li>
-              <li>Se asignará automáticamente el rol "Estudiante".</li>
+              <li>Los estudiantes se asignan automaticamente al director de esa carrera.</li>
+              <li>Si un estudiante ya existe (por email), se actualiza su informacion y su carrera.</li>
             </ul>
           </div>
 
           <div class="alert alert-info small mb-0">
             <strong>Ejemplo de estructura:</strong><br>
-            <table class="table table-sm table-bordered mt-2 mb-0">
-              <thead>
-                <tr>
-                  <th>nombre</th>
-                  <th>apellido</th>
-                  <th>email</th>
-                  <th>rut</th>
-                  <th>telefono</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Juan</td>
-                  <td>Pérez</td>
-                  <td>juan.perez@email.com</td>
-                  <td>12345678-9</td>
-                  <td>912345678</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-responsive mt-2">
+              <table class="table table-sm table-bordered mb-0">
+                <thead>
+                  <tr>
+                    <th>nombre</th>
+                    <th>apellido</th>
+                    <th>email</th>
+                    <th>carrera</th>
+                    <th>rut</th>
+                    <th>telefono</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Juan</td>
+                    <td>Perez</td>
+                    <td class="text-break">juan.perez@email.com</td>
+                    <td>Analista Programador</td>
+                    <td>12345678-9</td>
+                    <td>912345678</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -140,4 +143,3 @@
   </div>
 </div>
 @endsection
-

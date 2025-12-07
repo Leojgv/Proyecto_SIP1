@@ -31,7 +31,7 @@
   <div class="card border-0 shadow-sm">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table align-middle">
+        <table class="table table-dark-mode align-middle">
           <thead>
             <tr>
               <th>Nombre</th>
@@ -65,3 +65,50 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+  .table-dark-mode thead {
+    background: #f8fafc;
+  }
+  .table-dark-mode thead th {
+    color: #1f2937;
+    border-color: #e5e7eb;
+  }
+  .table-dark-mode tbody tr {
+    background: #fff;
+    border-color: #e5e7eb;
+    color: #1f2937;
+  }
+  .table-dark-mode tbody tr:nth-of-type(odd) {
+    background: #f8fafc;
+  }
+  .table-dark-mode td {
+    border-color: #e5e7eb;
+  }
+  .table-dark-mode .text-muted {
+    color: #6b7280 !important;
+  }
+  .dark-mode .table-dark-mode thead {
+    background: #111827;
+  }
+  .dark-mode .table-dark-mode thead th {
+    color: #e5e7eb;
+    border-color: #1f2937;
+  }
+  .dark-mode .table-dark-mode tbody tr {
+    background: #0f172a;
+    border-color: #1f2937;
+    color: #e5e7eb;
+  }
+  .dark-mode .table-dark-mode tbody tr:nth-of-type(odd) {
+    background: #0b1220;
+  }
+  .dark-mode .table-dark-mode td {
+    border-color: #1f2937;
+  }
+  .dark-mode .table-dark-mode .text-muted {
+    color: #9ca3af !important;
+  }
+</style>
+@endpush

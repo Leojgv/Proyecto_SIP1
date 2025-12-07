@@ -158,8 +158,6 @@
     <nav class="dashboard-sidebar__nav">
       <a class="dashboard-sidebar__link {{ request()->routeIs('estudiantes.dashboard') ? 'active' : '' }}" href="{{ route('estudiantes.dashboard') }}"><i class="fas fa-table-columns"></i>Dashboard</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('estudiantes.entrevistas.create') ? 'active' : '' }}" href="{{ route('estudiantes.entrevistas.create') }}"><i class="fas fa-paper-plane"></i>Solicitar Entrevista</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('estudiantes.dashboard') && request()->query('focus') === 'notificaciones' ? 'active' : '' }}" href="{{ route('estudiantes.dashboard', ['focus' => 'notificaciones']) }}#notificaciones"><i class="fas fa-bell"></i>Notificaciones</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('estudiantes.dashboard') && request()->query('focus') === 'configuracion' ? 'active' : '' }}" href="{{ route('estudiantes.dashboard', ['focus' => 'configuracion']) }}#configuracion"><i class="fas fa-gear"></i>Configuración</a>
     </nav>
   </aside>
   <div class="dashboard-main">

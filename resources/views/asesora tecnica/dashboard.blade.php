@@ -57,8 +57,7 @@
                 <p class="text-muted small mb-0">{{ $case['summary'] }}</p>
               </div>
               <div class="text-end">
-                <span class="badge priority-badge priority-{{ Str::slug($case['priority']) }}">{{ $case['priority'] }}</span>
-                <span class="badge status-badge status-{{ Str::slug($case['status']) }}">{{ $case['status'] }}</span>
+                <p class="text-muted small mb-1">Estado: <span class="fw-semibold">{{ $case['status'] }}</span></p>
                 <p class="text-muted small mb-0">Asignado: {{ $case['assigned_at'] }}</p>
               </div>
             </div>
@@ -83,11 +82,20 @@
               <div>
                 <strong>{{ $adjustment['student'] }}</strong>
                 <p class="text-muted mb-1">{{ $adjustment['program'] }}</p>
-                <p class="text-muted small mb-0">{{ $adjustment['description'] }}</p>
+                <p class="text-muted small mb-0">{{ count($adjustment['adjustments'] ?? []) }} ajustes recientes</p>
               </div>
               <div class="text-end">
-                <span class="badge bg-success-subtle text-success">{{ $adjustment['status'] }}</span>
-                <p class="text-muted small mb-0">Completado {{ $adjustment['completed_at'] }}</p>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#ajustesEstudianteModal"
+                  data-estudiante="{{ $adjustment['student'] }}"
+                  data-programa="{{ $adjustment['program'] }}"
+                  data-ajustes='@json($adjustment['adjustments'] ?? [])'
+                >
+                  Ver ajustes
+                </button>
               </div>
             </div>
           @empty
@@ -118,9 +126,100 @@
   </div>
 </div>
 
+{{-- Modal ajustes por estudiante --}}
+<div class="modal fade" id="ajustesEstudianteModal" tabindex="-1" aria-labelledby="ajustesEstudianteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="ajustesEstudianteModalLabel">Ajustes del estudiante</h5>
+          <small class="text-muted">Listado de ajustes registrados para este perfil.</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <p class="mb-0 fw-semibold" data-estudiante-name></p>
+          <p class="text-muted small mb-0" data-program-name></p>
+        </div>
+        <div class="list-group" data-ajustes-list></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var modal = document.getElementById('ajustesEstudianteModal');
+    if (!modal) return;
+
+    modal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      if (!button) return;
+
+      var estudiante = button.getAttribute('data-estudiante') || 'Estudiante';
+      var programa = button.getAttribute('data-programa') || 'Programa no asignado';
+      var ajustesRaw = button.getAttribute('data-ajustes') || '[]';
+      var ajustes = [];
+
+      try {
+        ajustes = JSON.parse(ajustesRaw);
+      } catch (err) {
+        ajustes = [];
+      }
+
+      var nameEl = modal.querySelector('[data-estudiante-name]');
+      var programEl = modal.querySelector('[data-program-name]');
+      var listEl = modal.querySelector('[data-ajustes-list]');
+
+      if (nameEl) nameEl.textContent = estudiante;
+      if (programEl) programEl.textContent = programa;
+
+      if (listEl) {
+        listEl.innerHTML = '';
+
+        if (!ajustes.length) {
+          listEl.innerHTML = '<p class="text-muted mb-0">No hay ajustes registrados.</p>';
+          return;
+        }
+
+        ajustes.forEach(function (ajuste) {
+          var item = document.createElement('div');
+          item.className = 'list-group-item';
+
+          var row = document.createElement('div');
+          row.className = 'd-flex justify-content-between align-items-start';
+
+          var left = document.createElement('div');
+          var title = document.createElement('div');
+          title.className = 'fw-semibold';
+          title.textContent = ajuste.name || 'Ajuste sin titulo';
+          var date = document.createElement('div');
+          date.className = 'text-muted small mb-1';
+          date.textContent = 'Actualizado ' + (ajuste.completed_at || 's/f');
+          left.appendChild(title);
+          left.appendChild(date);
+
+          var badge = document.createElement('span');
+          badge.className = 'badge bg-success-subtle text-success';
+          badge.textContent = ajuste.status || 'En proceso';
+
+          row.appendChild(left);
+          row.appendChild(badge);
+          item.appendChild(row);
+          listEl.appendChild(item);
+        });
+      }
+    });
+  });
+</script>
+
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparent;
     padding: 1rem;
     border-radius: 1.5rem;
   }

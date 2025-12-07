@@ -1,7 +1,6 @@
 @extends('layouts.dashboard_estudiante.estudiante')
 
 @php
-    $coleccionNotificaciones = $notificaciones ?? collect();
     $quickAccess = [
         [
             'title' => 'Solicitudes activas',
@@ -40,7 +39,7 @@
     <div>
       <p class="text-danger text-uppercase fw-semibold small mb-1">Tu espacio académico</p>
       <h1 class="h4 mb-1">Mi Dashboard</h1>
-      <p class="text-muted mb-0">Revisa el estado de tus solicitudes, consulta tus ajustes académicos aprobados, gestiona tus entrevistas y mantente al día con tus notificaciones.</p>
+      <p class="text-muted mb-0">Revisa el estado de tus solicitudes, consulta tus ajustes acad?micos aprobados y gestiona tus entrevistas programadas.</p>
     </div>
   </div>
 
@@ -55,16 +54,6 @@
         </div>
       </div>
     @endforeach
-  </div>
-
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-      <div>
-        <h5 class="mb-1">¿Necesitas solicitar una entrevista?</h5>
-        <p class="text-muted mb-0">Coordina con el equipo de asesoría pedagógica para recibir apoyo personalizado.</p>
-      </div>
-      <a href="{{ route('estudiantes.entrevistas.create') }}" class="btn btn-danger">Solicitar entrevista</a>
-    </div>
   </div>
 
   {{-- Modal Agenda Estudiante --}}
@@ -384,7 +373,7 @@
                           <div class="alert alert-info mb-0">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Información:</strong> Este ajuste se encuentra en proceso de revisión. 
-                            Cualquier actualización será notificada en tu panel de notificaciones.
+                            Cualquier actualizaci?n se reflejar? aqu? cuando el equipo avance con la solicitud.
                           </div>
                         </div>
                       </div>
@@ -399,53 +388,6 @@
               </div>
             @empty
               <p class="text-muted text-center my-4">Aún no tienes ajustes académicos registrados.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6" id="notificaciones">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="card-title mb-0">Notificaciones</h5>
-              <small class="text-muted">Últimas actualizaciones</small>
-            </div>
-            @if (($notificacionesSinLeer ?? 0) > 0)
-              <span class="badge bg-danger">{{ $notificacionesSinLeer }} nuevas</span>
-            @endif
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($coleccionNotificaciones as $notification)
-              @php
-                $payload = (array) $notification->data;
-                $titulo = $payload['titulo'] ?? $payload['title'] ?? 'Actualización';
-                $descripcion = $payload['mensaje'] ?? $payload['message'] ?? $payload['body'] ?? null;
-                $enlace = $payload['url'] ?? $payload['action_url'] ?? null;
-                $textoEnlace = $payload['texto_boton'] ?? $payload['action_text'] ?? 'Ver detalle';
-              @endphp
-              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-3">
-                <div>
-                  <h6 class="mb-1">{{ $titulo }}</h6>
-                  @if ($descripcion)
-                    <p class="text-muted small mb-1">{{ $descripcion }}</p>
-                  @endif
-                  <small class="text-muted">{{ optional($notification->created_at)->diffForHumans() }}</small>
-                </div>
-                <div class="text-end">
-                  @if (is_null($notification->read_at))
-                    <span class="badge bg-light text-danger border">Nueva</span>
-                  @endif
-                  @if ($enlace)
-                    <div>
-                      <a href="{{ $enlace }}" class="btn btn-link btn-sm px-0">{{ $textoEnlace }}</a>
-                    </div>
-                  @endif
-                </div>
-              </div>
-            @empty
-              <p class="text-muted text-center my-4">No tienes notificaciones pendientes.</p>
             @endforelse
           </div>
         </div>

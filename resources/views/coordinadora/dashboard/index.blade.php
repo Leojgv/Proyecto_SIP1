@@ -81,7 +81,6 @@
                   @endif
                 </p>
               </div>
-              <a href="{{ route('entrevistas.show', $entrevista) }}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>
             </div>
           @empty
             <p class="text-muted mb-0">No hay entrevistas agendadas.</p>
@@ -97,7 +96,6 @@
               <h5 class="card-title mb-0">Casos Registrados Recientemente</h5>
               <small class="text-muted">Seguimiento y estados</small>
             </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Ver todos</a>
           </div>
           @forelse ($casosRecientes as $caso)
             <div class="case-item">
@@ -116,19 +114,39 @@
   </div>
 
   <div class="row g-4">
-    <div class="col-xl-6">
+    <div class="col-xl-12">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
-          <h5 class="card-title mb-3">Casos por Carrera</h5>
-          <p class="text-muted mb-0">Aun no hay datos suficientes para mostrar esta seccion.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Actividad Reciente</h5>
-          <p class="text-muted mb-0">Todavia no hay movimientos registrados.</p>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">Casos por Carrera</h5>
+              <small class="text-muted">Distribucion de solicitudes activas</small>
+            </div>
+            <a href="{{ route('coordinadora.casos.index') }}" class="btn btn-sm btn-outline-danger">Ver casos</a>
+          </div>
+          @forelse ($casosPorCarrera as $item)
+            @php
+              $porcentajeProceso = $item->total > 0 ? round(($item->en_proceso / $item->total) * 100) : 0;
+            @endphp
+            <div class="pb-3 mb-3 border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ $item->carrera }}</strong>
+                  <p class="text-muted small mb-0">{{ $item->total }} casos totales</p>
+                </div>
+                <span class="badge bg-light text-dark">{{ $porcentajeProceso }}% en proceso</span>
+              </div>
+              <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $porcentajeProceso }}%"></div>
+              </div>
+              <div class="d-flex justify-content-between text-muted small mt-2">
+                <span>{{ $item->en_proceso }} en proceso</span>
+                <span>{{ $item->total - $item->en_proceso }} restantes</span>
+              </div>
+            </div>
+          @empty
+            <p class="text-muted mb-0">Aun no hay datos suficientes para mostrar esta seccion.</p>
+          @endforelse
         </div>
       </div>
     </div>
@@ -468,4 +486,3 @@
   </div>
 </div>
 @endsection
-

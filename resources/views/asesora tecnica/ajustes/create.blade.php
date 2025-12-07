@@ -251,7 +251,7 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparentq;
     padding: 1.5rem;
     border-radius: 1.5rem;
   }

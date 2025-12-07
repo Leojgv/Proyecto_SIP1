@@ -27,62 +27,56 @@
 
   <div class="card border-0 shadow-sm">
     <div class="card-body">
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>Estudiante</th>
-              <th>Carrera</th>
-              <th>Fecha solicitud</th>
-              <th>Estado</th>
-              <th>Descripción</th>
-              <th>Ajustes</th>
-              <th class="text-end">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($solicitudes as $solicitud)
-              @php
-                $ajustesCount = $solicitud->ajustesRazonables->count();
-                $esPreaprobacion = $solicitud->estado === 'Pendiente de preaprobación';
-              @endphp
-              <tr>
-                <td>{{ $solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $solicitud->estudiante->apellido ?? '' }}</td>
-                <td>{{ $solicitud->estudiante->carrera->nombre ?? 'Sin carrera' }}</td>
-                <td>{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</td>
-                <td>
-                  @if($esPreaprobacion)
-                    <span class="badge bg-warning text-dark">
-                      <i class="fas fa-clock me-1"></i>{{ $solicitud->estado }}
-                    </span>
-                  @else
-                    <span class="badge bg-secondary">{{ $solicitud->estado ?? 'Pendiente' }}</span>
-                  @endif
-                </td>
-                <td class="text-muted small">{{ \Illuminate\Support\Str::limit($solicitud->descripcion, 60) }}</td>
-                <td>
-                  @if($ajustesCount > 0)
-                    <span class="badge bg-success">{{ $ajustesCount }} ajuste(s)</span>
-                  @else
-                    <span class="badge bg-secondary">Sin ajustes</span>
-                  @endif
-                </td>
-                <td class="text-end">
-                  <a href="{{ route('asesora-pedagogica.casos.show', $solicitud) }}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-eye me-1"></i>Revisar
-                  </a>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="7" class="text-center text-muted py-4">
-                  <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                  No hay casos pendientes de preaprobación.
-                </td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+      <div class="accordion casos-asesora-accordion" id="casosPedagogica">
+        @forelse($solicitudes as $solicitud)
+          @php
+            $collapseId = 'sol-' . $solicitud->id;
+            $headingId = 'head-' . $solicitud->id;
+            $ajustesCount = $solicitud->ajustesRazonables->count();
+            $esPreaprobacion = $solicitud->estado === 'Pendiente de preaprobación';
+            $badgeClass = match($solicitud->estado) {
+              'Pendiente de preaprobación' => 'bg-warning text-dark',
+              'Aprobado' => 'bg-success',
+              'Rechazado' => 'bg-danger',
+              default => 'bg-secondary'
+            };
+          @endphp
+          <div class="accordion-item caso-card border-0 mb-3 shadow-sm">
+            <h2 class="accordion-header" id="{{ $headingId }}">
+              <button class="accordion-button caso-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="false" aria-controls="{{ $collapseId }}">
+                <div class="d-flex align-items-center gap-3 w-100">
+                  <div>
+                    <div class="fw-semibold">{{ $solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $solicitud->estudiante->apellido ?? '' }}</div>
+                    <small class="text-muted">{{ $solicitud->estudiante->carrera->nombre ?? 'Sin carrera' }}</small>
+                  </div>
+                  <span class="badge {{ $badgeClass }}">{{ $solicitud->estado ?? 'Pendiente' }}</span>
+                  <div class="text-muted small text-nowrap ms-auto">
+                    <i class="far fa-calendar me-1"></i>{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}
+                  </div>
+                </div>
+              </button>
+            </h2>
+            <div id="{{ $collapseId }}" class="accordion-collapse collapse" aria-labelledby="{{ $headingId }}" data-bs-parent="#casosPedagogica">
+              <div class="accordion-body caso-body">
+                <p class="text-muted mb-2"><strong>Descripción:</strong> {{ $solicitud->descripcion ?: 'Sin descripción registrada.' }}</p>
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <div class="text-muted small">Solicitado el {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</div>
+                  <div class="text-muted small">Ajustes: <span class="fw-semibold">{{ $ajustesCount }}</span></div>
+                  <div class="ms-auto">
+                    <a href="{{ route('asesora-pedagogica.casos.show', $solicitud) }}" class="btn btn-sm btn-primary">
+                      <i class="fas fa-eye me-1"></i>Revisar
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @empty
+          <p class="text-center text-muted py-4 mb-0">
+            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+            No hay casos pendientes de preaprobación.
+          </p>
+        @endforelse
       </div>
       <div class="d-flex justify-content-end mt-3">
         {{ $solicitudes->links() }}
@@ -91,3 +85,36 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+  .casos-asesora-accordion .caso-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .caso-btn {
+    background: #eef2ff;
+    color: #1f2937;
+  }
+  .caso-btn:focus { box-shadow: none; }
+  .caso-body {
+    background: #fff;
+    color: #1f2937;
+  }
+  .caso-body .text-muted { color: #6b7280 !important; }
+  .dark-mode .casos-asesora-accordion .caso-card {
+    border-color: #1e293b;
+    box-shadow: 0 10px 30px rgba(3, 7, 18, .35);
+  }
+  .dark-mode .caso-btn {
+    background: #0f172a;
+    color: #e5e7eb;
+  }
+  .dark-mode .caso-body {
+    background: #0b1220;
+    color: #e5e7eb;
+  }
+  .dark-mode .caso-body .text-muted { color: #9ca3af !important; }
+</style>
+@endpush

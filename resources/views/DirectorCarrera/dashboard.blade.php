@@ -64,35 +64,35 @@
               <div class="case-card__header">
                 <div>
                   <h6 class="mb-0">{{ $case['student'] }}</h6>
-                  <small class="text-muted">{{ $case['program'] }} &middot; {{ $case['requested_by'] }}</small>
+                  <small class="text-muted d-block">{{ $case['program'] }}</small>
+                  <small class="text-muted">Coordinadora: {{ $case['requested_by'] }}</small>
                 </div>
-                <span class="priority-badge priority-{{ $case['priority_level'] }}">{{ $case['priority'] }}</span>
               </div>
-              <p class="case-card__focus">{{ Str::limit($case['support_focus'], 120) }}</p>
-              <div class="case-card__adjustments">
+              <p class="case-card__focus mb-2">{{ Str::limit($case['support_focus'], 140) }}</p>
+              <div class="case-card__adjustments mb-3">
                 @forelse ($case['adjustments'] as $adjustment)
-                  <span class="badge rounded-pill bg-light text-danger">{{ $adjustment }}</span>
+                  <span class="badge bg-light text-danger">{{ $adjustment }}</span>
                 @empty
-                  <span class="badge rounded-pill bg-light text-muted">Sin ajustes propuestos</span>
+                  <span class="badge bg-light text-muted">Sin ajustes propuestos</span>
                 @endforelse
               </div>
               <div class="case-card__meta">
                 <div>
-                  <small class="text-muted text-uppercase">Estado actual</small>
-                  <p class="mb-0 fw-semibold">{{ $case['status'] }}</p>
+                  <small class="text-muted text-uppercase">Estado</small>
+                  <div class="fw-semibold">{{ $case['status'] }}</div>
                 </div>
                 <div>
-                  <small class="text-muted text-uppercase">Fecha de solicitud</small>
-                  <p class="mb-0 fw-semibold">{{ $case['submitted_at'] }}</p>
+                  <small class="text-muted text-uppercase">Fecha solicitud</small>
+                  <div class="fw-semibold">{{ $case['submitted_at'] }}</div>
                 </div>
               </div>
               <div class="case-card__actions">
                 <form action="{{ $case['approve_url'] }}" method="POST" class="d-inline">
                   @csrf
-                  <button type="submit" class="btn btn-danger btn-sm">Aprobar Caso</button>
+                  <button type="submit" class="btn btn-danger btn-sm">Aprobar caso</button>
                 </form>
-                <a href="{{ $case['reject_url'] }}" class="btn btn-outline-danger btn-sm">Rechazar/Devolver a A. Pedagogica</a>
-                <a href="{{ $case['detail_url'] }}" class="btn btn-link btn-sm text-decoration-none">Ver detalles</a>
+                <a href="{{ $case['reject_url'] }}" class="btn btn-sm btn-outline-danger">Rechazar/Devolver</a>
+                <a href="{{ $case['detail_url'] }}" class="btn btn-sm btn-link text-decoration-none">Ver detalles</a>
               </div>
             </div>
           @empty
@@ -138,64 +138,77 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
+</div>
 
-  <div class="card border-0 shadow-sm mb-4">
+@php
+  $careerLabels = collect($careerStats)->pluck('name')->map(fn ($name) => $name ?: 'Carrera sin nombre')->values();
+  $careerTotals = collect($careerStats)->pluck('total_students')->map(fn ($value) => (int) $value)->values();
+@endphp
+<div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
           <h5 class="card-title mb-1">Estadisticas por carrera</h5>
-          <small class="text-muted">Comparativa de carga academica y ajustes activos.</small>
+          <small class="text-muted">Distribucion de estudiantes por carrera.</small>
         </div>
         <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger">Total carreras: {{ count($careerStats) }}</span>
       </div>
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead class="table-light">
-          <tr>
-            <th>Carrera</th>
-            <th class="text-center">Estudiantes</th>
-            <th class="text-center">Con ajustes</th>
-            <th class="text-center">Pendientes</th>
-            <th class="text-center">Aprobados</th>
-            <th class="text-center">Cobertura</th>
-          </tr>
-          </thead>
-          <tbody>
-          @forelse ($careerStats as $career)
-            <tr>
-              <td>
-                <div class="fw-semibold">{{ $career['name'] }}</div>
-                <small class="text-muted">{{ $career['jornada'] }}</small>
-              </td>
-              <td class="text-center">{{ $career['total_students'] }}</td>
-              <td class="text-center">{{ $career['with_adjustments'] }}</td>
-              <td class="text-center text-warning fw-semibold">{{ $career['pending_cases'] }}</td>
-              <td class="text-center text-success fw-semibold">{{ $career['approved_cases'] }}</td>
-              <td class="text-center">
-                <span class="badge bg-light text-danger">{{ $career['coverage'] }}%</span>
-              </td>
-            </tr>
-          @empty
-            <tr>
-              <td colspan="6" class="text-center text-muted">Aun no hay carreras asignadas a tu perfil.</td>
-            </tr>
-          @endforelse
-          </tbody>
-        </table>
+
+      <div class="row g-4 align-items-stretch">
+        <div class="col-lg-6">
+          <div class="card h-100 border-0 shadow-sm pastel-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <h6 class="mb-0"><i class="fas fa-chart-pie text-danger me-2"></i>Grafica de pastel</h6>
+                  <small class="text-muted">Participacion de cada carrera.</small>
+                </div>
+              </div>
+              <canvas id="careerPieChart" height="320"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <h6 class="mb-0"><i class="fas fa-list text-danger me-2"></i>Lista de carreras</h6>
+                  <small class="text-muted">Cantidad de estudiantes por carrera.</small>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-dark-mode align-middle mb-0">
+                  <thead>
+                  <tr>
+                    <th>Carrera</th>
+                    <th class="text-center">Estudiantes</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  @forelse ($careerStats as $career)
+                    <tr>
+                      <td>
+                        <div class="fw-semibold">{{ $career['name'] }}</div>
+                        <small class="text-muted">{{ $career['jornada'] }}</small>
+                      </td>
+                      <td class="text-center fw-semibold">{{ $career['total_students'] }}</td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="2" class="text-center text-muted">Aun no hay carreras asignadas a tu perfil.</td>
+                    </tr>
+                  @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  <div class="action-row">
-    @foreach ($actionShortcuts as $action)
-      <a href="{{ $action['route'] }}" class="action-button action-button--{{ $action['variant'] }}">
-        <i class="fas {{ $action['icon'] }} me-2"></i>{{ $action['label'] }}
-      </a>
-    @endforeach
-  </div>
-</div>
 
 @push('styles')
 <style>
@@ -240,7 +253,8 @@
     border-radius: 1rem;
     padding: 1.1rem;
     margin-bottom: 1rem;
-    background: #fff9f8;
+    background: #fff;
+    box-shadow: 0 8px 18px rgba(15,23,42,.05);
   }
   .case-card__header {
     display: flex;
@@ -263,9 +277,9 @@
     gap: 1.5rem;
     flex-wrap: wrap;
     padding: .85rem;
-    background: #fff;
+    background: #fff7f7;
     border-radius: .85rem;
-    border: 1px dashed #f0c5c5;
+    border: 1px solid #fce8e8;
   }
   .case-card__actions {
     display: flex;
@@ -273,23 +287,28 @@
     flex-wrap: wrap;
     margin-top: .75rem;
   }
-  .priority-badge {
-    border-radius: 999px;
+  .priority-chip {
+    border-radius: 8px;
     padding: .35rem .85rem;
     font-size: .75rem;
     font-weight: 600;
+    border: 1px solid #f0f0f5;
+    background: #fff;
   }
   .priority-high {
     background: #fee2e2;
     color: #b91c1c;
+    border-color: #fecdd3;
   }
   .priority-medium {
     background: #fef3c7;
     color: #b45309;
+    border-color: #fde68a;
   }
   .priority-low {
     background: #d1fae5;
     color: #047857;
+    border-color: #a7f3d0;
   }
   .pipeline-list {
     display: flex;
@@ -342,6 +361,197 @@
   .action-button:hover {
     transform: translateY(-2px);
   }
+  .pastel-card {
+    background: radial-gradient(circle at 15% 20%, #fff5f5, #ffffff 55%);
+  }
+
+  /* Modo oscuro */
+  .dark-mode .dashboard-page {
+    background: #0b1220 !important;
+    color: #e5e7eb !important;
+  }
+  .dark-mode .page-header h1,
+  .dark-mode .page-header p,
+  .dark-mode .page-header .text-muted {
+    color: #e5e7eb !important;
+  }
+  .dark-mode .stats-card {
+    border-color: #1f2937 !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35) !important;
+  }
+  .dark-mode .card {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+  }
+  .dark-mode .card .card-title,
+  .dark-mode .card .card-text,
+  .dark-mode .card small,
+  .dark-mode .card h5,
+  .dark-mode .card h6 {
+    color: #e5e7eb !important;
+  }
+  .dark-mode .case-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
+  }
+  .dark-mode .case-card__focus {
+    color: #cbd5e1 !important;
+  }
+  .dark-mode .case-card__meta {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+  }
+  .dark-mode .pipeline-stage {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+  }
+  .dark-mode .pipeline-stage__count {
+    background: #111827 !important;
+    color: #fca5a5 !important;
+  }
+  .dark-mode .table {
+    color: #e5e7eb !important;
+  }
+  .dark-mode .table thead {
+    background: #111827 !important;
+  }
+  .dark-mode .table thead th {
+    color: #e5e7eb !important;
+    border-color: #1f2937 !important;
+  }
+  .dark-mode .table tbody tr {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+  }
+  .dark-mode .table tbody tr:nth-of-type(odd) {
+    background: #0b1220 !important;
+  }
+  .dark-mode .table td {
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+  }
+  .dark-mode .table .text-muted {
+    color: #9ca3af !important;
+  }
+  /* Tabla dark reutilizable */
+  .table-dark-mode thead {
+    background: #f8fafc;
+  }
+  .table-dark-mode thead th {
+    color: #1f2937;
+    border-color: #e5e7eb;
+  }
+  .table-dark-mode tbody tr {
+    background: #fff;
+    border-color: #e5e7eb;
+    color: #1f2937;
+  }
+  .table-dark-mode tbody tr:nth-of-type(odd) {
+    background: #f8fafc;
+  }
+  .table-dark-mode td {
+    border-color: #e5e7eb;
+  }
+  .table-dark-mode .text-muted {
+    color: #6b7280 !important;
+  }
+  .table-dark-mode .badge.bg-light.text-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecdd3;
+  }
+  .dark-mode .table-dark-mode thead {
+    background: #111827;
+  }
+  .dark-mode .table-dark-mode thead th {
+    color: #e5e7eb;
+    border-color: #1f2937;
+  }
+  .dark-mode .table-dark-mode tbody tr {
+    background: #0f172a;
+    border-color: #1f2937;
+    color: #e5e7eb;
+  }
+  .dark-mode .table-dark-mode tbody tr:nth-of-type(odd) {
+    background: #0b1220;
+  }
+  .dark-mode .table-dark-mode td {
+    border-color: #1f2937;
+  }
+  .dark-mode .table-dark-mode .text-muted {
+    color: #9ca3af !important;
+  }
+  .dark-mode .table-dark-mode .badge.bg-light.text-danger {
+    background: #1f2937;
+    color: #fca5a5;
+    border: 1px solid #273449;
+  }
+  .dark-mode .badge.bg-light.text-danger {
+    background: #1f2937 !important;
+    color: #fca5a5 !important;
+    border: 1px solid #273449 !important;
+  }
+  .dark-mode .badge.bg-danger.bg-opacity-10.text-danger {
+    background: rgba(220,38,38,.15) !important;
+    color: #fecdd3 !important;
+  }
+  .dark-mode .action-button--outline-danger {
+    background: transparent !important;
+    color: #fca5a5 !important;
+    border-color: #fca5a5 !important;
+  }
+  .dark-mode .action-button--danger {
+    background: #dc2626 !important;
+    color: #fff !important;
+  }
+  .dark-mode .btn-outline-danger {
+    color: #fca5a5 !important;
+    border-color: #fca5a5 !important;
+  }
+  .dark-mode .btn-outline-danger:hover {
+    background: rgba(252,165,165,.1) !important;
+  }
+  .dark-mode .pastel-card {
+    background: radial-gradient(circle at 15% 20%, #1f2937, #0f172a 55%) !important;
+  }
 </style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('careerPieChart');
+    if (!ctx) return;
+
+    const labels = @json($careerLabels);
+    const data = @json($careerTotals);
+
+    const palette = ['#dc2626','#f97316','#f59e0b','#22c55e','#0ea5e9','#6366f1','#a855f7','#ec4899','#14b8a6','#8b5cf6'];
+    const backgroundColor = labels.map((_, idx) => palette[idx % palette.length]);
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor,
+          borderWidth: 1,
+          hoverOffset: 6,
+          cutout: '55%'
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed}` } }
+        }
+      }
+    });
+  });
+</script>
 @endpush
 @endsection

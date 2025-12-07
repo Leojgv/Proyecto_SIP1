@@ -103,6 +103,34 @@
     .coordinadora-content {
       padding: 2rem;
     }
+    .casos-asesora-accordion .caso-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .caso-btn {
+      background: #eef2ff;
+      color: #1f2937;
+    }
+    .caso-btn:focus { box-shadow: none; }
+    .caso-body {
+      background: #fff;
+      color: #1f2937;
+    }
+    .caso-body .text-muted { color: #6b7280 !important; }
+    .dark-mode .casos-asesora-accordion .caso-card {
+      border-color: #1e293b;
+      box-shadow: 0 10px 30px rgba(3, 7, 18, .35);
+    }
+    .dark-mode .caso-btn {
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    .dark-mode .caso-body {
+      background: #0b1220;
+      color: #e5e7eb;
+    }
+    .dark-mode .caso-body .text-muted { color: #9ca3af !important; }
     @media (max-width: 992px) {
       .coordinadora-wrapper {
         flex-direction: column;
@@ -127,13 +155,11 @@
 <body>
 <div class="coordinadora-wrapper">
   <aside class="coordinadora-sidebar">
-    <div class="coordinadora-sidebar__brand"><i class="fas fa-shield-heart"></i>Panel Asesora</div>
+    <div class="coordinadora-sidebar__brand"><i class="fas fa-shield-heart"></i>Panel Asesora técnica</div>
     <nav class="coordinadora-sidebar__nav">
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.dashboard') ? 'active' : '' }}" href="{{ route('asesora-tecnica.dashboard') }}"><i class="fas fa-chart-line"></i>Dashboard</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.casos.*') ? 'active' : '' }}" href="{{ route('asesora-tecnica.casos.index') }}"><i class="fas fa-folder-plus"></i>Casos</a>
       <a class="coordinadora-sidebar__link {{ request()->routeIs('asesora-tecnica.ajustes.*') ? 'active' : '' }}" href="{{ route('asesora-tecnica.ajustes.create') }}"><i class="fas fa-sliders"></i>Ajustes</a>
-      <a class="coordinadora-sidebar__link" href="{{ route('notificaciones.index') }}"><i class="fas fa-bell"></i>Notificaciones</a>
-      <a class="coordinadora-sidebar__link" href="{{ route('home') }}"><i class="fas fa-cog"></i>Configuracion</a>
     </nav>
   </aside>
   <div class="coordinadora-main">

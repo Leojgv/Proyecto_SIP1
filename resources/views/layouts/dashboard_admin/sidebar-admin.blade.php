@@ -35,17 +35,6 @@
       <span>Reportes</span>
     </a>
 
-    <a href="{{ route('notificaciones.index') }}"
-       class="student-sidebar__link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">
-      <i class="fas fa-bell"></i>
-      <span>Notificaciones</span>
-    </a>
-
-    <a href="{{ route('carreras.index') }}"
-       class="student-sidebar__link {{ request()->routeIs('carreras.*') ? 'active' : '' }}">
-      <i class="fas fa-gear"></i>
-      <span>Configuración</span>
-    </a>
   </nav>
 </aside>
 

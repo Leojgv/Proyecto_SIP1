@@ -129,7 +129,7 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparent;
     padding: 1rem;
     border-radius: 1.5rem;
   }
