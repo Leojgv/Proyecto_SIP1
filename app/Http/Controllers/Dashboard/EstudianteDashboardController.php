@@ -41,7 +41,6 @@ class EstudianteDashboardController extends Controller
         $estudiante->loadMissing('carrera');
 
         $hoy = Carbon::today();
-        $focus = $request->query('focus');
 
         $solicitudesActivas = $estudiante->solicitudes()
             ->where(function ($query) {
@@ -92,18 +91,6 @@ class EstudianteDashboardController extends Controller
             ->take(5)
             ->get();
 
-        $notificaciones = collect();
-        $notificacionesSinLeer = 0;
-
-        if ($user && $this->notificationsTableExists()) {
-            $notificaciones = $user->notifications()
-                ->latest()
-                ->take(6)
-                ->get();
-
-            $notificacionesSinLeer = $user->unreadNotifications()->count();
-        }
-
         return view('estudiantes.dashboard.index', [
             'estudiante' => $estudiante,
             'stats' => [
@@ -117,9 +104,6 @@ class EstudianteDashboardController extends Controller
             'misSolicitudes' => $misSolicitudes,
             'misAjustes' => $misAjustes,
             'hoy' => $hoy,
-            'notificaciones' => $notificaciones,
-            'notificacionesSinLeer' => $notificacionesSinLeer,
-            'focus' => $focus,
         ]);
     }
 
@@ -192,16 +176,5 @@ class EstudianteDashboardController extends Controller
         return redirect()
             ->route('estudiantes.dashboard', ['focus' => 'configuracion'])
             ->with('status', 'Se guardaron tus datos de contacto.');
-    }
-
-    private function notificationsTableExists(): bool
-    {
-        static $cache;
-
-        if ($cache === null) {
-            $cache = \Illuminate\Support\Facades\Schema::hasTable('notifications');
-        }
-
-        return $cache;
     }
 }

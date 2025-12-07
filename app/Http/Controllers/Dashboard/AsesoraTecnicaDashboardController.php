@@ -79,18 +79,32 @@ class AsesoraTecnicaDashboardController extends Controller
         $recentAdjustments = AjusteRazonable::query()
             ->with(['estudiante.carrera'])
             ->latest('updated_at')
-            ->take(3)
+            ->take(15)
             ->get()
-            ->map(function (AjusteRazonable $ajuste) {
-                $carrera = optional(optional($ajuste->estudiante)->carrera)->nombre;
+            ->groupBy('estudiante_id')
+            ->map(function ($ajustes) {
+                /** @var \Illuminate\Support\Collection $ajustes */
+                /** @var AjusteRazonable|null $primero */
+                $primero = $ajustes->first();
+                $estudiante = $primero?->estudiante;
+                $carrera = optional(optional($estudiante)->carrera)->nombre;
+
                 return [
-                    'student' => trim(($ajuste->estudiante->nombre ?? 'Estudiante') . ' ' . ($ajuste->estudiante->apellido ?? '')),
+                    'student' => trim(($estudiante->nombre ?? 'Estudiante') . ' ' . ($estudiante->apellido ?? '')),
                     'program' => $carrera ?: 'Programa no asignado',
-                    'description' => $ajuste->nombre ?? 'Ajuste sin título',
-                    'status' => $ajuste->estado ?? 'Enviado',
-                    'completed_at' => optional($ajuste->updated_at)->format('Y-m-d') ?? 's/f',
+                    'adjustments' => $ajustes->map(function (AjusteRazonable $ajuste) {
+                        return [
+                            'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
+                            'status' => $ajuste->estado ?? 'En proceso',
+                            'completed_at' => optional($ajuste->updated_at)->format('Y-m-d') ?? 's/f',
+                        ];
+                    })->take(5)->values()->toArray(),
                 ];
-            })->toArray();
+            })
+            ->values()
+            ->take(3)
+            ->toArray();
+
 
         return view('asesora tecnica.dashboard', [
             'metrics' => $metrics,

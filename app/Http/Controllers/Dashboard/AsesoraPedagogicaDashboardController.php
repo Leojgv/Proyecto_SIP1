@@ -52,6 +52,10 @@ class AsesoraPedagogicaDashboardController extends Controller
         'Listo para Enviar',
         'Listo para Direccion',
         'Enviado a Direccion',
+        'Aprobado',
+        'Aprobada',
+        'Pendiente de Aprobación',
+        'Pendiente de Aprobacion',
     ];
 
     public function show(Request $request)
@@ -92,7 +96,7 @@ class AsesoraPedagogicaDashboardController extends Controller
         // Obtener casos en preaprobación para el dashboard
         $casesForReview = $this->buildCasesForReview(clone $solicitudesBase, 4);
 
-        $authorizedCases = AjusteRazonable::query()
+        $authorizedFromAdjustments = AjusteRazonable::query()
             ->with(['estudiante.carrera', 'solicitud'])
             ->whereHas('solicitud', fn ($query) => $query
                 ->when($user, fn ($sub) => $sub->where('asesor_id', $user->id)))
@@ -105,15 +109,52 @@ class AsesoraPedagogicaDashboardController extends Controller
                 $nombreEstudiante = trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? '')) ?: 'Estudiante sin nombre';
                 $programa = optional(optional($estudiante)->carrera)->nombre ?? 'Programa no asignado';
 
+                $estado = $ajuste->estado ?? 'En seguimiento';
+                $estadoMostrar = in_array(strtolower($estado), ['aprobado', 'aprobada']) ? 'Enviado' : $estado;
+
                 return [
                     'student' => $nombreEstudiante,
                     'program' => $programa,
-                    'status' => $ajuste->estado ?? 'En seguimiento',
+                    'status' => $estadoMostrar,
                     'authorized_at' => optional($ajuste->updated_at ?? $ajuste->fecha_solicitud)
                         ?->format('Y-m-d') ?? 's/f',
                     'follow_up' => 'Enviado a Direccion',
                 ];
             })
+            ->values()
+            ->all();
+
+        $authorizedFromRequests = Solicitud::query()
+            ->with(['estudiante.carrera'])
+            ->when($user, fn ($query) => $query->where('asesor_id', $user->id))
+            ->whereIn('estado', self::PROCESSED_STATES)
+            ->latest('updated_at')
+            ->take(5)
+            ->get()
+            ->map(function (Solicitud $solicitud) {
+                $estudiante = $solicitud->estudiante;
+                $nombreEstudiante = trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? '')) ?: 'Estudiante sin nombre';
+                $programa = optional(optional($estudiante)->carrera)->nombre ?? 'Programa no asignado';
+
+                $estado = $solicitud->estado ?? 'Procesado';
+                $estadoMostrar = in_array(strtolower($estado), ['aprobado', 'aprobada']) ? 'Enviado' : $estado;
+
+                return [
+                    'student' => $nombreEstudiante,
+                    'program' => $programa,
+                    'status' => $estadoMostrar,
+                    'authorized_at' => optional($solicitud->updated_at ?? $solicitud->fecha_solicitud)
+                        ?->format('Y-m-d') ?? 's/f',
+                    'follow_up' => 'Solicitud procesada',
+                ];
+            })
+            ->values()
+            ->all();
+
+        $authorizedCases = collect($authorizedFromAdjustments)
+            ->concat($authorizedFromRequests)
+            ->sortByDesc('authorized_at')
+            ->take(5)
             ->values()
             ->all();
 

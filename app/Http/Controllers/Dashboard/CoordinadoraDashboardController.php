@@ -8,6 +8,7 @@ use App\Models\Entrevista;
 use App\Models\Estudiante;
 use App\Models\Solicitud;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -48,6 +49,17 @@ class CoordinadoraDashboardController extends Controller
             ->take(5)
             ->get();
 
+        $casosPorCarrera = Solicitud::selectRaw('carreras.nombre as carrera')
+            ->selectRaw('COUNT(solicitudes.id) as total')
+            ->selectRaw("SUM(CASE WHEN solicitudes.estado IN ('Pendiente de entrevista', 'Pendiente de formulación del caso', 'Pendiente de formulación de ajuste') THEN 1 ELSE 0 END) as en_proceso")
+            ->leftJoin('estudiantes', 'solicitudes.estudiante_id', '=', 'estudiantes.id')
+            ->leftJoin('carreras', 'estudiantes.carrera_id', '=', 'carreras.id')
+            ->whereNotNull('carreras.nombre')
+            ->groupBy('carreras.nombre')
+            ->orderByDesc(DB::raw('COUNT(solicitudes.id)'))
+            ->take(6)
+            ->get();
+
         $pipelineStats = [
             ['label' => 'Solicitud agendada', 'value' => Solicitud::count(), 'description' => 'Etapa inicial del caso'],
             ['label' => 'Entrevistas realizadas', 'value' => Entrevista::count(), 'description' => 'Casos con descripcion inicial'],
@@ -71,6 +83,7 @@ class CoordinadoraDashboardController extends Controller
             'stats',
             'proximasEntrevistas',
             'casosRecientes',
+            'casosPorCarrera',
             'pipelineStats',
             'estudiantes'
         ));

@@ -17,7 +17,7 @@ class DirectorCarreraCasoController extends Controller
         $directorId = $request->user()->id;
 
         // El Director de Carrera solo ve casos que están en su fase:
-        // - Pendiente de Aprobación (casos que debe revisar y aprobar/rechazar)
+        // - Pendiente de Aprobacion (casos que debe revisar y aprobar/rechazar)
         // También puede ver casos ya procesados (Aprobado/Rechazado) para historial
         $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor'])
             ->where(function ($query) use ($directorId) {
@@ -25,15 +25,17 @@ class DirectorCarreraCasoController extends Controller
                     ->orWhereHas('estudiante.carrera', fn ($sub) => $sub->where('director_id', $directorId));
             })
             ->whereIn('estado', [
-                'Pendiente de Aprobación',
+                'Pendiente de Aprobacion',
                 'Aprobado',
                 'Rechazado',
             ])
             ->latest('fecha_solicitud')
-            ->paginate(12);
+            ->get();
+
+        $solicitudesPorEstudiante = $solicitudes->groupBy('estudiante_id');
 
         return view('DirectorCarrera.casos.index', [
-            'solicitudes' => $solicitudes,
+            'solicitudesPorEstudiante' => $solicitudesPorEstudiante,
         ]);
     }
 
@@ -49,8 +51,8 @@ class DirectorCarreraCasoController extends Controller
     public function approve(Request $request, Solicitud $solicitud): RedirectResponse
     {
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobación') {
-            return back()->with('error', 'Solo se pueden aprobar solicitudes que estén en estado "Pendiente de Aprobación".');
+        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
+            return back()->with('error', 'Solo se pueden aprobar solicitudes que estén en estado "Pendiente de Aprobacion".');
         }
 
         $solicitud->update([
@@ -94,8 +96,8 @@ class DirectorCarreraCasoController extends Controller
         ]);
 
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobación') {
-            return back()->with('error', 'Solo se pueden rechazar solicitudes que estén en estado "Pendiente de Aprobación".');
+        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
+            return back()->with('error', 'Solo se pueden rechazar solicitudes que estén en estado "Pendiente de Aprobacion".');
         }
 
         $solicitud->update([
@@ -121,8 +123,8 @@ class DirectorCarreraCasoController extends Controller
         ]);
 
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobación') {
-            return back()->with('error', 'Solo se pueden devolver solicitudes que estén en estado "Pendiente de Aprobación".');
+        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
+            return back()->with('error', 'Solo se pueden devolver solicitudes que estén en estado "Pendiente de Aprobacion".');
         }
 
         $solicitud->update([

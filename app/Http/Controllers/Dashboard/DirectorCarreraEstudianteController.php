@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Imports\EstudiantesImport;
-use App\Models\Carrera;
 use App\Models\Estudiante;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DirectorCarreraEstudianteController extends Controller
 {
@@ -42,15 +41,14 @@ class DirectorCarreraEstudianteController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'archivo' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'], // Máximo 10MB
+            'archivo' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'], // Maximo 10MB
         ]);
 
         try {
-            // Obtener la carrera asociada al Director autenticado
-            $carrera = Carrera::where('director_id', auth()->id())->firstOrFail();
+            $directorId = $request->user()->id;
 
-            // Ejecutar la importación pasando el ID de la carrera
-            Excel::import(new EstudiantesImport($carrera->id), $request->file('archivo'));
+            // Ejecutar la importacion pasando el ID del director
+            Excel::import(new EstudiantesImport($directorId), $request->file('archivo'));
 
             return redirect()
                 ->route('director.estudiantes')
@@ -60,7 +58,7 @@ class DirectorCarreraEstudianteController extends Controller
 
             return redirect()
                 ->back()
-                ->withErrors(['archivo' => 'Error en la validación del archivo. Revisa los datos.'])
+                ->withErrors(['archivo' => 'Error en la validacion del archivo. Revisa los datos.'])
                 ->with('import_errors', $failures)
                 ->withInput();
         } catch (\Exception $e) {
@@ -71,3 +69,4 @@ class DirectorCarreraEstudianteController extends Controller
         }
     }
 }
+
