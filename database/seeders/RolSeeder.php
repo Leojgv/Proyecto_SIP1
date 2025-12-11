@@ -15,6 +15,7 @@ class RolSeeder extends Seeder
             ['nombre' => 'Asesora Tecnica Pedagogica', 'descripcion' => 'Especialista en apoyo técnico pedagógico'],
             ['nombre' => 'Coordinadora de inclusion', 'descripcion' => 'Responsable de la inclusión educativa'],
             ['nombre' => 'Director de carrera', 'descripcion' => 'Director responsable de la carrera'],
+            ['nombre' => 'Docente', 'descripcion' => 'Usuario docente'],
             ['nombre' => 'Estudiante', 'descripcion' => 'Usuario estudiante'],
         ];
 
