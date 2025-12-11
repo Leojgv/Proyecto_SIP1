@@ -14,7 +14,6 @@ class EstudianteController extends Controller
         $carreras = Carrera::orderBy('nombre')->get();
         
         $totalEstudiantes = Estudiante::count();
-        $estudiantesConCasos = Estudiante::whereHas('solicitudes')->count();
         $nuevosEsteMes = Estudiante::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
@@ -33,7 +32,6 @@ class EstudianteController extends Controller
             'estudiantes',
             'carreras',
             'totalEstudiantes',
-            'estudiantesConCasos',
             'nuevosEsteMes',
             'estudiantesPorCarrera'
         ));

@@ -291,11 +291,6 @@
                                 title="Ver detalles">
                           <i class="fas fa-eye"></i>
                         </button>
-                        <a href="{{ route('solicitudes.edit', $solicitud) }}" 
-                           class="action-pill" 
-                           title="Editar solicitud">
-                          <i class="fas fa-pen"></i>
-                        </a>
                         <form action="{{ route('solicitudes.destroy', $solicitud) }}" 
                               method="POST" 
                               class="d-inline" 

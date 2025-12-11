@@ -29,49 +29,32 @@
   </div>
 
   @php
-    $cardColors = ['#dc2626', '#dc2626', '#dc2626', '#dc2626', '#dc2626'];
+    $cardColors = ['#dc2626', '#dc2626', '#dc2626'];
     $summaryStats = [
       [
         'label' => 'Total Estudiantes',
         'value' => number_format($stats['total_estudiantes']),
         'subtext' => '+' . number_format($stats['nuevos_estudiantes_mes']) . ' este mes',
         'icon' => 'fa-user-graduate',
-        'link' => route('estudiantes.index'),
       ],
       [
-        'label' => 'Casos Activos',
-        'value' => number_format($stats['casos_activos']),
-        'subtext' => 'Requieren seguimiento',
-        'icon' => 'fa-briefcase-medical',
-        'link' => route('solicitudes.index'),
+        'label' => 'Usuarios Activos',
+        'value' => number_format($stats['usuarios_activos'] ?? 0),
+        'subtext' => 'Conectados ahora',
+        'icon' => 'fa-circle-dot',
       ],
       [
-        'label' => 'Casos Cerrados',
-        'value' => number_format($stats['casos_cerrados']),
-        'subtext' => number_format($stats['casos_cerrados_mes']) . ' este mes',
-        'icon' => 'fa-circle-check',
-        'link' => route('solicitudes.index'),
-      ],
-      [
-        'label' => 'Casos Pendientes',
-        'value' => number_format($stats['casos_pendientes']),
-        'subtext' => 'Requieren revisión',
-        'icon' => 'fa-hourglass-half',
-        'link' => route('solicitudes.index'),
-      ],
-      [
-        'label' => 'Pendientes Aprobación',
-        'value' => number_format($stats['pendientes_aprobacion']),
-        'subtext' => 'Esperando decisión',
-        'icon' => 'fa-triangle-exclamation',
-        'link' => route('ajustes-razonables.index'),
+        'label' => 'Total Usuarios',
+        'value' => number_format($stats['total_usuarios']),
+        'subtext' => 'Usuarios del sistema',
+        'icon' => 'fa-users',
       ],
     ];
   @endphp
 
   <div class="row g-3 mb-4">
     @foreach ($summaryStats as $index => $stat)
-      <div class="col-12 col-md-6 col-xl-4 col-xxl">
+      <div class="col-12 col-md-6 col-xl-4">
         <div class="stats-card" style="background: {{ $cardColors[$index % count($cardColors)] }};">
           <div class="stats-card__value">{{ $stat['value'] }}</div>
           <div class="stats-card__icon"><i class="fas {{ $stat['icon'] }}"></i></div>
@@ -83,170 +66,23 @@
   </div>
 
   <div class="row g-4 mb-4">
-    <div class="col-xl-7">
-      <div class="card border-0 shadow-sm h-100">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
             <div>
-              <h5 class="card-title mb-1">Casos por Carrera</h5>
-              <small class="text-muted">Distribución de casos activos y cerrados</small>
-            </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-outline-danger btn-sm">Ver detalle</a>
-          </div>
-            @forelse ($casosPorCarrera as $item)
-              @php
-                $activosPercent = $item->total > 0 ? round(($item->activos / $item->total) * 100) : 0;
-              @endphp
-              <div class="pb-3 mb-3 border-bottom">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ $item->carrera }}</strong>
-                    <p class="text-muted small mb-0">{{ $item->total }} casos totales</p>
-                  </div>
-                  <span class="badge bg-light text-dark">{{ $activosPercent }}% activos</span>
-                </div>
-                <div class="progress mt-2" style="height: 6px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ $activosPercent }}%"></div>
-                </div>
-                <div class="d-flex justify-content-between text-muted small mt-2">
-                  <span>{{ $item->activos }} activos</span>
-                  <span>{{ $item->cerrados }} cerrados</span>
-                </div>
-              </div>
-            @empty
-              <p class="text-muted mb-0">Aún no hay datos suficientes para mostrar esta sección.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    <div class="col-xl-5">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <div>
-              <h5 class="card-title mb-1">Tipos de Discapacidad</h5>
-              <small class="text-muted">Distribución de estudiantes por acompañamiento</small>
+              <h5 class="card-title mb-1">Nuevos Estudiantes por Mes</h5>
+              <small class="text-muted">Cantidad de estudiantes que se registraron en el sistema en los últimos 12 meses</small>
             </div>
           </div>
-          <div class="tipos-discapacidad-scroll">
-            @forelse ($tiposDiscapacidad as $tipo)
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong>{{ $tipo['tipo'] }}</strong>
-                  <span class="text-muted small">{{ $tipo['total'] }} {{ $tipo['total'] == 1 ? 'estudiante' : 'estudiantes' }}</span>
-                </div>
-                <div class="progress mt-2" style="height: 6px;">
-                  <div class="progress-bar" role="progressbar"
-                       style="width: {{ $tipo['porcentaje'] }}%; background-color: {{ $tipo['color'] }}"></div>
-                </div>
-                <small class="text-muted d-block mt-1">{{ $tipo['porcentaje'] }}% del total</small>
-              </div>
-            @empty
-              <p class="text-muted mb-0">No hay estudiantes con ajustes aplicados aún.</p>
-            @endforelse
-          </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  <div class="row g-4 mb-4">
-    {{-- Entrevistas --}}
-    <div class="col-xl-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <div>
-              <h5 class="card-title mb-1">
-                <i class="fas fa-calendar-check text-danger me-2"></i>Entrevistas
-              </h5>
-              <small class="text-muted">Entrevistas agendadas recientemente</small>
-            </div>
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($actividadReciente['entrevistas'] as $actividad)
-              <div class="case-item">
-                <div>
-                  <strong>{{ $actividad['titulo'] }}</strong>
-                  <p class="mb-1 text-muted">{{ $actividad['detalle'] }}</p>
-                  <small class="text-muted">
-                    <i class="fas fa-clock me-1"></i>{{ $actividad['hace'] }}
-                  </small>
-                </div>
-                <span class="badge bg-{{ $actividad['estado_badge'] }}">{{ $actividad['estado'] }}</span>
-              </div>
-            @empty
-              <p class="text-muted mb-0">No hay entrevistas agendadas.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Casos Completados --}}
-    <div class="col-xl-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <div>
-              <h5 class="card-title mb-1">
-                <i class="fas fa-circle-check text-success me-2"></i>Casos Completados
-              </h5>
-              <small class="text-muted">Casos y ajustes aprobados recientemente</small>
-            </div>
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($actividadReciente['casos_completados'] as $actividad)
-              <div class="case-item">
-                <div>
-                  <strong>{{ $actividad['titulo'] }}</strong>
-                  <p class="mb-1 text-muted">{{ Str::limit($actividad['detalle'], 80) }}</p>
-                  <small class="text-muted">
-                    <i class="fas fa-clock me-1"></i>{{ $actividad['hace'] }}
-                  </small>
-                </div>
-                <span class="badge bg-{{ $actividad['estado_badge'] }}">{{ $actividad['estado'] }}</span>
-              </div>
-            @empty
-              <p class="text-muted mb-0">No hay casos completados recientemente.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Casos Pendientes --}}
-    <div class="col-xl-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <div>
-              <h5 class="card-title mb-1">
-                <i class="fas fa-hourglass-half text-warning me-2"></i>Casos Pendientes
-              </h5>
-              <small class="text-muted">Casos que requieren atención</small>
-            </div>
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($actividadReciente['casos_pendientes'] as $actividad)
-              <div class="case-item">
-                <div>
-                  <strong>{{ $actividad['titulo'] }}</strong>
-                  <p class="mb-1 text-muted">{{ Str::limit($actividad['detalle'], 80) }}</p>
-                  <small class="text-muted">
-                    <i class="fas fa-clock me-1"></i>{{ $actividad['hace'] }}
-                  </small>
-                </div>
-                <span class="badge bg-{{ $actividad['estado_badge'] }}">{{ $actividad['estado'] }}</span>
-              </div>
-            @empty
-              <p class="text-muted mb-0">No hay casos pendientes.</p>
-            @endforelse
+          <div style="position: relative; height: 300px;">
+            <canvas id="usuariosPorMesChart"></canvas>
           </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 @push('styles')
@@ -287,37 +123,87 @@
     color: rgba(255,255,255,.25);
     font-size: 2rem;
   }
-  .case-item {
-    border: 1px solid #f0f0f5;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    background: #fff;
-    flex-wrap: wrap;
-  }
-  .tipos-discapacidad-scroll {
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 8px;
-  }
-  .tipos-discapacidad-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-  .tipos-discapacidad-scroll::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-  }
-  .tipos-discapacidad-scroll::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-  .tipos-discapacidad-scroll::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
 </style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('usuariosPorMesChart');
+    if (!ctx) return;
+
+    const usuariosPorMesData = @json($usuariosPorMes);
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: usuariosPorMesData.meses,
+        datasets: [{
+          label: 'Nuevos Estudiantes',
+          data: usuariosPorMesData.datos,
+          backgroundColor: 'rgba(220, 38, 38, 0.8)',
+          borderColor: 'rgba(220, 38, 38, 1)',
+          borderWidth: 2,
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            },
+            callbacks: {
+              label: function(context) {
+                const value = context.parsed.y;
+                return value + ' ' + (value === 1 ? 'estudiante' : 'estudiantes');
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              precision: 0,
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          x: {
+            ticks: {
+              font: {
+                size: 11
+              },
+              maxRotation: 45,
+              minRotation: 45
+            },
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
 @endpush
 @endsection

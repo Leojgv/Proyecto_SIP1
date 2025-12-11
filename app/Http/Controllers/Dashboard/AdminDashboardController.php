@@ -8,6 +8,7 @@ use App\Models\Carrera;
 use App\Models\Entrevista;
 use App\Models\Estudiante;
 use App\Models\Solicitud;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -20,29 +21,19 @@ class AdminDashboardController extends Controller
         $hoy = Carbon::now();
         $inicioMes = $hoy->copy()->startOfMonth();
 
-        $activeStates = $this->activeStates();
-        $closedStates = $this->closedStates();
-        $approvalPendingStates = ['pendiente', 'por aprobar', 'revision', 'en revisión'];
-
         $totalEstudiantes = Estudiante::count();
         $nuevosEstudiantesMes = Estudiante::whereDate('created_at', '>=', $inicioMes)->count();
+        $totalUsuarios = User::count();
+        
+        // Usuarios activos (con sesión activa en los últimos 15 minutos)
+        $tiempoActividad = now()->subMinutes(15)->timestamp;
+        $usuariosActivos = DB::table('sessions')
+            ->where('last_activity', '>=', $tiempoActividad)
+            ->whereNotNull('user_id')
+            ->distinct('user_id')
+            ->count('user_id');
 
-        $casosActivos = $this->countSolicitudesPorEstados($activeStates, true);
-        $casosPendientes = $this->countSolicitudesPorEstados(['pendiente', 'en revisión'], true);
-
-        $casosCerrados = $this->countSolicitudesPorEstados($closedStates);
-
-        $casosCerradosMesQuery = Solicitud::query()->whereDate('updated_at', '>=', $inicioMes);
-        $this->applyEstadoFilter($casosCerradosMesQuery, 'solicitudes.estado', $closedStates);
-        $casosCerradosMes = $casosCerradosMesQuery->count();
-
-        $pendientesAprobacionQuery = AjusteRazonable::query();
-        $this->applyEstadoFilter($pendientesAprobacionQuery, 'ajuste_razonables.estado', $approvalPendingStates, true);
-        $pendientesAprobacion = $pendientesAprobacionQuery->count();
-
-        $casosPorCarrera = $this->casosPorCarrera($activeStates, $closedStates);
-        $tiposDiscapacidad = $this->tiposDiscapacidad();
-        $actividadReciente = $this->actividadReciente();
+        $usuariosPorMes = $this->usuariosPorMes();
 
         $accionesRapidas = [
             [
@@ -80,15 +71,10 @@ class AdminDashboardController extends Controller
             'stats' => [
                 'total_estudiantes' => $totalEstudiantes,
                 'nuevos_estudiantes_mes' => $nuevosEstudiantesMes,
-                'casos_activos' => $casosActivos,
-                'casos_pendientes' => $casosPendientes,
-                'casos_cerrados' => $casosCerrados,
-                'casos_cerrados_mes' => $casosCerradosMes,
-                'pendientes_aprobacion' => $pendientesAprobacion,
+                'total_usuarios' => $totalUsuarios,
+                'usuarios_activos' => $usuariosActivos,
             ],
-            'casosPorCarrera' => $casosPorCarrera,
-            'tiposDiscapacidad' => $tiposDiscapacidad,
-            'actividadReciente' => $actividadReciente,
+            'usuariosPorMes' => $usuariosPorMes,
             'accionesRapidas' => $accionesRapidas,
         ]);
     }
@@ -130,14 +116,20 @@ class AdminDashboardController extends Controller
 
     private function casosPorCarrera(array $activeStates, array $closedStates): Collection
     {
-        $activosCond = $this->estadoSqlCondition('solicitudes.estado', $activeStates, true);
-        $cerradosCond = $this->estadoSqlCondition('solicitudes.estado', $closedStates);
+        // Convertir arrays a formato SQL IN
+        $activosSql = "'" . implode("','", array_map(function($s) {
+            return str_replace("'", "''", $s);
+        }, $activeStates)) . "'";
+        
+        $cerradosSql = "'" . implode("','", array_map(function($s) {
+            return str_replace("'", "''", $s);
+        }, $closedStates)) . "'";
 
         return Solicitud::query()
             ->select('carreras.nombre as carrera')
             ->selectRaw('COUNT(*) as total')
-            ->selectRaw("SUM(CASE WHEN {$activosCond} THEN 1 ELSE 0 END) as activos")
-            ->selectRaw("SUM(CASE WHEN {$cerradosCond} THEN 1 ELSE 0 END) as cerrados")
+            ->selectRaw("SUM(CASE WHEN solicitudes.estado IN ({$activosSql}) THEN 1 ELSE 0 END) as activos")
+            ->selectRaw("SUM(CASE WHEN solicitudes.estado IN ({$cerradosSql}) THEN 1 ELSE 0 END) as cerrados")
             ->join('estudiantes', 'solicitudes.estudiante_id', '=', 'estudiantes.id')
             ->join('carreras', 'estudiantes.carrera_id', '=', 'carreras.id')
             ->groupBy('carreras.id', 'carreras.nombre')
@@ -329,144 +321,28 @@ class AdminDashboardController extends Controller
         })->sortByDesc('total')->values();
     }
 
-    private function actividadReciente(): array
+    private function usuariosPorMes(): array
     {
-        // Configurar locale en español para Carbon
-        Carbon::setLocale('es');
+        // Obtener los últimos 12 meses
+        $meses = [];
+        $datos = [];
         
-        // Entrevistas
-        $entrevistas = Entrevista::with('solicitud.estudiante')
-            ->orderByDesc('fecha')
-            ->take(5)
-            ->get()
-            ->map(function (Entrevista $entrevista) {
-                $estudiante = $entrevista->solicitud?->estudiante;
-                $fecha = Carbon::parse($entrevista->fecha);
-
-                return [
-                    'titulo' => 'Entrevista agendada',
-                    'detalle' => $estudiante ? "{$estudiante->nombre} {$estudiante->apellido}" : 'Caso por confirmar',
-                    'estado' => 'programada',
-                    'fecha' => $fecha,
-                ];
-            })
-            ->filter(fn ($item) => $item['fecha'] !== null)
-            ->map(function ($item) {
-                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
-                $item['estado_badge'] = $this->estadoBadge($item['estado']);
-                $item['estado'] = ucfirst($item['estado']);
-                return $item;
-            })
-            ->values();
-
-        // Casos completados (Aprobados)
-        $casosCompletados = Solicitud::with('estudiante')
-            ->whereIn('estado', ['Aprobado', 'Completado', 'Finalizado'])
-            ->orderByDesc('updated_at')
-            ->take(5)
-            ->get()
-            ->map(function (Solicitud $solicitud) {
-                $fecha = $solicitud->updated_at ?? $solicitud->created_at;
-
-                return [
-                    'titulo' => $solicitud->estudiante ? "Caso de {$solicitud->estudiante->nombre}" : 'Caso sin estudiante',
-                    'detalle' => $solicitud->descripcion ?? 'Sin descripción',
-                    'estado' => $solicitud->estado ?? 'aprobado',
-                    'fecha' => $fecha,
-                ];
-            })
-            ->merge(
-                AjusteRazonable::with('estudiante')
-                    ->whereIn('estado', ['Aprobado', 'Completado', 'Finalizado'])
-                    ->orderByDesc('updated_at')
-                    ->take(5)
-                    ->get()
-                    ->map(function (AjusteRazonable $ajuste) {
-                        $fecha = $ajuste->updated_at ?? $ajuste->created_at;
-
-                        return [
-                            'titulo' => $ajuste->nombre,
-                            'detalle' => $ajuste->estudiante ? "{$ajuste->estudiante->nombre} {$ajuste->estudiante->apellido}" : 'Sin estudiante asociado',
-                            'estado' => $ajuste->estado ?? 'aprobado',
-                            'fecha' => $fecha,
-                        ];
-                    })
-            )
-            ->filter(fn ($item) => $item['fecha'] !== null)
-            ->sortByDesc('fecha')
-            ->take(5)
-            ->values()
-            ->map(function ($item) {
-                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
-                $item['estado_badge'] = $this->estadoBadge($item['estado']);
-                $item['estado'] = ucfirst($item['estado']);
-                return $item;
-            })
-            ->values();
-
-        // Casos pendientes
-        $casosPendientes = Solicitud::with('estudiante')
-            ->whereIn('estado', [
-                'Pendiente de formulación del caso',
-                'Pendiente de formulación de ajuste',
-                'Pendiente de preaprobación',
-                'Pendiente de Aprobacion',
-                'En proceso',
-                'Pendiente'
-            ])
-            ->orderByDesc('updated_at')
-            ->take(5)
-            ->get()
-            ->map(function (Solicitud $solicitud) {
-                $fecha = $solicitud->updated_at ?? $solicitud->created_at;
-
-                return [
-                    'titulo' => $solicitud->estudiante ? "Caso de {$solicitud->estudiante->nombre}" : 'Caso sin estudiante',
-                    'detalle' => $solicitud->descripcion ?? 'Sin descripción',
-                    'estado' => $solicitud->estado ?? 'pendiente',
-                    'fecha' => $fecha,
-                ];
-            })
-            ->merge(
-                AjusteRazonable::with('estudiante')
-                    ->whereIn('estado', [
-                        'Pendiente de formulación del caso',
-                        'Pendiente de formulación de ajuste',
-                        'Pendiente de preaprobación',
-                        'Pendiente de Aprobacion',
-                        'En proceso',
-                        'Pendiente'
-                    ])
-                    ->orderByDesc('updated_at')
-                    ->take(5)
-                    ->get()
-                    ->map(function (AjusteRazonable $ajuste) {
-                        $fecha = $ajuste->updated_at ?? $ajuste->created_at;
-
-                        return [
-                            'titulo' => $ajuste->nombre,
-                            'detalle' => $ajuste->estudiante ? "{$ajuste->estudiante->nombre} {$ajuste->estudiante->apellido}" : 'Sin estudiante asociado',
-                            'estado' => $ajuste->estado ?? 'pendiente',
-                            'fecha' => $fecha,
-                        ];
-                    })
-            )
-            ->filter(fn ($item) => $item['fecha'] !== null)
-            ->sortByDesc('fecha')
-            ->take(5)
-            ->values()
-            ->map(function ($item) {
-                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
-                $item['estado_badge'] = $this->estadoBadge($item['estado']);
-                $item['estado'] = ucfirst($item['estado']);
-                return $item;
-            })
-            ->values();
-
+        for ($i = 11; $i >= 0; $i--) {
+            $fecha = Carbon::now()->subMonths($i);
+            $inicioMes = $fecha->copy()->startOfMonth();
+            $finMes = $fecha->copy()->endOfMonth();
+            
+            $mesNombre = $fecha->locale('es')->translatedFormat('M Y');
+            $meses[] = $mesNombre;
+            
+            // Contar estudiantes creados en ese mes
+            $cantidad = Estudiante::whereBetween('created_at', [$inicioMes, $finMes])->count();
+            $datos[] = $cantidad;
+        }
+        
         return [
-            'entrevistas' => $entrevistas,
-            'casos_completados' => $casosCompletados,
-            'casos_pendientes' => $casosPendientes,
+            'meses' => $meses,
+            'datos' => $datos,
         ];
     }
 

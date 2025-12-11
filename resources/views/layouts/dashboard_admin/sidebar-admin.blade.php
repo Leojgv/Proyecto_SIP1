@@ -29,12 +29,6 @@
       <span>Estudiantes</span>
     </a>
 
-    <a href="{{ route('solicitudes.index') }}"
-       class="student-sidebar__link {{ request()->routeIs('solicitudes.*') ? 'active' : '' }}">
-      <i class="fas fa-clipboard-list"></i>
-      <span>Reportes</span>
-    </a>
-
   </nav>
 </aside>
 

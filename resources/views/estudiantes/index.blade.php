@@ -165,7 +165,7 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-xxl-3 col-lg-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-primary"><i class="fas fa-user-graduate"></i></span>
@@ -176,18 +176,7 @@
         </div>
       </div>
     </div>
-    <div class="col-xxl-3 col-lg-3 col-md-6">
-      <div class="stat-card shadow-sm">
-        <div class="d-flex align-items-center gap-3">
-          <span class="stat-card__icon bg-success"><i class="fas fa-clipboard-list"></i></span>
-          <div>
-            <p class="text-muted mb-0 small">Con casos activos</p>
-            <h4 class="mb-0">{{ number_format($estudiantesConCasos) }}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xxl-3 col-lg-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-info"><i class="fas fa-calendar-plus"></i></span>
@@ -198,7 +187,7 @@
         </div>
       </div>
     </div>
-    <div class="col-xxl-3 col-lg-3 col-md-6">
+    <div class="col-xxl-4 col-lg-4 col-md-6">
       <div class="stat-card shadow-sm">
         <div class="d-flex align-items-center gap-3">
           <span class="stat-card__icon bg-warning"><i class="fas fa-school"></i></span>
