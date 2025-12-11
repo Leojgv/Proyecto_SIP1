@@ -29,6 +29,74 @@ class LoginController extends Controller
     protected $redirectTo = '/home';
 
     /**
+     * Get the login username to be used by the controller.
+     *
+     * @return string
+     */
+    public function username()
+    {
+        return 'email'; // Mantener 'email' para compatibilidad con Laravel
+    }
+
+    /**
+     * Get the needed authorization credentials from the request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    protected function credentials(Request $request)
+    {
+        $emailOrRut = $request->get('email');
+        $password = $request->get('password');
+
+        if (!$emailOrRut) {
+            return ['email' => null, 'password' => $password];
+        }
+
+        // Determinar si es email o RUT
+        $isEmail = filter_var($emailOrRut, FILTER_VALIDATE_EMAIL);
+
+        if ($isEmail) {
+            // Si es email, usar directamente
+            return ['email' => $emailOrRut, 'password' => $password];
+        }
+
+        // Si no es email, asumir que es RUT
+        $user = $this->findUserByRut($emailOrRut);
+        
+        if (!$user) {
+            // Si no se encuentra el usuario, devolver credenciales inválidas
+            return ['email' => null, 'password' => $password];
+        }
+
+        // Devolver el email del usuario encontrado por RUT
+        return ['email' => $user->email, 'password' => $password];
+    }
+
+    /**
+     * Buscar usuario por RUT a través de Estudiante o Docente
+     *
+     * @param  string  $rut
+     * @return \App\Models\User|null
+     */
+    protected function findUserByRut(string $rut)
+    {
+        // Buscar en estudiantes
+        $estudiante = \App\Models\Estudiante::where('rut', $rut)->first();
+        if ($estudiante && $estudiante->user_id) {
+            return \App\Models\User::find($estudiante->user_id);
+        }
+
+        // Buscar en docentes
+        $docente = \App\Models\Docente::where('rut', $rut)->first();
+        if ($docente && $docente->user_id) {
+            return \App\Models\User::find($docente->user_id);
+        }
+
+        return null;
+    }
+
+    /**
      * Create a new controller instance.
      *
      * @return void
@@ -37,6 +105,26 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
+    }
+
+    /**
+     * Validate the user login request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function validateLogin(Request $request)
+    {
+        // Validación flexible que acepta email o RUT
+        $request->validate([
+            'email' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ], [
+            'email.required' => 'El campo correo o RUT es obligatorio.',
+            'password.required' => 'La contraseña es obligatoria.',
+        ]);
     }
     protected function loggedOut(Request $request)
     {

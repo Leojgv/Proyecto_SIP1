@@ -11,11 +11,43 @@ class SolicitudController extends Controller
 {
     public function index()
     {
-        $solicitudes = Solicitud::with(['estudiante', 'asesor', 'director'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas.asesor', 'ajustesRazonables'])
             ->orderByDesc('fecha_solicitud')
-            ->get();
+            ->paginate(10);
+        
+        $totalSolicitudes = Solicitud::count();
+        $solicitudesActivas = Solicitud::whereIn('estado', [
+            'Pendiente de entrevista',
+            'Pendiente de formulación del caso',
+            'Pendiente de formulación de ajuste',
+            'Pendiente de preaprobación',
+            'Pendiente de Aprobacion'
+        ])->count();
+        $solicitudesAprobadas = Solicitud::where('estado', 'Aprobado')->count();
+        $solicitudesRechazadas = Solicitud::where('estado', 'Rechazado')->count();
+        $nuevasEsteMes = Solicitud::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        
+        $solicitudesPorEstado = Solicitud::selectRaw('estado, count(*) as cantidad')
+            ->groupBy('estado')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'estado' => $item->estado ?? 'Sin estado',
+                    'cantidad' => $item->cantidad
+                ];
+            });
 
-        return view('solicitudes.index', compact('solicitudes'));
+        return view('solicitudes.index', compact(
+            'solicitudes',
+            'totalSolicitudes',
+            'solicitudesActivas',
+            'solicitudesAprobadas',
+            'solicitudesRechazadas',
+            'nuevasEsteMes',
+            'solicitudesPorEstado'
+        ));
     }
 
     public function create()

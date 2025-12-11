@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Estudiante extends Model
+class Docente extends Model
 {
     use HasFactory;
 
@@ -16,8 +15,6 @@ class Estudiante extends Model
         'nombre',
         'apellido',
         'email',
-        'telefono',
-        'tipo_discapacidad',
         'carrera_id',
         'user_id',
     ];
@@ -25,16 +22,6 @@ class Estudiante extends Model
     public function carrera(): BelongsTo
     {
         return $this->belongsTo(Carrera::class);
-    }
-
-    public function solicitudes(): HasMany
-    {
-        return $this->hasMany(Solicitud::class);
-    }
-
-    public function ajustesRazonables(): HasMany
-    {
-        return $this->hasMany(AjusteRazonable::class);
     }
 
     public function user(): BelongsTo

@@ -23,6 +23,11 @@ class Carrera extends Model
         return $this->hasMany(Estudiante::class);
     }
 
+    public function docentes(): HasMany
+    {
+        return $this->hasMany(Docente::class);
+    }
+
     public function asignaturas(): HasMany
     {
         return $this->hasMany(Asignatura::class);

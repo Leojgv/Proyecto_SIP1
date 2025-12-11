@@ -56,7 +56,7 @@ class EstudianteDashboardController extends Controller
         $ajustesActivos = $estudiante->ajustesRazonables()
             ->where(function ($query) {
                 $query->whereNull('estado')
-                    ->orWhereIn('estado', ['pendiente', 'activo', 'en curso']);
+                    ->orWhereIn('estado', ['pendiente', 'activo', 'en curso', 'Aprobado']);
             })
             ->count();
 
@@ -64,6 +64,8 @@ class EstudianteDashboardController extends Controller
             ->whereNotNull('nombre')
             ->distinct('nombre')
             ->count('nombre');
+
+        $solicitudesRealizadas = $estudiante->solicitudes()->count();
 
         $proximasEntrevistas = Entrevista::with(['solicitud', 'asesor'])
             ->whereHas('solicitud', function ($query) use ($estudiante) {
@@ -99,6 +101,7 @@ class EstudianteDashboardController extends Controller
                 'entrevistas_programadas' => $proximasEntrevistas->count(),
                 'cursos_con_ajustes' => $cursosConAjustes,
                 'problemas_detectados' => $solicitudesPendientes,
+                'solicitudes_realizadas' => $solicitudesRealizadas,
             ],
             'proximasEntrevistas' => $proximasEntrevistas,
             'misSolicitudes' => $misSolicitudes,

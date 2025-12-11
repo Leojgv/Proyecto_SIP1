@@ -9,9 +9,13 @@ class RolController extends Controller
 {
     public function index()
     {
-        $roles = Rol::orderBy('nombre')->get();
+        $roles = Rol::withCount('users')->orderBy('nombre')->get();
+        
+        $totalRoles = $roles->count();
+        $rolesConUsuarios = $roles->filter(fn($rol) => $rol->users_count > 0)->count();
+        $totalUsuarios = \App\Models\User::count();
 
-        return view('roles.index', compact('roles'));
+        return view('roles.index', compact('roles', 'totalRoles', 'rolesConUsuarios', 'totalUsuarios'));
     }
 
     public function create()
@@ -33,6 +37,7 @@ class RolController extends Controller
 
     public function show(Rol $role)
     {
+        $role->load('users');
         return view('roles.show', ['rol' => $role]);
     }
 

@@ -16,16 +16,19 @@ class DirectorCarreraCasoController extends Controller
     {
         $directorId = $request->user()->id;
 
-        // El Director de Carrera solo ve casos que están en su fase:
+        // El Director de Carrera ve casos que están en su fase:
+        // - Pendiente de preaprobación (casos enviados por Asesora Pedagógica)
         // - Pendiente de Aprobacion (casos que debe revisar y aprobar/rechazar)
         // También puede ver casos ya procesados (Aprobado/Rechazado) para historial
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'ajustesRazonables'])
             ->where(function ($query) use ($directorId) {
                 $query->where('director_id', $directorId)
                     ->orWhereHas('estudiante.carrera', fn ($sub) => $sub->where('director_id', $directorId));
             })
             ->whereIn('estado', [
+                'Pendiente de preaprobación',
                 'Pendiente de Aprobacion',
+                'Pendiente de Aprobación',
                 'Aprobado',
                 'Rechazado',
             ])
@@ -51,8 +54,10 @@ class DirectorCarreraCasoController extends Controller
     public function approve(Request $request, Solicitud $solicitud): RedirectResponse
     {
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
-            return back()->with('error', 'Solo se pueden aprobar solicitudes que estén en estado "Pendiente de Aprobacion".');
+        // Acepta tanto "Pendiente de preaprobación" como "Pendiente de Aprobacion"
+        $estadosPermitidos = ['Pendiente de preaprobación', 'Pendiente de Aprobacion', 'Pendiente de Aprobación'];
+        if (!in_array($solicitud->estado, $estadosPermitidos)) {
+            return back()->with('error', 'Solo se pueden aprobar solicitudes que estén en estado "Pendiente de preaprobación" o "Pendiente de Aprobación".');
         }
 
         $solicitud->update([
@@ -96,8 +101,9 @@ class DirectorCarreraCasoController extends Controller
         ]);
 
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
-            return back()->with('error', 'Solo se pueden rechazar solicitudes que estén en estado "Pendiente de Aprobacion".');
+        $estadosPermitidos = ['Pendiente de preaprobación', 'Pendiente de Aprobacion', 'Pendiente de Aprobación'];
+        if (!in_array($solicitud->estado, $estadosPermitidos)) {
+            return back()->with('error', 'Solo se pueden rechazar solicitudes que estén en estado "Pendiente de preaprobación" o "Pendiente de Aprobación".');
         }
 
         $solicitud->update([
@@ -123,8 +129,9 @@ class DirectorCarreraCasoController extends Controller
         ]);
 
         // Verificar que el estado actual permita esta transición
-        if ($solicitud->estado !== 'Pendiente de Aprobacion') {
-            return back()->with('error', 'Solo se pueden devolver solicitudes que estén en estado "Pendiente de Aprobacion".');
+        $estadosPermitidos = ['Pendiente de preaprobación', 'Pendiente de Aprobacion', 'Pendiente de Aprobación'];
+        if (!in_array($solicitud->estado, $estadosPermitidos)) {
+            return back()->with('error', 'Solo se pueden devolver solicitudes que estén en estado "Pendiente de preaprobación" o "Pendiente de Aprobación".');
         }
 
         $solicitud->update([
@@ -202,15 +209,32 @@ class DirectorCarreraCasoController extends Controller
             return;
         }
 
-        // Buscar asignaturas de la carrera del estudiante
+        // Buscar docentes de la misma carrera del estudiante
+        // Primero obtener docentes directamente de la carrera
+        $docentesDeCarrera = \App\Models\Docente::where('carrera_id', $estudiante->carrera_id)
+            ->with('user')
+            ->get()
+            ->pluck('user')
+            ->filter();
+
+        // También buscar por asignaturas de la carrera (por si acaso)
         $asignaturas = \App\Models\Asignatura::where('carrera_id', $estudiante->carrera_id)
             ->whereNotNull('docente_id')
             ->with('docente')
             ->get();
 
-        $docentes = $asignaturas->map(function ($asignatura) {
-            return $asignatura->docente;
-        })->filter()->unique('id');
+        $docentesDeAsignaturas = $asignaturas->map(function ($asignatura) {
+            return $asignatura->docente?->user;
+        })->filter();
+
+        // Combinar y asegurar que solo sean docentes de la misma carrera
+        $docentes = $docentesDeCarrera->merge($docentesDeAsignaturas)
+            ->unique('id')
+            ->filter(function ($user) use ($estudiante) {
+                // Verificar que el docente pertenezca a la misma carrera
+                $docente = $user->docente;
+                return $docente && $docente->carrera_id === $estudiante->carrera_id;
+            });
 
         if ($docentes->isEmpty()) {
             return;

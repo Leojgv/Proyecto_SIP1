@@ -70,6 +70,11 @@ class User extends Authenticatable
         return $this->hasOne(Estudiante::class);
     }
 
+    public function docente(): HasOne
+    {
+        return $this->hasOne(Docente::class);
+    }
+
     public function disponibilidadesCoordinadora(): HasMany
     {
         return $this->hasMany(DisponibilidadCoordinadora::class);

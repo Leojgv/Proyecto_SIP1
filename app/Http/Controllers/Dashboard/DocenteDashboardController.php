@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\AjusteRazonable;
+use App\Models\Estudiante;
 use App\Models\Notificacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,12 +17,22 @@ class DocenteDashboardController extends Controller
         $user = $request->user();
 
         $studentsWithAdjustments = $this->collectStudentsWithAdjustments($user);
+        
+        // Obtener el total de estudiantes de la carrera del docente
+        $totalEstudiantes = 0;
+        $docente = $user->docente;
+        if ($docente && $docente->carrera_id) {
+            // Cargar la relación de carrera
+            $docente->load('carrera');
+            // Contar solo estudiantes de la misma carrera del docente
+            $totalEstudiantes = Estudiante::where('carrera_id', $docente->carrera_id)->count();
+        }
 
         $metrics = [
             [
                 'label' => 'Mis Estudiantes',
-                'value' => $studentsWithAdjustments->count(),
-                'helper' => 'Con ajustes activos',
+                'value' => $totalEstudiantes,
+                'helper' => 'Total en mi carrera',
                 'icon' => 'fa-user-graduate',
             ],
             [
@@ -42,23 +53,97 @@ class DocenteDashboardController extends Controller
             'metrics' => $metrics,
             'studentAdjustments' => $studentsWithAdjustments->take(5)->all(),
             'recentNotifications' => $this->getRecentNotifications($user),
+            'totalEstudiantes' => $totalEstudiantes,
         ]);
     }
 
     public function students(Request $request)
     {
         $user = $request->user();
-        $students = $this->collectStudentsWithAdjustments($user);
+        
+        // Obtener la carrera del docente con eager loading
+        $docente = $user->docente;
+        
+        if (!$docente || !$docente->carrera_id) {
+            return view('docente.students', [
+                'students' => collect([]),
+                'carrera' => null,
+            ]);
+        }
+
+        // Cargar la relación de carrera del docente
+        $docente->load('carrera');
+
+        // Obtener todos los estudiantes de la carrera del docente
+        // Asegurarse de que solo se muestren estudiantes de la misma carrera
+        $estudiantes = \App\Models\Estudiante::with(['carrera', 'ajustesRazonables.solicitud'])
+            ->where('carrera_id', $docente->carrera_id)
+            ->orderBy('nombre')
+            ->orderBy('apellido')
+            ->get();
+
+        // Formatear los estudiantes con sus ajustes
+        $students = $estudiantes->map(function ($estudiante) {
+            $ajustes = $estudiante->ajustesRazonables;
+            $ultimoAjuste = $ajustes->sortByDesc('updated_at')->first();
+
+            return [
+                'student_id' => $estudiante->id,
+                'student' => trim($estudiante->nombre . ' ' . $estudiante->apellido),
+                'rut' => $estudiante->rut ?? 'Sin RUT',
+                'email' => $estudiante->email,
+                'telefono' => $estudiante->telefono,
+                'program' => $estudiante->carrera->nombre ?? 'Programa no asignado',
+                'status' => $ultimoAjuste ? $this->resolveEstadoAjuste($ultimoAjuste->estado) : 'Sin ajustes',
+                'last_update' => $ultimoAjuste 
+                    ? optional($ultimoAjuste->updated_at)->format('d/m/Y') ?? 's/f'
+                    : 'Sin actualizaciones',
+                'applied_adjustments' => $ajustes->pluck('nombre')
+                    ->filter()
+                    ->take(4)
+                    ->values()
+                    ->all() ?: ['Sin ajustes registrados'],
+                'adjustments' => $ajustes->map(function ($ajuste) {
+                    // Usar la descripción del ajuste, no de la solicitud
+                    $descripcion = $ajuste->descripcion;
+                    return [
+                        'id' => $ajuste->id,
+                        'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
+                        'description' => $descripcion ?? 'No hay descripcion.',
+                        'status' => $ajuste->estado ?? 'Activo',
+                        'category' => $this->resolveCategoriaAjuste($ajuste->estado),
+                        'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
+                        'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
+                    ];
+                })->values()->all(),
+            ];
+        });
 
         return view('docente.students', [
             'students' => $students,
+            'carrera' => $docente->carrera,
         ]);
     }
 
     protected function collectStudentsWithAdjustments(?object $user): Collection
     {
+        // Obtener la carrera del docente con eager loading
+        $docente = $user->docente;
+        
+        if (!$docente || !$docente->carrera_id) {
+            return collect([]);
+        }
+
+        // Cargar la relación de carrera del docente
+        $docente->load('carrera');
+
+        // Filtrar ajustes por estudiantes de la carrera del docente
+        // Asegurarse de que solo se muestren ajustes de estudiantes de la misma carrera
         return AjusteRazonable::query()
             ->with(['estudiante.carrera', 'solicitud'])
+            ->whereHas('estudiante', function ($query) use ($docente) {
+                $query->where('carrera_id', $docente->carrera_id);
+            })
             ->latest('updated_at')
             ->get()
             ->groupBy('estudiante_id')
@@ -82,11 +167,12 @@ class DocenteDashboardController extends Controller
                         ->values()
                         ->all() ?: ['Sin ajustes registrados'],
                     'adjustments' => $ajustes->map(function (AjusteRazonable $ajuste) {
-                        $descripcion = optional($ajuste->solicitud)->descripcion;
+                        // Usar la descripción del ajuste, no de la solicitud
+                        $descripcion = $ajuste->descripcion;
                         return [
                             'id' => $ajuste->id,
                             'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
-                            'description' => $descripcion ?? 'Sin descripcion disponible.',
+                            'description' => $descripcion ?? 'Sin descripcion.',
                             'status' => $ajuste->estado ?? 'Activo',
                             'category' => $this->resolveCategoriaAjuste($ajuste->estado),
                             'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',

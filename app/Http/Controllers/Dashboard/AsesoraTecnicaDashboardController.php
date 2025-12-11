@@ -14,22 +14,19 @@ class AsesoraTecnicaDashboardController extends Controller
     {
         $solicitudesBase = Solicitud::query();
 
+        // Casos pendientes: casos que están en estados donde la asesora técnica debe trabajar
         $casosPendientes = (clone $solicitudesBase)
-            ->where(function ($query) {
-                $query->whereNull('estado')
-                    ->orWhereIn('estado', ['Pendiente', 'En espera']);
-            })
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+            ])
             ->count();
 
-        $casosEnProceso = (clone $solicitudesBase)
-            ->whereIn('estado', ['En Proceso', 'En revisión', 'Derivado'])
+        // Casos completados: casos que han sido aprobados (estado final)
+        $casosCompletados = (clone $solicitudesBase)
+            ->where('estado', 'Aprobado')
             ->count();
-
-        $casosCompletados = AjusteRazonable::query()
-            ->whereHas('solicitud', fn ($query) => $query->whereIn('estado', ['Completado', 'Cerrado']))
-            ->count();
-
-        $tiempoPromedioDias = $this->calcularTiempoPromedioRespuesta(null);
 
         $metrics = [
             [
@@ -39,40 +36,38 @@ class AsesoraTecnicaDashboardController extends Controller
                 'icon' => 'fa-inbox',
             ],
             [
-                'label' => 'En proceso',
-                'value' => $casosEnProceso,
-                'hint' => 'Trabajando en ellos',
-                'icon' => 'fa-spinner',
-            ],
-            [
                 'label' => 'Completados',
                 'value' => $casosCompletados,
-                'hint' => 'Este mes',
+                'hint' => 'Aprobados',
                 'icon' => 'fa-circle-check',
-            ],
-            [
-                'label' => 'Tiempo promedio',
-                'value' => $tiempoPromedioDias ? $tiempoPromedioDias . ' días' : '—',
-                'hint' => 'De respuesta',
-                'icon' => 'fa-stopwatch',
             ],
         ];
 
         $assignedCases = (clone $solicitudesBase)
-            ->with(['estudiante.carrera'])
+            ->with(['estudiante.carrera', 'ajustesRazonables'])
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+            ])
             ->latest('fecha_solicitud')
             ->take(4)
             ->get()
             ->map(function (Solicitud $solicitud) {
                 $carrera = optional(optional($solicitud->estudiante)->carrera)->nombre;
+                $ajustesCount = $solicitud->ajustesRazonables()->count();
+                $estadosPermitidos = ['Pendiente de formulación de ajuste'];
+                $puedeEnviarAPreaprobacion = in_array($solicitud->estado, $estadosPermitidos) && $ajustesCount > 0;
+                
                 return [
                     'case_id' => $solicitud->id,
                     'student' => trim(($solicitud->estudiante->nombre ?? 'Estudiante') . ' ' . ($solicitud->estudiante->apellido ?? '')),
                     'program' => $carrera ? $carrera : 'Sin carrera asignada',
                     'summary' => $solicitud->descripcion ?? 'Sin descripción registrada.',
-                    'priority' => $this->inferirPrioridad($solicitud->estado),
                     'status' => $solicitud->estado ?? 'Pendiente',
-                    'assigned_at' => optional($solicitud->fecha_solicitud ?? $solicitud->created_at)->format('Y-m-d'),
+                    'fecha_solicitud' => optional($solicitud->fecha_solicitud)->format('d/m/Y') ?? 's/f',
+                    'ajustes_count' => $ajustesCount,
+                    'puede_enviar_preaprobacion' => $puedeEnviarAPreaprobacion,
                 ];
             })->toArray();
 
@@ -95,6 +90,7 @@ class AsesoraTecnicaDashboardController extends Controller
                     'adjustments' => $ajustes->map(function (AjusteRazonable $ajuste) {
                         return [
                             'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
+                            'description' => $ajuste->descripcion ?? 'No hay descripción',
                             'status' => $ajuste->estado ?? 'En proceso',
                             'completed_at' => optional($ajuste->updated_at)->format('Y-m-d') ?? 's/f',
                         ];
@@ -111,31 +107,6 @@ class AsesoraTecnicaDashboardController extends Controller
             'assignedCases' => $assignedCases,
             'recentAdjustments' => $recentAdjustments,
         ]);
-    }
-
-    protected function calcularTiempoPromedioRespuesta(?object $user): ?float
-    {
-        $ajustes = AjusteRazonable::query()
-            ->whereNotNull('fecha_solicitud')
-            ->whereNotNull('fecha_solicitud')
-            ->whereHas('solicitud')
-            ->get();
-
-        if ($ajustes->isEmpty()) {
-            return null;
-        }
-
-        $promedio = $ajustes->avg(function (AjusteRazonable $ajuste) {
-            $inicio = $ajuste->fecha_solicitud ?? $ajuste->updated_at;
-            $solicitud = $ajuste->fecha_solicitud ?? $ajuste->created_at;
-            if (! $inicio || ! $solicitud) {
-                return null;
-            }
-
-            return Carbon::parse($solicitud)->diffInDays(Carbon::parse($inicio));
-        });
-
-        return $promedio ? round($promedio, 1) : null;
     }
 
     protected function inferirPrioridad(?string $estado): string

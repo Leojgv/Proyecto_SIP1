@@ -9,6 +9,7 @@ use App\Models\Solicitud;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DirectorCarreraDashboardController extends Controller
 {
@@ -144,12 +145,29 @@ class DirectorCarreraDashboardController extends Controller
             $pending = $careerCases->filter(fn ($solicitud) => $this->isPending($solicitud->estado))->count();
             $approved = $careerCases->filter(fn ($solicitud) => $this->isApproved($solicitud->estado))->count();
             $coverage = $studentCount > 0 ? (int) round(($withAdjustments / $studentCount) * 100) : 0;
+            
+            // Contar total de ajustes aplicados en esta carrera
+            $totalAdjustments = $students->sum(fn ($estudiante) => $estudiante->ajustesRazonables->count());
+            
+            // Obtener lista de ajustes únicos aplicados
+            $adjustmentsList = $students
+                ->flatMap(fn ($estudiante) => $estudiante->ajustesRazonables)
+                ->unique('id')
+                ->map(fn ($ajuste) => [
+                    'nombre' => $ajuste->nombre ?? 'Ajuste sin título',
+                    'descripcion' => $ajuste->descripcion ?? 'Sin descripción',
+                    'estado' => $ajuste->estado ?? 'Pendiente',
+                ])
+                ->values()
+                ->all();
 
             return [
                 'name' => $carrera->nombre ?? 'Carrera sin nombre',
                 'jornada' => $carrera->jornada ?? 'Jornada no definida',
                 'total_students' => $studentCount,
                 'with_adjustments' => $withAdjustments,
+                'total_adjustments' => $totalAdjustments,
+                'adjustments_list' => $adjustmentsList,
                 'pending_cases' => $pending,
                 'approved_cases' => $approved,
                 'coverage' => $coverage,
@@ -223,12 +241,98 @@ class DirectorCarreraDashboardController extends Controller
         return $insights;
     }
 
+    public function generarReportePDF(Request $request)
+    {
+        $user = $request->user();
+
+        $carreras = Carrera::with(['estudiantes.ajustesRazonables'])
+            ->where('director_id', $user->id)
+            ->get();
+
+        $studentIds = $carreras
+            ->flatMap(fn ($carrera) => $carrera->estudiantes->pluck('id'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $solicitudes = $this->solicitudesParaDirector($user->id, $studentIds);
+        $careerStats = $this->buildCareerStats($carreras, $solicitudes);
+
+        // Datos para las gráficas de pastel
+        // Gráfica 1: Distribución de estudiantes por carrera
+        $estudiantesPorCarrera = $carreras->map(function ($carrera) {
+            return [
+                'nombre' => $carrera->nombre ?? 'Sin nombre',
+                'cantidad' => $carrera->estudiantes->count(),
+            ];
+        })->filter(fn ($item) => $item['cantidad'] > 0);
+
+        // Gráfica 2: Distribución de ajustes por carrera
+        $ajustesPorCarrera = $carreras->map(function ($carrera) {
+            $totalAjustes = $carrera->estudiantes->sum(fn ($estudiante) => $estudiante->ajustesRazonables->count());
+            return [
+                'nombre' => $carrera->nombre ?? 'Sin nombre',
+                'cantidad' => $totalAjustes,
+            ];
+        })->filter(fn ($item) => $item['cantidad'] > 0);
+
+        // Obtener todos los ajustes razonables únicos con sus estudiantes
+        $ajustesConEstudiantes = [];
+        foreach ($carreras as $carrera) {
+            foreach ($carrera->estudiantes as $estudiante) {
+                foreach ($estudiante->ajustesRazonables as $ajuste) {
+                    $ajusteNombre = $ajuste->nombre ?? 'Ajuste sin título';
+                    if (!isset($ajustesConEstudiantes[$ajusteNombre])) {
+                        $ajustesConEstudiantes[$ajusteNombre] = [];
+                    }
+                    $ajustesConEstudiantes[$ajusteNombre][] = [
+                        'nombre' => trim($estudiante->nombre . ' ' . $estudiante->apellido),
+                        'carrera' => $carrera->nombre ?? 'Sin carrera',
+                    ];
+                }
+            }
+        }
+
+        // Calcular KPIs
+        $totalSolicitudes = $solicitudes->count();
+        $pendientesAprobacion = $solicitudes->filter(fn ($solicitud) => $this->isPending($solicitud->estado))->count();
+        $aprobadas = $solicitudes->filter(fn ($solicitud) => $this->isApproved($solicitud->estado))->count();
+        $porcentajeAprobacion = $totalSolicitudes > 0 ? round(($aprobadas / $totalSolicitudes) * 100, 1) : 0;
+        
+        // Estadísticas por tipo de ajuste
+        $statsPorTipo = collect($ajustesConEstudiantes)->map(function ($estudiantes, $nombre) {
+            return (object)[
+                'nombre' => $nombre,
+                'cantidad' => count($estudiantes),
+            ];
+        })->map(function ($tipo) use ($ajustesConEstudiantes) {
+            $total = collect($ajustesConEstudiantes)->sum(fn($est) => count($est));
+            $tipo->porcentaje = $total > 0 ? round(($tipo->cantidad / $total) * 100, 1) : 0;
+            return $tipo;
+        })->sortByDesc('cantidad')->values();
+
+        $pdf = Pdf::loadView('DirectorCarrera.reporte-pdf', [
+            'carreras' => $carreras,
+            'estudiantesPorCarrera' => $estudiantesPorCarrera,
+            'ajustesPorCarrera' => $ajustesPorCarrera,
+            'ajustesConEstudiantes' => $ajustesConEstudiantes,
+            'fechaGeneracion' => now()->format('d/m/Y H:i'),
+            'totalSolicitudes' => $totalSolicitudes,
+            'pendientesAprobacion' => $pendientesAprobacion,
+            'porcentajeAprobacion' => $porcentajeAprobacion,
+            'statsPorTipo' => $statsPorTipo,
+            'solicitudes' => $solicitudes,
+        ]);
+
+        return $pdf->download('reporte-carrera-' . now()->format('Y-m-d') . '.pdf');
+    }
+
     protected function actionShortcuts(): array
     {
         return [
             [
                 'label' => 'Generar reporte de carrera',
-                'route' => route('solicitudes.index'),
+                'route' => route('director.reporte.pdf'),
                 'icon' => 'fa-file-arrow-down',
                 'variant' => 'danger',
             ],

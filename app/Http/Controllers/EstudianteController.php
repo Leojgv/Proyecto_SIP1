@@ -10,9 +10,33 @@ class EstudianteController extends Controller
 {
     public function index()
     {
-        $estudiantes = Estudiante::with('carrera')->orderBy('nombre')->orderBy('apellido')->get();
+        $estudiantes = Estudiante::with('carrera')->orderBy('nombre')->orderBy('apellido')->paginate(10);
+        $carreras = Carrera::orderBy('nombre')->get();
+        
+        $totalEstudiantes = Estudiante::count();
+        $estudiantesConCasos = Estudiante::whereHas('solicitudes')->count();
+        $nuevosEsteMes = Estudiante::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        $estudiantesPorCarrera = Estudiante::with('carrera')
+            ->get()
+            ->groupBy('carrera_id')
+            ->map(function ($group) {
+                return [
+                    'nombre' => $group->first()->carrera->nombre ?? 'Sin carrera',
+                    'cantidad' => $group->count()
+                ];
+            })
+            ->values();
 
-        return view('estudiantes.index', compact('estudiantes'));
+        return view('estudiantes.index', compact(
+            'estudiantes',
+            'carreras',
+            'totalEstudiantes',
+            'estudiantesConCasos',
+            'nuevosEsteMes',
+            'estudiantesPorCarrera'
+        ));
     }
 
     public function create()

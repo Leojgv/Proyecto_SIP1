@@ -38,6 +38,7 @@ class AsesoraTecnicaAjusteController extends Controller
     {
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
+            'fecha_solicitud' => ['required', 'date'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
         ]);
@@ -46,9 +47,6 @@ class AsesoraTecnicaAjusteController extends Controller
 
         // Siempre marcamos los ajustes como en formulación cuando se crean.
         $validated['estado'] = 'Pendiente de formulación de ajuste';
-        
-        // Asignar automáticamente la fecha actual
-        $validated['fecha_solicitud'] = now()->toDateString();
 
         // Cuando CTP crea el primer ajuste razonable, cambiar estado de solicitud a "Pendiente de formulación de ajuste"
         if ($solicitud->estado === 'Pendiente de formulación del caso') {

@@ -12,6 +12,7 @@ class AjusteRazonable extends Model
 
     protected $fillable = [
         'nombre',
+        'descripcion',
         'fecha_solicitud',
         'estado',
         'solicitud_id',

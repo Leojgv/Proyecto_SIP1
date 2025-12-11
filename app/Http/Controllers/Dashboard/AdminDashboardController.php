@@ -8,7 +8,7 @@ use App\Models\Carrera;
 use App\Models\Entrevista;
 use App\Models\Estudiante;
 use App\Models\Solicitud;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -154,70 +154,187 @@ class AdminDashboardController extends Controller
 
     private function tiposDiscapacidad(): Collection
     {
-        if (Schema::hasColumn('estudiantes', 'tipo_discapacidad')) {
-            $tipos = Estudiante::query()
-                ->selectRaw("COALESCE(NULLIF(TRIM(tipo_discapacidad), ''), 'Sin clasificación') as tipo")
-                ->selectRaw('COUNT(*) as total')
-                ->groupBy('tipo')
-                ->orderByDesc('total')
-                ->limit(6)
-                ->get();
-        } else {
-            $tipos = AjusteRazonable::query()
-                ->selectRaw("COALESCE(NULLIF(TRIM(nombre), ''), 'Sin clasificación') as tipo")
-                ->selectRaw('COUNT(*) as total')
-                ->groupBy('tipo')
-                ->orderByDesc('total')
-                ->limit(6)
-                ->get();
+        // Lista completa de tipos de discapacidad disponibles en el sistema
+        $tiposDisponibles = [
+            'Discapacidad Visual',
+            'Discapacidad Auditiva',
+            'Discapacidad Motora',
+            'Discapacidad Intelectual',
+            'Trastorno del Espectro Autista (TEA)',
+            'Trastorno por Déficit de Atención e Hiperactividad (TDAH)',
+            'Discapacidad Psicosocial',
+            'Apoyo Con Tutoría',
+            'Otros',
+        ];
+
+        // Mapeo de tipos de ajustes a tipos de discapacidad
+        $mapeoAjustesDiscapacidad = [
+            'Discapacidad Visual' => [
+                'Materiales en formato ampliado',
+                'Materiales en Braille',
+                'Uso de lectores de pantalla',
+                'Tiempo extendido para evaluaciones',
+                'Asistente para lectura',
+                'Materiales con alto contraste',
+                'Uso de tecnología asistiva (lupas, magnificadores)',
+            ],
+            'Discapacidad Auditiva' => [
+                'Intérprete de lengua de señas',
+                'Materiales visuales complementarios',
+                'Apoyo con subtítulos en videos',
+                'Ubicación preferencial en aula',
+                'Uso de sistema de frecuencia modulada (FM)',
+                'Apoyo con tomador de notas',
+            ],
+            'Discapacidad Motora' => [
+                'Acceso físico adaptado',
+                'Tiempo extendido para tareas y evaluaciones',
+                'Uso de tecnología asistiva',
+                'Alternativas para tareas escritas',
+                'Asistente para toma de notas',
+                'Adaptación de espacios físicos',
+            ],
+            'Discapacidad Intelectual' => [
+                'Instrucciones simplificadas',
+                'Tiempo extendido para tareas',
+                'Materiales adaptados',
+                'Apoyo con tutoría',
+                'Evaluaciones diferenciadas',
+                'Rutinas estructuradas y predecibles',
+            ],
+            'Trastorno del Espectro Autista (TEA)' => [
+                'Rutinas estructuradas',
+                'Espacios de descanso sensorial',
+                'Comunicación clara y directa',
+                'Anticipación de cambios',
+                'Apoyo en interacciones sociales',
+                'Materiales visuales para organización',
+            ],
+            'Trastorno por Déficit de Atención e Hiperactividad (TDAH)' => [
+                'Asientos preferenciales',
+                'Pausas frecuentes',
+                'Instrucciones por escrito',
+                'Organizadores visuales',
+                'Tiempo extendido para tareas',
+                'Apoyo en organización y planificación',
+            ],
+            'Discapacidad Psicosocial' => [
+                'Flexibilidad en asistencia',
+                'Pausas cuando sea necesario',
+                'Ambiente de apoyo y comprensión',
+                'Comunicación abierta',
+                'Apoyo en gestión del estrés',
+                'Plazos flexibles cuando corresponda',
+            ],
+            'Apoyo Con Tutoría' => [
+                'Apoyo con tutoría',
+            ],
+        ];
+
+        // Función para obtener tipo de discapacidad desde el nombre del ajuste
+        $obtenerTipoDesdeAjuste = function ($nombreAjuste) use ($mapeoAjustesDiscapacidad) {
+            $nombreAjusteLimpio = trim($nombreAjuste);
+            
+            foreach ($mapeoAjustesDiscapacidad as $tipoDiscapacidad => $ajustes) {
+                foreach ($ajustes as $ajuste) {
+                    if (stripos($nombreAjusteLimpio, $ajuste) !== false || stripos($ajuste, $nombreAjusteLimpio) !== false) {
+                        return $tipoDiscapacidad;
+                    }
+                }
+            }
+            
+            return 'Otros';
+        };
+
+        // Función para normalizar y mapear tipos de discapacidad
+        $normalizarTipo = function ($tipoRaw) use ($tiposDisponibles) {
+            if (empty($tipoRaw)) {
+                return 'Otros';
+            }
+            
+            $tipoLimpio = trim($tipoRaw);
+            $tipoNormalizado = mb_convert_case($tipoLimpio, MB_CASE_TITLE, 'UTF-8');
+            
+            // Buscar coincidencia exacta o parcial en los tipos disponibles
+            foreach ($tiposDisponibles as $tipoDisponible) {
+                // Comparación case-insensitive
+                if (mb_strtolower($tipoNormalizado, 'UTF-8') === mb_strtolower($tipoDisponible, 'UTF-8')) {
+                    return $tipoDisponible;
+                }
+                // Comparación parcial para casos como "TEA" vs "Trastorno del Espectro Autista (TEA)"
+                if (stripos($tipoNormalizado, $tipoDisponible) !== false || stripos($tipoDisponible, $tipoNormalizado) !== false) {
+                    return $tipoDisponible;
+                }
+            }
+            
+            // Si no coincide con ningún tipo disponible, usar "Otros"
+            return 'Otros';
+        };
+
+        // Obtener todos los ajustes razonables aplicados
+        $ajustesAplicados = AjusteRazonable::with('estudiante')
+            ->get();
+
+        // Contar estudiantes únicos por tipo de discapacidad basado en ajustes
+        $tiposConConteo = [];
+        $estudiantesContados = [];
+        
+        foreach ($ajustesAplicados as $ajuste) {
+            $estudianteId = $ajuste->estudiante_id;
+            $tipo = 'Otros';
+            
+            // Primero intentar obtener desde el nombre del ajuste
+            if (!empty($ajuste->nombre)) {
+                $tipo = $obtenerTipoDesdeAjuste($ajuste->nombre);
+            }
+            
+            // Si no se encontró desde el ajuste, intentar desde el estudiante
+            if ($tipo === 'Otros' && $ajuste->estudiante) {
+                if (Schema::hasColumn('estudiantes', 'tipo_discapacidad')) {
+                    $tipoRaw = $ajuste->estudiante->getAttribute('tipo_discapacidad');
+                    if (!empty($tipoRaw)) {
+                        $tipo = $normalizarTipo($tipoRaw);
+                    }
+                }
+            }
+            
+            // Contar estudiantes únicos por tipo (solo contar una vez por estudiante por tipo)
+            $clave = $estudianteId . '_' . $tipo;
+            if (!isset($estudiantesContados[$clave])) {
+                $estudiantesContados[$clave] = true;
+                
+                if (!isset($tiposConConteo[$tipo])) {
+                    $tiposConConteo[$tipo] = 0;
+                }
+                $tiposConConteo[$tipo]++;
+            }
         }
 
-        $total = max($tipos->sum('total'), 1);
+        // Combinar tipos disponibles con sus conteos
+        $total = max(array_sum($tiposConConteo), 1);
+        $colors = $this->chipColors();
 
-        return $tipos->values()->map(function ($row, $index) use ($total) {
+        return collect($tiposDisponibles)->map(function ($tipo, $index) use ($tiposConConteo, $total, $colors) {
+            $conteo = isset($tiposConConteo[$tipo]) ? (int) $tiposConConteo[$tipo] : 0;
+            
             return [
-                'tipo' => mb_convert_case($row->tipo, MB_CASE_TITLE, 'UTF-8'),
-                'total' => (int) $row->total,
-                'porcentaje' => round(($row->total / $total) * 100),
-                'color' => $this->chipColors()[$index % count($this->chipColors())],
+                'tipo' => $tipo,
+                'total' => $conteo,
+                'porcentaje' => $total > 0 ? round(($conteo / $total) * 100) : 0,
+                'color' => $colors[$index % count($colors)],
             ];
-        });
+        })->filter(function ($item) {
+            // Solo mostrar tipos que tienen al menos un estudiante con ajustes
+            return $item['total'] > 0;
+        })->sortByDesc('total')->values();
     }
 
-    private function actividadReciente(): Collection
+    private function actividadReciente(): array
     {
-        $actividades = collect();
-
-        $solicitudes = Solicitud::with('estudiante')
-            ->orderByDesc('updated_at')
-            ->take(5)
-            ->get()
-            ->map(function (Solicitud $solicitud) {
-                $fecha = $solicitud->updated_at ?? $solicitud->created_at;
-
-                return [
-                    'titulo' => $solicitud->estudiante ? "Caso de {$solicitud->estudiante->nombre}" : 'Caso sin estudiante',
-                    'detalle' => $solicitud->descripcion ?? 'Sin descripción',
-                    'estado' => $solicitud->estado ?? 'pendiente',
-                    'fecha' => $fecha,
-                ];
-            });
-
-        $ajustes = AjusteRazonable::with('estudiante')
-            ->orderByDesc('updated_at')
-            ->take(5)
-            ->get()
-            ->map(function (AjusteRazonable $ajuste) {
-                $fecha = $ajuste->updated_at ?? $ajuste->created_at;
-
-                return [
-                    'titulo' => $ajuste->nombre,
-                    'detalle' => $ajuste->estudiante ? "{$ajuste->estudiante->nombre} {$ajuste->estudiante->apellido}" : 'Sin estudiante asociado',
-                    'estado' => $ajuste->estado ?? 'pendiente',
-                    'fecha' => $fecha,
-                ];
-            });
-
+        // Configurar locale en español para Carbon
+        Carbon::setLocale('es');
+        
+        // Entrevistas
         $entrevistas = Entrevista::with('solicitud.estudiante')
             ->orderByDesc('fecha')
             ->take(5)
@@ -232,23 +349,125 @@ class AdminDashboardController extends Controller
                     'estado' => 'programada',
                     'fecha' => $fecha,
                 ];
-            });
-
-        return $actividades
-            ->merge($solicitudes)
-            ->merge($ajustes)
-            ->merge($entrevistas)
+            })
             ->filter(fn ($item) => $item['fecha'] !== null)
-            ->sortByDesc('fecha')
-            ->take(6)
-            ->values()
             ->map(function ($item) {
-                $item['hace'] = $item['fecha']->diffForHumans();
+                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
                 $item['estado_badge'] = $this->estadoBadge($item['estado']);
                 $item['estado'] = ucfirst($item['estado']);
-
                 return $item;
-            });
+            })
+            ->values();
+
+        // Casos completados (Aprobados)
+        $casosCompletados = Solicitud::with('estudiante')
+            ->whereIn('estado', ['Aprobado', 'Completado', 'Finalizado'])
+            ->orderByDesc('updated_at')
+            ->take(5)
+            ->get()
+            ->map(function (Solicitud $solicitud) {
+                $fecha = $solicitud->updated_at ?? $solicitud->created_at;
+
+                return [
+                    'titulo' => $solicitud->estudiante ? "Caso de {$solicitud->estudiante->nombre}" : 'Caso sin estudiante',
+                    'detalle' => $solicitud->descripcion ?? 'Sin descripción',
+                    'estado' => $solicitud->estado ?? 'aprobado',
+                    'fecha' => $fecha,
+                ];
+            })
+            ->merge(
+                AjusteRazonable::with('estudiante')
+                    ->whereIn('estado', ['Aprobado', 'Completado', 'Finalizado'])
+                    ->orderByDesc('updated_at')
+                    ->take(5)
+                    ->get()
+                    ->map(function (AjusteRazonable $ajuste) {
+                        $fecha = $ajuste->updated_at ?? $ajuste->created_at;
+
+                        return [
+                            'titulo' => $ajuste->nombre,
+                            'detalle' => $ajuste->estudiante ? "{$ajuste->estudiante->nombre} {$ajuste->estudiante->apellido}" : 'Sin estudiante asociado',
+                            'estado' => $ajuste->estado ?? 'aprobado',
+                            'fecha' => $fecha,
+                        ];
+                    })
+            )
+            ->filter(fn ($item) => $item['fecha'] !== null)
+            ->sortByDesc('fecha')
+            ->take(5)
+            ->values()
+            ->map(function ($item) {
+                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
+                $item['estado_badge'] = $this->estadoBadge($item['estado']);
+                $item['estado'] = ucfirst($item['estado']);
+                return $item;
+            })
+            ->values();
+
+        // Casos pendientes
+        $casosPendientes = Solicitud::with('estudiante')
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+                'Pendiente de Aprobacion',
+                'En proceso',
+                'Pendiente'
+            ])
+            ->orderByDesc('updated_at')
+            ->take(5)
+            ->get()
+            ->map(function (Solicitud $solicitud) {
+                $fecha = $solicitud->updated_at ?? $solicitud->created_at;
+
+                return [
+                    'titulo' => $solicitud->estudiante ? "Caso de {$solicitud->estudiante->nombre}" : 'Caso sin estudiante',
+                    'detalle' => $solicitud->descripcion ?? 'Sin descripción',
+                    'estado' => $solicitud->estado ?? 'pendiente',
+                    'fecha' => $fecha,
+                ];
+            })
+            ->merge(
+                AjusteRazonable::with('estudiante')
+                    ->whereIn('estado', [
+                        'Pendiente de formulación del caso',
+                        'Pendiente de formulación de ajuste',
+                        'Pendiente de preaprobación',
+                        'Pendiente de Aprobacion',
+                        'En proceso',
+                        'Pendiente'
+                    ])
+                    ->orderByDesc('updated_at')
+                    ->take(5)
+                    ->get()
+                    ->map(function (AjusteRazonable $ajuste) {
+                        $fecha = $ajuste->updated_at ?? $ajuste->created_at;
+
+                        return [
+                            'titulo' => $ajuste->nombre,
+                            'detalle' => $ajuste->estudiante ? "{$ajuste->estudiante->nombre} {$ajuste->estudiante->apellido}" : 'Sin estudiante asociado',
+                            'estado' => $ajuste->estado ?? 'pendiente',
+                            'fecha' => $fecha,
+                        ];
+                    })
+            )
+            ->filter(fn ($item) => $item['fecha'] !== null)
+            ->sortByDesc('fecha')
+            ->take(5)
+            ->values()
+            ->map(function ($item) {
+                $item['hace'] = $item['fecha']->locale('es')->diffForHumans();
+                $item['estado_badge'] = $this->estadoBadge($item['estado']);
+                $item['estado'] = ucfirst($item['estado']);
+                return $item;
+            })
+            ->values();
+
+        return [
+            'entrevistas' => $entrevistas,
+            'casos_completados' => $casosCompletados,
+            'casos_pendientes' => $casosPendientes,
+        ];
     }
 
     private function estadoSqlCondition(string $column, array $states, bool $includeNull = false): string
@@ -285,7 +504,20 @@ class AdminDashboardController extends Controller
 
     private function chipColors(): array
     {
-        return ['#2563eb', '#0ea5e9', '#22c55e', '#f97316', '#a855f7', '#ef4444'];
+        return [
+            '#2563eb', // Azul
+            '#0ea5e9', // Azul claro
+            '#22c55e', // Verde
+            '#f97316', // Naranja
+            '#a855f7', // Púrpura
+            '#ef4444', // Rojo
+            '#10b981', // Verde esmeralda
+            '#f59e0b', // Ámbar
+            '#8b5cf6', // Violeta
+            '#ec4899', // Rosa
+            '#06b6d4', // Cian
+            '#84cc16', // Lima
+        ];
     }
 
     private function activeStates(): array
