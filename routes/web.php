@@ -29,6 +29,7 @@ use App\Http\Controllers\Dashboard\CoordinadoraCasoController;
 use App\Http\Controllers\Dashboard\DirectorCarreraDashboardController;
 use App\Http\Controllers\Dashboard\DirectorCarreraEstudianteController;
 use App\Http\Controllers\Dashboard\DirectorCarreraCasoController;
+use App\Http\Controllers\Dashboard\DirectorCarreraDocenteController;
 use App\Http\Controllers\Dashboard\DocenteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteDashboardController;
 use App\Http\Controllers\Dashboard\EstudianteEntrevistaController;
@@ -111,6 +112,12 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.estudiantes.import');
         Route::get('director-carrera/ajustes', [\App\Http\Controllers\Dashboard\DirectorCarreraAjusteController::class, 'index'])
             ->name('director.ajustes.index');
+        Route::get('director-carrera/docentes', [DirectorCarreraDocenteController::class, 'index'])
+            ->name('director.docentes');
+        Route::get('director-carrera/docentes/importar', [DirectorCarreraDocenteController::class, 'showImportForm'])
+            ->name('director.docentes.import.form');
+        Route::post('director-carrera/docentes/importar', [DirectorCarreraDocenteController::class, 'import'])
+            ->name('director.docentes.import');
         Route::get('director-carrera/casos', [DirectorCarreraCasoController::class, 'index'])
             ->name('director.casos');
         Route::get('director-carrera/casos/{solicitud}', [DirectorCarreraCasoController::class, 'show'])
@@ -121,6 +128,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.casos.reject');
         Route::post('director-carrera/casos/{solicitud}/devolver-ctp', [DirectorCarreraCasoController::class, 'devolverACTP'])
             ->name('director.casos.devolver-ctp');
+        Route::get('director-carrera/reporte-pdf', [DirectorCarreraDashboardController::class, 'generarReportePDF'])
+            ->name('director.reporte.pdf');
     });
 
     Route::middleware('role:Asesora Pedagogica')->group(function () {
