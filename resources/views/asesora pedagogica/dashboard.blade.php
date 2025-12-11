@@ -83,9 +83,6 @@
                         <i class="fas fa-paper-plane me-1"></i>Enviar a Dirección
                       </button>
                     </form>
-                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#modalDevolverACTT{{ $case['case_id'] }}">
-                      <i class="fas fa-arrow-left me-1"></i>Devolver a A. Técnico
-                    </button>
                   @endif
                 </div>
               </div>
@@ -129,7 +126,7 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: transparent;
+    background: #f7f6fb;
     padding: 1rem;
     border-radius: 1.5rem;
   }
@@ -327,58 +324,4 @@
     </div>
   </div>
 </div>
-
-<!-- Modales para Devolver a A. Técnico -->
-@foreach ($casesForReview as $case)
-  @if ($case['status'] === 'Pendiente de preaprobación')
-    <div class="modal fade" id="modalDevolverACTT{{ $case['case_id'] }}" tabindex="-1" aria-labelledby="modalDevolverACTTLabel{{ $case['case_id'] }}" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-warning text-dark">
-            <h5 class="modal-title" id="modalDevolverACTTLabel{{ $case['case_id'] }}">
-              <i class="fas fa-arrow-left me-2"></i>Devolver a Asesora Técnica
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <form action="{{ route('asesora-pedagogica.casos.devolver-actt', $case['case_id']) }}" method="POST">
-            @csrf
-            <div class="modal-body">
-              <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Estudiante:</strong> {{ $case['student'] }}<br>
-                <strong>Carrera:</strong> {{ $case['program'] }}
-              </div>
-              <div class="mb-3">
-                <label for="motivo_devolucion{{ $case['case_id'] }}" class="form-label">
-                  Motivo de devolución <span class="text-danger">*</span>
-                </label>
-                <textarea 
-                  name="motivo_devolucion" 
-                  id="motivo_devolucion{{ $case['case_id'] }}" 
-                  rows="4" 
-                  class="form-control @error('motivo_devolucion') is-invalid @enderror" 
-                  placeholder="Describe los motivos por los que necesitas devolver el caso a la Asesora Técnica..." 
-                  required
-                  minlength="10"
-                >{{ old('motivo_devolucion') }}</textarea>
-                @error('motivo_devolucion')
-                  <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-                <small class="text-muted">Mínimo 10 caracteres</small>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="fas fa-times me-2"></i>Cancelar
-              </button>
-              <button type="submit" class="btn btn-warning">
-                <i class="fas fa-arrow-left me-2"></i>Devolver a A. Técnico
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  @endif
-@endforeach
 @endsection

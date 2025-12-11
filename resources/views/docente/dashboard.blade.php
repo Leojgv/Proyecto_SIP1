@@ -31,10 +31,12 @@
     <div class="card-body">
       <div class="d-flex justify-content-between flex-wrap align-items-center mb-3">
         <div>
-          <h5 class="card-title mb-1">Mis Estudiantes con Ajustes</h5>
+          <h5 class="card-title mb-1">
+            Mis Estudiantes con Ajustes
+          </h5>
           <small class="text-muted">Estudiantes bajo tu supervision con ajustes razonables activos.</small>
         </div>
-        <a href="{{ route('estudiantes.index') }}" class="btn btn-outline-danger btn-sm">Ver todos</a>
+        <a href="{{ route('docente.estudiantes') }}" class="btn btn-outline-danger btn-sm">Ver todos</a>
       </div>
       @forelse ($studentAdjustments as $student)
         <div class="student-item">
@@ -54,9 +56,6 @@
             <div class="d-flex justify-content-between flex-wrap align-items-center gap-2">
               <small class="text-muted">Ultima actualizacion: {{ $student['last_update'] }}</small>
               <div class="d-flex gap-2">
-                <a href="{{ $student['student_id'] ? route('estudiantes.show', $student['student_id']) : route('estudiantes.index') }}" class="btn btn-outline-secondary btn-sm">
-                  <i class="fas fa-eye me-1"></i>Ver historial
-                </a>
                 @if($student['student_id'])
                   <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#detallesAjustesModal{{ $student['student_id'] }}">
                     <i class="fas fa-info-circle me-1"></i>Ver Detalles

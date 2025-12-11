@@ -153,12 +153,12 @@
 @push('styles')
 <style>
   .accordion-button {
-    background-color: #fff9f8;
+    background-color: transparent !important;
     border: none;
   }
   
   .accordion-button:not(.collapsed) {
-    background-color: #fff1f1;
+    background-color: transparent !important;
     color: #b91c1c;
     box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
   }
@@ -170,10 +170,79 @@
   
   .accordion-item {
     border: 1px solid #f0f0f5 !important;
+    background-color: transparent !important;
   }
   
   .accordion-body {
-    background-color: #fff;
+    background-color: transparent !important;
+  }
+  
+  .dark-mode .accordion-button {
+    background-color: transparent !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .accordion-button:not(.collapsed) {
+    background-color: transparent !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .accordion-item {
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .dark-mode .accordion-body {
+    background-color: transparent !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .accordion-body * {
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .accordion-body .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .dark-mode .accordion-body strong {
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .accordion-body small {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  .dark-mode .table-responsive {
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .table-responsive * {
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .table-responsive table {
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .table-responsive table th {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .dark-mode .table-responsive table td {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .dark-mode .table-responsive table tbody tr {
+    background-color: transparent !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-mode .table-responsive table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
   }
   
   .card.shadow-sm {

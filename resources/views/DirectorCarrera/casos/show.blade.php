@@ -32,13 +32,15 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a href="{{ route('director.casos') }}" class="btn btn-secondary">Volver</a>
-      <form action="{{ route('director.casos.approve', $solicitud) }}" method="POST">
-        @csrf
-        <button type="submit" class="btn btn-danger">Aprobar Caso</button>
-      </form>
-      <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#rechazoForm" aria-expanded="{{ request('rechazar') ? 'true' : 'false' }}" aria-controls="rechazoForm">
-        Rechazar/Devolver a A. Pedagogica
-      </button>
+      @if(!in_array($solicitud->estado, ['Aprobado', 'Rechazado']))
+        <form action="{{ route('director.casos.approve', $solicitud) }}" method="POST">
+          @csrf
+          <button type="submit" class="btn btn-danger">Aprobar Caso</button>
+        </form>
+        <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#rechazoForm" aria-expanded="{{ request('rechazar') ? 'true' : 'false' }}" aria-controls="rechazoForm">
+          Rechazar/Devolver a A. Pedagogica
+        </button>
+      @endif
     </div>
   </div>
 
@@ -133,24 +135,26 @@
     </div>
   </div>
 
-  <div class="collapse {{ request('rechazar') ? 'show' : '' }}" id="rechazoForm">
-    <div class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <h5 class="card-title">Rechazar/Devolver a A. Pedagogica</h5>
-        <p class="text-muted small mb-3">Ingresa el motivo para enviar de vuelta a la Asesora Pedagógica y al estudiante.</p>
-        <form action="{{ route('director.casos.reject', $solicitud) }}" method="POST">
-          @csrf
-          <div class="mb-3">
-            <label class="form-label">Motivo del rechazo</label>
-            <textarea name="motivo_rechazo" rows="3" class="form-control @error('motivo_rechazo') is-invalid @enderror" required>{{ old('motivo_rechazo') }}</textarea>
-            @error('motivo_rechazo')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-          </div>
-          <button type="submit" class="btn btn-outline-danger">Rechazar/Devolver a A. Pedagogica</button>
-        </form>
+  @if(!in_array($solicitud->estado, ['Aprobado', 'Rechazado']))
+    <div class="collapse {{ request('rechazar') ? 'show' : '' }}" id="rechazoForm">
+      <div class="card border-0 shadow-sm mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Rechazar/Devolver a A. Pedagogica</h5>
+          <p class="text-muted small mb-3">Ingresa el motivo para enviar de vuelta a la Asesora Pedagógica y al estudiante.</p>
+          <form action="{{ route('director.casos.reject', $solicitud) }}" method="POST">
+            @csrf
+            <div class="mb-3">
+              <label class="form-label">Motivo del rechazo</label>
+              <textarea name="motivo_rechazo" rows="3" class="form-control @error('motivo_rechazo') is-invalid @enderror" required>{{ old('motivo_rechazo') }}</textarea>
+              @error('motivo_rechazo')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+            <button type="submit" class="btn btn-outline-danger">Rechazar/Devolver a A. Pedagogica</button>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
+  @endif
 </div>
 @endsection

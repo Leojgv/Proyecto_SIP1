@@ -50,7 +50,7 @@
 
   <div class="row g-4 mb-4">
     <div class="col-xl-8">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
             <div>
@@ -65,8 +65,9 @@
                 <div>
                   <h6 class="mb-0">{{ $case['student'] }}</h6>
                   <small class="text-muted d-block">{{ $case['program'] }}</small>
-                  <small class="text-muted">Coordinadora: {{ $case['requested_by'] }}</small>
+                  <small class="text-muted">Encargo: {{ $case['requested_by'] }}</small>
                 </div>
+                <span class="priority-badge priority-{{ $case['priority_level'] }}">{{ $case['priority'] }}</span>
               </div>
               <p class="case-card__focus mb-2">{{ Str::limit($case['support_focus'], 140) }}</p>
               <div class="case-card__adjustments mb-3">
@@ -96,13 +97,13 @@
               </div>
             </div>
           @empty
-            <p class="text-muted mb-0">No hay solicitudes pendientes, revisa nuevamente mas tarde.</p>
+            <p class="text-muted mb-0 text-center py-3">No hay solicitudes pendientes, revisa nuevamente mas tarde.</p>
           @endforelse
         </div>
       </div>
     </div>
     <div class="col-xl-4">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between mb-3">
             <div>
@@ -138,8 +139,8 @@
           </div>
         </div>
       </div>
+    </div>
   </div>
-</div>
 
 @php
   $careerLabels = collect($careerStats)->pluck('name')->map(fn ($name) => $name ?: 'Carrera sin nombre')->values();
@@ -159,10 +160,20 @@
         <div class="col-lg-6">
           <div class="card h-100 border-0 shadow-sm pastel-card">
             <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                   <h6 class="mb-0"><i class="fas fa-chart-pie text-danger me-2"></i>Grafica de pastel</h6>
                   <small class="text-muted">Participacion de cada carrera.</small>
+                </div>
+                <div class="btn-group" role="group" aria-label="Filtro de visualización">
+                  <input type="radio" class="btn-check" name="chartFilter" id="filterStudents" value="students" checked>
+                  <label class="btn btn-sm btn-outline-danger" for="filterStudents">
+                    <i class="fas fa-user-graduate me-1"></i>Estudiantes
+                  </label>
+                  <input type="radio" class="btn-check" name="chartFilter" id="filterAdjustments" value="adjustments">
+                  <label class="btn btn-sm btn-outline-danger" for="filterAdjustments">
+                    <i class="fas fa-sliders me-1"></i>Ajustes
+                  </label>
                 </div>
               </div>
               <canvas id="careerPieChart" height="320"></canvas>
@@ -175,25 +186,25 @@
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                   <h6 class="mb-0"><i class="fas fa-list text-danger me-2"></i>Lista de carreras</h6>
-                  <small class="text-muted">Cantidad de estudiantes por carrera.</small>
+                  <small class="text-muted" id="tableDescription">Cantidad de estudiantes por carrera.</small>
                 </div>
               </div>
               <div class="table-responsive">
-                <table class="table table-dark-mode align-middle mb-0">
+                <table class="table table-dark-mode align-middle mb-0" id="careerTable">
                   <thead>
                   <tr>
                     <th>Carrera</th>
-                    <th class="text-center">Estudiantes</th>
+                    <th class="text-center" id="tableHeader">Estudiantes</th>
                   </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="careerTableBody">
                   @forelse ($careerStats as $career)
-                    <tr>
+                    <tr data-career-id="{{ $loop->index }}" data-students="{{ $career['total_students'] }}" data-adjustments="{{ $career['total_adjustments'] ?? 0 }}" data-adjustments-list="{{ json_encode($career['adjustments_list'] ?? []) }}">
                       <td>
                         <div class="fw-semibold">{{ $career['name'] }}</div>
                         <small class="text-muted">{{ $career['jornada'] }}</small>
                       </td>
-                      <td class="text-center fw-semibold">{{ $career['total_students'] }}</td>
+                      <td class="text-center fw-semibold career-value">{{ $career['total_students'] }}</td>
                     </tr>
                   @empty
                     <tr>
@@ -203,6 +214,26 @@
                   </tbody>
                 </table>
               </div>
+              
+              {{-- Modal para mostrar ajustes de una carrera --}}
+              <div class="modal fade" id="adjustmentsModal" tabindex="-1" aria-labelledby="adjustmentsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="adjustmentsModalLabel">
+                        <i class="fas fa-sliders text-danger me-2"></i>Ajustes Aplicados
+                      </h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="adjustmentsModalBody">
+                      <p class="text-muted">Cargando ajustes...</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -210,10 +241,19 @@
     </div>
   </div>
 
+  <div class="action-row">
+    @foreach ($actionShortcuts as $action)
+      <a href="{{ $action['route'] }}" class="action-button action-button--{{ $action['variant'] }}">
+        <i class="fas {{ $action['icon'] }} me-2"></i>{{ $action['label'] }}
+      </a>
+    @endforeach
+  </div>
+</div>
+
 @push('styles')
 <style>
   .dashboard-page {
-    background: #f7f6fb;
+    background: transparent;
     padding: 1rem;
     border-radius: 1.5rem;
   }
@@ -287,8 +327,8 @@
     flex-wrap: wrap;
     margin-top: .75rem;
   }
-  .priority-chip {
-    border-radius: 8px;
+  .priority-badge {
+    border-radius: 999px;
     padding: .35rem .85rem;
     font-size: .75rem;
     font-weight: 600;
@@ -364,158 +404,6 @@
   .pastel-card {
     background: radial-gradient(circle at 15% 20%, #fff5f5, #ffffff 55%);
   }
-
-  /* Modo oscuro */
-  .dark-mode .dashboard-page {
-    background: #0b1220 !important;
-    color: #e5e7eb !important;
-  }
-  .dark-mode .page-header h1,
-  .dark-mode .page-header p,
-  .dark-mode .page-header .text-muted {
-    color: #e5e7eb !important;
-  }
-  .dark-mode .stats-card {
-    border-color: #1f2937 !important;
-    box-shadow: 0 8px 20px rgba(0,0,0,.35) !important;
-  }
-  .dark-mode .card {
-    background: #0f172a !important;
-    border-color: #1f2937 !important;
-    color: #e5e7eb !important;
-  }
-  .dark-mode .card .card-title,
-  .dark-mode .card .card-text,
-  .dark-mode .card small,
-  .dark-mode .card h5,
-  .dark-mode .card h6 {
-    color: #e5e7eb !important;
-  }
-  .dark-mode .case-card {
-    background: #111827 !important;
-    border-color: #1f2937 !important;
-    box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
-  }
-  .dark-mode .case-card__focus {
-    color: #cbd5e1 !important;
-  }
-  .dark-mode .case-card__meta {
-    background: #0f172a !important;
-    border-color: #1f2937 !important;
-  }
-  .dark-mode .pipeline-stage {
-    background: #0f172a !important;
-    border-color: #1f2937 !important;
-  }
-  .dark-mode .pipeline-stage__count {
-    background: #111827 !important;
-    color: #fca5a5 !important;
-  }
-  .dark-mode .table {
-    color: #e5e7eb !important;
-  }
-  .dark-mode .table thead {
-    background: #111827 !important;
-  }
-  .dark-mode .table thead th {
-    color: #e5e7eb !important;
-    border-color: #1f2937 !important;
-  }
-  .dark-mode .table tbody tr {
-    background: #0f172a !important;
-    border-color: #1f2937 !important;
-  }
-  .dark-mode .table tbody tr:nth-of-type(odd) {
-    background: #0b1220 !important;
-  }
-  .dark-mode .table td {
-    border-color: #1f2937 !important;
-    color: #e5e7eb !important;
-  }
-  .dark-mode .table .text-muted {
-    color: #9ca3af !important;
-  }
-  /* Tabla dark reutilizable */
-  .table-dark-mode thead {
-    background: #f8fafc;
-  }
-  .table-dark-mode thead th {
-    color: #1f2937;
-    border-color: #e5e7eb;
-  }
-  .table-dark-mode tbody tr {
-    background: #fff;
-    border-color: #e5e7eb;
-    color: #1f2937;
-  }
-  .table-dark-mode tbody tr:nth-of-type(odd) {
-    background: #f8fafc;
-  }
-  .table-dark-mode td {
-    border-color: #e5e7eb;
-  }
-  .table-dark-mode .text-muted {
-    color: #6b7280 !important;
-  }
-  .table-dark-mode .badge.bg-light.text-danger {
-    background: #fef2f2;
-    color: #b91c1c;
-    border: 1px solid #fecdd3;
-  }
-  .dark-mode .table-dark-mode thead {
-    background: #111827;
-  }
-  .dark-mode .table-dark-mode thead th {
-    color: #e5e7eb;
-    border-color: #1f2937;
-  }
-  .dark-mode .table-dark-mode tbody tr {
-    background: #0f172a;
-    border-color: #1f2937;
-    color: #e5e7eb;
-  }
-  .dark-mode .table-dark-mode tbody tr:nth-of-type(odd) {
-    background: #0b1220;
-  }
-  .dark-mode .table-dark-mode td {
-    border-color: #1f2937;
-  }
-  .dark-mode .table-dark-mode .text-muted {
-    color: #9ca3af !important;
-  }
-  .dark-mode .table-dark-mode .badge.bg-light.text-danger {
-    background: #1f2937;
-    color: #fca5a5;
-    border: 1px solid #273449;
-  }
-  .dark-mode .badge.bg-light.text-danger {
-    background: #1f2937 !important;
-    color: #fca5a5 !important;
-    border: 1px solid #273449 !important;
-  }
-  .dark-mode .badge.bg-danger.bg-opacity-10.text-danger {
-    background: rgba(220,38,38,.15) !important;
-    color: #fecdd3 !important;
-  }
-  .dark-mode .action-button--outline-danger {
-    background: transparent !important;
-    color: #fca5a5 !important;
-    border-color: #fca5a5 !important;
-  }
-  .dark-mode .action-button--danger {
-    background: #dc2626 !important;
-    color: #fff !important;
-  }
-  .dark-mode .btn-outline-danger {
-    color: #fca5a5 !important;
-    border-color: #fca5a5 !important;
-  }
-  .dark-mode .btn-outline-danger:hover {
-    background: rgba(252,165,165,.1) !important;
-  }
-  .dark-mode .pastel-card {
-    background: radial-gradient(circle at 15% 20%, #1f2937, #0f172a 55%) !important;
-  }
 </style>
 @endpush
 
@@ -527,17 +415,21 @@
     if (!ctx) return;
 
     const labels = @json($careerLabels);
-    const data = @json($careerTotals);
+    const studentData = @json($careerTotals);
+    const careerStats = @json($careerStats);
+    
+    // Preparar datos de ajustes
+    const adjustmentData = careerStats.map(career => career.total_adjustments || 0);
 
     const palette = ['#dc2626','#f97316','#f59e0b','#22c55e','#0ea5e9','#6366f1','#a855f7','#ec4899','#14b8a6','#8b5cf6'];
     const backgroundColor = labels.map((_, idx) => palette[idx % palette.length]);
 
-    new Chart(ctx, {
+    let chart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels,
         datasets: [{
-          data,
+          data: studentData,
           backgroundColor,
           borderWidth: 1,
           hoverOffset: 6,
@@ -547,9 +439,112 @@
       options: {
         plugins: {
           legend: { position: 'bottom' },
-          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed}` } }
+          tooltip: { 
+            callbacks: { 
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            } 
+          }
+        },
+        onClick: function(event, elements) {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const career = careerStats[index];
+            if (career && career.adjustments_list && career.adjustments_list.length > 0) {
+              showAdjustmentsModal(career.name, career.adjustments_list);
+            }
+          }
         }
       }
+    });
+
+    // Manejar cambio de filtro
+    const filterInputs = document.querySelectorAll('input[name="chartFilter"]');
+    const tableDescription = document.getElementById('tableDescription');
+    const tableHeader = document.getElementById('tableHeader');
+    const careerValues = document.querySelectorAll('.career-value');
+    const tableRows = document.querySelectorAll('#careerTableBody tr[data-career-id]');
+
+    filterInputs.forEach(input => {
+      input.addEventListener('change', function() {
+        const isStudents = this.value === 'students';
+        
+        // Actualizar gráfico
+        chart.data.datasets[0].data = isStudents ? studentData : adjustmentData;
+        chart.data.datasets[0].label = isStudents ? 'Estudiantes' : 'Ajustes';
+        chart.update();
+
+        // Actualizar tabla
+        tableDescription.textContent = isStudents 
+          ? 'Cantidad de estudiantes por carrera.' 
+          : 'Cantidad de ajustes aplicados por carrera.';
+        tableHeader.textContent = isStudents ? 'Estudiantes' : 'Ajustes';
+        
+        tableRows.forEach(row => {
+          const value = isStudents 
+            ? row.getAttribute('data-students') 
+            : row.getAttribute('data-adjustments');
+          const valueCell = row.querySelector('.career-value');
+          if (valueCell) {
+            valueCell.textContent = value || '0';
+          }
+        });
+      });
+    });
+
+    // Función para mostrar modal de ajustes
+    function showAdjustmentsModal(careerName, adjustments) {
+      const modalBody = document.getElementById('adjustmentsModalBody');
+      const modalLabel = document.getElementById('adjustmentsModalLabel');
+      
+      modalLabel.innerHTML = `<i class="fas fa-sliders text-danger me-2"></i>Ajustes Aplicados - ${careerName}`;
+      
+      if (adjustments.length === 0) {
+        modalBody.innerHTML = '<p class="text-muted text-center">No hay ajustes aplicados en esta carrera.</p>';
+      } else {
+        let html = '<div class="list-group">';
+        adjustments.forEach(ajuste => {
+          html += `
+            <div class="list-group-item mb-2 border rounded">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-1 fw-semibold">
+                  <i class="fas fa-check-circle text-success me-2"></i>${ajuste.nombre || 'Ajuste sin título'}
+                </h6>
+                <span class="badge bg-warning text-dark">${ajuste.estado || 'Pendiente'}</span>
+              </div>
+              <p class="text-muted small mb-0">${ajuste.descripcion || 'Sin descripción adicional'}</p>
+            </div>
+          `;
+        });
+        html += '</div>';
+        modalBody.innerHTML = html;
+      }
+      
+      const modal = new bootstrap.Modal(document.getElementById('adjustmentsModal'));
+      modal.show();
+    }
+
+    // Hacer las filas de la tabla clickeables para mostrar ajustes
+    tableRows.forEach(row => {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function() {
+        const adjustmentsList = JSON.parse(this.getAttribute('data-adjustments-list') || '[]');
+        const careerName = this.querySelector('.fw-semibold').textContent;
+        if (adjustmentsList.length > 0) {
+          showAdjustmentsModal(careerName, adjustmentsList);
+        }
+      });
+      row.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = '#f8f9fa';
+      });
+      row.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = '';
+      });
     });
   });
 </script>

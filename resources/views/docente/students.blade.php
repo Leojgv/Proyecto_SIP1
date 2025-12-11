@@ -8,7 +8,13 @@
 <div class="dashboard-page">
   <div class="page-header mb-4">
     <h1 class="h4 mb-1">Mis Estudiantes</h1>
-    <p class="text-muted mb-0">Estudiantes con ajustes razonables bajo tu supervision.</p>
+    <p class="text-muted mb-0">
+      @if($carrera)
+        Estudiantes de la carrera: <strong>{{ $carrera->nombre }}</strong>
+      @else
+        No tienes una carrera asignada. Contacta al administrador.
+      @endif
+    </p>
   </div>
 
   <div class="card border-0 shadow-sm mb-4">
@@ -27,20 +33,29 @@
     </div>
   </div>
 
-  @foreach ($students as $student)
+  @forelse ($students as $student)
     <div class="card border-0 shadow-sm mb-4">
       <div class="card-body">
         <div class="d-flex justify-content-between flex-wrap align-items-center mb-3">
           <div>
             <h5 class="mb-0">{{ $student['student'] }}</h5>
             <small class="text-muted d-block">RUT: {{ $student['rut'] }} · {{ $student['program'] }}</small>
+            <small class="text-muted d-block">Email: {{ $student['email'] ?? 'Sin email' }}</small>
+            @if($student['telefono'])
+              <small class="text-muted d-block">Teléfono: {{ $student['telefono'] }}</small>
+            @endif
             <small class="text-muted">Ultima actualizacion: {{ $student['last_update'] }}</small>
           </div>
           <div class="d-flex align-items-center gap-3 flex-wrap">
             <span class="badge status-pill status-{{ Str::slug(strtolower($student['status'])) }}">{{ $student['status'] }}</span>
-            <a href="{{ $student['student_id'] ? route('estudiantes.show', $student['student_id']) : route('estudiantes.index') }}" class="btn btn-outline-secondary btn-sm">
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm" 
+              data-bs-toggle="modal" 
+              data-bs-target="#historialModal{{ $student['student_id'] }}"
+            >
               <i class="fas fa-eye me-1"></i>Ver historial
-            </a>
+            </button>
           </div>
         </div>
 
@@ -62,8 +77,135 @@
         </div>
       </div>
     </div>
-  @endforeach
+  @empty
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+        <p class="text-muted mb-0">
+          @if($carrera)
+            No hay estudiantes registrados en la carrera {{ $carrera->nombre }}.
+          @else
+            No tienes estudiantes asignados.
+          @endif
+        </p>
+      </div>
+    </div>
+  @endforelse
 </div>
+
+{{-- Modales de historial de ajustes --}}
+@foreach ($students as $student)
+  @if($student['student_id'])
+    <div class="modal fade" id="historialModal{{ $student['student_id'] }}" tabindex="-1" aria-labelledby="historialModalLabel{{ $student['student_id'] }}" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title" id="historialModalLabel{{ $student['student_id'] }}">
+                Historial de Ajustes - {{ $student['student'] }}
+              </h5>
+              <small class="text-muted">Información completa de los ajustes razonables</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            {{-- Información del Estudiante --}}
+            <div class="mb-4">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-user-graduate me-2"></i>Información del Estudiante
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="border rounded p-3 bg-light">
+                    <small class="text-muted d-block mb-1"><strong>Nombre Completo</strong></small>
+                    <div class="fw-semibold">{{ $student['student'] }}</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="border rounded p-3 bg-light">
+                    <small class="text-muted d-block mb-1"><strong>RUT</strong></small>
+                    <div class="fw-semibold">{{ $student['rut'] }}</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="border rounded p-3 bg-light">
+                    <small class="text-muted d-block mb-1"><strong>Email</strong></small>
+                    <div class="fw-semibold">{{ $student['email'] ?? 'Sin email' }}</div>
+                  </div>
+                </div>
+                @if($student['telefono'])
+                <div class="col-md-6">
+                  <div class="border rounded p-3 bg-light">
+                    <small class="text-muted d-block mb-1"><strong>Teléfono</strong></small>
+                    <div class="fw-semibold">{{ $student['telefono'] }}</div>
+                  </div>
+                </div>
+                @endif
+                <div class="col-md-12">
+                  <div class="border rounded p-3 bg-light">
+                    <small class="text-muted d-block mb-1"><strong>Carrera</strong></small>
+                    <div class="fw-semibold">{{ $student['program'] }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            {{-- Ajustes Razonables --}}
+            <div class="mb-3">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-sliders me-2"></i>Ajustes Razonables Formulados
+              </h6>
+              @if(!empty($student['adjustments']))
+                @foreach($student['adjustments'] as $index => $ajuste)
+                  <div class="card border mb-3">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                          <h6 class="card-title mb-1">{{ $ajuste['name'] ?? 'Ajuste sin título' }}</h6>
+                          <span class="badge rounded-pill bg-light text-secondary text-capitalize">{{ $ajuste['category'] ?? 'General' }}</span>
+                        </div>
+                        <span class="badge status-chip status-{{ Str::slug(strtolower($ajuste['status'])) }}">{{ $ajuste['status'] }}</span>
+                      </div>
+                      
+                      <p class="text-muted mb-3">{{ $ajuste['description'] ?? 'Sin descripción disponible.' }}</p>
+                      
+                      <div class="row g-2">
+                        <div class="col-md-6">
+                          <small class="text-muted d-block">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <strong>Fecha de solicitud:</strong> {{ $ajuste['fecha_solicitud'] ?? 'No especificada' }}
+                          </small>
+                        </div>
+                        <div class="col-md-6">
+                          <small class="text-muted d-block">
+                            <i class="fas fa-clock me-1"></i>
+                            <strong>Formulado el:</strong> {{ $ajuste['created_at'] ?? 'No disponible' }}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
+              @else
+                <div class="alert alert-info mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  No hay ajustes razonables registrados para este estudiante.
+                </div>
+              @endif
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i>Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
+@endforeach
 
 @push('styles')
 <style>

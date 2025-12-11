@@ -24,9 +24,9 @@
             'variant' => '#dc2626',
         ],
         [
-            'title' => 'Próximas entrevistas',
-            'value' => $stats['entrevistas_programadas'],
-            'helper' => 'Agenda confirmada',
+            'title' => 'Solicitudes Realizadas',
+            'value' => $stats['solicitudes_realizadas'],
+            'helper' => 'Total de casos reportados',
             'icon' => 'fa-comments',
             'variant' => '#dc2626',
         ],
@@ -39,7 +39,7 @@
     <div>
       <p class="text-danger text-uppercase fw-semibold small mb-1">Tu espacio académico</p>
       <h1 class="h4 mb-1">Mi Dashboard</h1>
-      <p class="text-muted mb-0">Revisa el estado de tus solicitudes, consulta tus ajustes acad?micos aprobados y gestiona tus entrevistas programadas.</p>
+      <p class="text-muted mb-0">Revisa el estado de tus solicitudes, consulta tus ajustes academicos aprobados y gestiona tus entrevistas programadas.</p>
     </div>
   </div>
 
@@ -146,7 +146,6 @@
               <h5 class="card-title mb-0">Mis Solicitudes</h5>
               <small class="text-muted">Seguimiento del estado</small>
             </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Ver todas</a>
           </div>
           <div class="list-group list-group-flush">
             @forelse ($misSolicitudes as $solicitud)
@@ -241,7 +240,6 @@
               <h5 class="card-title mb-0">Mis Ajustes Académicos</h5>
               <small class="text-muted">Estado y seguimiento</small>
             </div>
-            <a href="{{ route('ajustes-razonables.index') }}" class="btn btn-sm btn-outline-danger">Gestionar</a>
           </div>
           <div class="list-group list-group-flush">
             @forelse ($misAjustes as $ajuste)
@@ -271,14 +269,19 @@
                 }
               @endphp
               <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2 align-items-center">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
                   <div class="text-danger" style="font-size: 1.5rem;">
                     <i class="fas {{ $icono }}"></i>
                   </div>
-                  <div>
+                  <div class="flex-grow-1">
                     <h6 class="mb-1 d-flex align-items-center gap-2">
                       {{ $ajuste->nombre }}
                     </h6>
+                    @if($ajuste->descripcion)
+                      <p class="text-muted small mb-1">{{ Str::limit($ajuste->descripcion, 100) }}</p>
+                    @else
+                      <p class="text-muted small mb-1">No hay descripción</p>
+                    @endif
                     <small class="text-muted">
                       <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
                           'aprobado' => 'bg-success',
@@ -350,6 +353,16 @@
                           </div>
                         </div>
 
+                        {{-- Descripción del Ajuste --}}
+                        <div class="col-12">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-2">
+                              <i class="fas fa-sliders me-1"></i><strong>Descripción del Ajuste</strong>
+                            </small>
+                            <p class="mb-0 mt-1 text-break">{{ $ajuste->descripcion ?? 'No hay descripción' }}</p>
+                          </div>
+                        </div>
+
                         @if($ajuste->solicitud)
                           <div class="col-12">
                             <div class="border rounded p-3 bg-light">
@@ -359,12 +372,6 @@
                               <div class="mb-2">
                                 <strong>Fecha:</strong> {{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}
                               </div>
-                              @if($ajuste->solicitud->descripcion)
-                                <div>
-                                  <strong>Descripción:</strong>
-                                  <p class="mb-0 mt-1 text-break">{{ $ajuste->solicitud->descripcion }}</p>
-                                </div>
-                              @endif
                             </div>
                           </div>
                         @endif
@@ -373,7 +380,7 @@
                           <div class="alert alert-info mb-0">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Información:</strong> Este ajuste se encuentra en proceso de revisión. 
-                            Cualquier actualizaci?n se reflejar? aqu? cuando el equipo avance con la solicitud.
+                            Cualquier actualizacion se reflejara aqui cuando el equipo avance con la solicitud.
                           </div>
                         </div>
                       </div>
@@ -639,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       </div>
                     ` : ''}
                     <div class="col-12">
-                      <span class="text-muted"><i class="fas fa-user me-1"></i>Asesor:</span>
+                      <span class="text-muted"><i class="fas fa-user me-1"></i>Coordinadora:</span>
                       <span class="ms-1">${entrevista.asesor || 'Sin asignar'}</span>
                     </div>
                   </div>

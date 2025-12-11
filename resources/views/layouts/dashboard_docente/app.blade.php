@@ -136,7 +136,13 @@
   <div class="dashboard-main">
     <header class="dashboard-topbar">
       <div class="dashboard-topbar__items">
-        <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
+        <span>
+          <i class="fas fa-user-circle"></i>
+          {{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}
+          @if(auth()->user()->docente && auth()->user()->docente->carrera)
+            <span class="text-muted ms-2">- {{ auth()->user()->docente->carrera->nombre }}</span>
+          @endif
+        </span>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-docente').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>
       </div>

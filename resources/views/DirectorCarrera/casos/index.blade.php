@@ -1,5 +1,7 @@
 @extends('layouts.Dashboard_director.app')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('title', 'Casos')
 
 @section('content')

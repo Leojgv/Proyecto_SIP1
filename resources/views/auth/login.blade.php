@@ -18,9 +18,10 @@
                     @csrf
 
                     <div class="input-group">
-                        <label for="email">Correo electrónico</label>
-                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
-                               name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                        <label for="email">Correo electrónico o RUT</label>
+                        <input id="email" type="text" class="form-control @error('email') is-invalid @enderror"
+                               name="email" value="{{ old('email') }}" required autocomplete="username" autofocus
+                               placeholder="Ingresa tu correo o RUT">
                         <i class="fas fa-user input-icon"></i>
                         @error('email')
                             <span class="invalid-feedback" role="alert">

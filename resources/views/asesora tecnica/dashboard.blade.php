@@ -12,12 +12,12 @@
   </div>
 
   @php
-    $cardPalette = ['#dc2626', '#dc2626', '#dc2626', '#dc2626'];
+    $cardPalette = ['#dc2626', '#dc2626'];
   @endphp
 
   <div class="row g-3 mb-4">
     @foreach ($metrics as $index => $metric)
-      <div class="col-12 col-md-6 col-xl-3">
+      <div class="col-12 col-md-6">
         <div class="stats-card" style="background: {{ $cardPalette[$index % count($cardPalette)] }};">
           <div class="stats-card__value">{{ $metric['value'] }}</div>
           <div class="stats-card__icon"><i class="fas {{ $metric['icon'] }}"></i></div>
@@ -50,15 +50,55 @@
             <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Ver todos</a>
           </div>
           @forelse ($assignedCases as $case)
+            @php
+              $badgeClass = match($case['status']) {
+                'Pendiente de formulación de ajuste' => 'bg-warning text-dark',
+                'Pendiente de preaprobación' => 'bg-primary',
+                'Aprobado' => 'bg-success',
+                'Rechazado' => 'bg-danger',
+                default => 'bg-secondary'
+              };
+            @endphp
             <div class="case-item">
-              <div>
-                <strong>{{ $case['student'] }}</strong>
-                <p class="text-muted mb-1">{{ $case['program'] }}</p>
-                <p class="text-muted small mb-0">{{ $case['summary'] }}</p>
-              </div>
-              <div class="text-end">
-                <p class="text-muted small mb-1">Estado: <span class="fw-semibold">{{ $case['status'] }}</span></p>
-                <p class="text-muted small mb-0">Asignado: {{ $case['assigned_at'] }}</p>
+              <div class="w-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <strong>{{ $case['student'] }}</strong>
+                    <p class="text-muted mb-1 small">{{ $case['program'] }}</p>
+                  </div>
+                  <span class="badge {{ $badgeClass }}">{{ $case['status'] }}</span>
+                </div>
+                <p class="text-muted small mb-2"><strong>Descripción:</strong> {{ $case['summary'] }}</p>
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <div class="text-muted small">
+                    <i class="far fa-calendar me-1"></i>{{ $case['fecha_solicitud'] }}
+                  </div>
+                  <div class="text-muted small">
+                    Ajustes: <span class="fw-semibold">{{ $case['ajustes_count'] }}</span>
+                  </div>
+                  @if($case['puede_enviar_preaprobacion'])
+                    <div class="ms-auto">
+                      <form action="{{ route('asesora-tecnica.solicitudes.enviar-preaprobacion', $case['case_id']) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar esta solicitud a Asesoría Pedagógica para preaprobación? Esta acción cambiará el estado a \"Pendiente de preaprobación\".');">
+                          <i class="fas fa-paper-plane me-1"></i>Enviar a Preaprobación
+                        </button>
+                      </form>
+                    </div>
+                  @elseif($case['status'] === 'Pendiente de preaprobación')
+                    <div class="ms-auto">
+                      <span class="badge bg-warning text-dark">En preaprobación</span>
+                    </div>
+                  @elseif(in_array($case['status'], ['Pendiente de Aprobación', 'Aprobado', 'Rechazado']))
+                    <div class="ms-auto">
+                      <span class="text-muted small">Enviado</span>
+                    </div>
+                  @else
+                    <div class="ms-auto">
+                      <span class="text-muted small">Formular ajustes primero</span>
+                    </div>
+                  @endif
+                </div>
               </div>
             </div>
           @empty
@@ -106,24 +146,6 @@
     </div>
   </div>
 
-  <div class="row g-4">
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Seguimiento general</h5>
-          <p class="text-muted mb-0">Aún no hay datos suficientes para mostrar esta sección.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Actividad reciente</h5>
-          <p class="text-muted mb-0">Todavía no hay movimientos registrados.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 {{-- Modal ajustes por estudiante --}}
@@ -194,17 +216,26 @@
           row.className = 'd-flex justify-content-between align-items-start';
 
           var left = document.createElement('div');
+          left.className = 'flex-grow-1';
+          
           var title = document.createElement('div');
-          title.className = 'fw-semibold';
+          title.className = 'fw-semibold mb-1';
           title.textContent = ajuste.name || 'Ajuste sin titulo';
+          
+          var description = document.createElement('div');
+          description.className = 'text-muted small mb-2';
+          description.textContent = ajuste.description || 'No hay descripción';
+          
           var date = document.createElement('div');
-          date.className = 'text-muted small mb-1';
+          date.className = 'text-muted small';
           date.textContent = 'Actualizado ' + (ajuste.completed_at || 's/f');
+          
           left.appendChild(title);
+          left.appendChild(description);
           left.appendChild(date);
 
           var badge = document.createElement('span');
-          badge.className = 'badge bg-success-subtle text-success';
+          badge.className = 'badge bg-success-subtle text-success ms-2';
           badge.textContent = ajuste.status || 'En proceso';
 
           row.appendChild(left);

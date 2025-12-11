@@ -13,7 +13,7 @@
 
   <div class="page-header mb-4">
     <h1 class="h4 mb-1">Formular ajuste</h1>
-    <p class="text-muted mb-0">Registra un ajuste razonable para un estudiante.</p>
+    <p class="text-muted mb-0">Registra un ajuste razonable para un estudiante, se puede agregar mas de 1 ajuste.</p>
   </div>
 
   <form action="{{ route('asesora-tecnica.ajustes.store') }}" method="POST">

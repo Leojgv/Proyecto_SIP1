@@ -60,75 +60,65 @@
           <h5 class="card-title mb-0">Lista de Estudiantes</h5>
           <small class="text-muted">Estudiantes registrados con necesidades de apoyo educativo</small>
         </div>
-        <form method="GET" action="{{ route('coordinadora.estudiantes') }}" class="filters-group d-flex flex-wrap gap-2 align-items-center">
-          <input
-            type="text"
-            name="search"
-            value="{{ $filters['search'] ?? '' }}"
-            class="form-control filters-group__input"
-            placeholder="Buscar por nombre, rut o email..."
-          >
-          <select
-            name="carrera_id"
-            class="form-select filters-group__input"
-            onchange="this.form.submit()"
-          >
-            <option value="">Todas las carreras</option>
-            @foreach ($carreras as $carrera)
-              <option value="{{ $carrera->id }}" @selected(($filters['carrera_id'] ?? '') == $carrera->id)>{{ $carrera->nombre }}</option>
-            @endforeach
+        <div class="filters-group d-flex flex-wrap gap-2 align-items-center">
+          <input type="text" class="form-control filters-group__input" placeholder="Buscar estudiantes...">
+          <select class="form-select filters-group__input">
+            <option>Todas las carreras</option>
           </select>
-          <select
-            name="estado"
-            class="form-select filters-group__input"
-            onchange="this.form.submit()"
-          >
-            <option value="">Todos los estados</option>
-            <option value="activo" @selected(($filters['estado'] ?? '') === 'activo')>Con casos</option>
-            <option value="sin_casos" @selected(($filters['estado'] ?? '') === 'sin_casos')>Sin casos</option>
+          <select class="form-select filters-group__input">
+            <option>Todos los tipos</option>
           </select>
-          <button type="submit" class="btn btn-outline-secondary filters-group__submit">Filtrar</button>
-          @if(($filters['search'] ?? '') || ($filters['carrera_id'] ?? '') || ($filters['estado'] ?? ''))
-            <a href="{{ route('coordinadora.estudiantes') }}" class="btn btn-link text-decoration-none">Limpiar</a>
-          @endif
-        </form>
+        </div>
       </div>
 
-      <div class="students-list">
-        @forelse ($estudiantes as $est)
-          <article class="student-card">
-            <div class="d-flex gap-3 flex-wrap justify-content-between align-items-start">
-              <div>
-                <div class="student-card__name">{{ $est['nombre'] }} {{ $est['apellido'] }}</div>
-                <div class="text-muted small">{{ $est['rut'] ?? 'Sin rut' }}</div>
-                <div class="text-muted small">{{ $est['email'] ?? 'Sin email' }}</div>
-              </div>
-              <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="badge student-badge-light">{{ $est['tipo_discapacidad'] }}</span>
-                <span class="badge bg-success">{{ $est['estado'] }}</span>
-                <span class="badge student-badge-warning">{{ $est['casos'] }}</span>
-              </div>
-            </div>
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3">
-              <div class="text-muted small">
-                <strong class="student-card__label">Carrera:</strong> {{ $est['carrera'] ?? 'Sin carrera' }} <span class="ms-2">{{ $est['semestre'] }}</span>
-              </div>
-              <div class="d-flex gap-2">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-primary"
-                  title="Nuevo caso"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalNuevoCaso"
-                  data-estudiante-id="{{ $est['id'] }}"
-                  data-estudiante-nombre="{{ $est['nombre'] }} {{ $est['apellido'] }}"
-                >Nuevo Caso</button>
-              </div>
-            </div>
-          </article>
-        @empty
-          <p class="text-center text-muted py-4 mb-0">Aun no hay estudiantes registrados.</p>
-        @endforelse
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Carrera</th>
+              <th>Tipo de Discapacidad</th>
+              <th>Estado</th>
+              <th>Casos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse ($estudiantes as $est)
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ $est['nombre'] }} {{ $est['apellido'] }}</div>
+                  <div class="text-muted small">{{ $est['rut'] ?? 'Sin rut' }}</div>
+                  <div class="text-muted small">{{ $est['email'] ?? 'Sin email' }}</div>
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ $est['carrera'] ?? 'Sin carrera' }}</div>
+                  <small class="text-muted">{{ $est['semestre'] }}</small>
+                </td>
+                <td><span class="badge rounded-pill bg-light text-dark">{{ $est['tipo_discapacidad'] }}</span></td>
+                <td><span class="badge bg-success">{{ $est['estado'] }}</span></td>
+                <td><span class="badge bg-warning text-dark">{{ $est['casos'] }}</span></td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-primary"
+                      title="Nuevo caso"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalNuevoCaso"
+                      data-estudiante-id="{{ $est['id'] }}"
+                      data-estudiante-nombre="{{ $est['nombre'] }} {{ $est['apellido'] }}"
+                    >Nuevo Caso</button>
+                  </div>
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">Aun no hay estudiantes registrados.</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -255,9 +245,8 @@
     background: #fff;
     border-radius: 16px;
     padding: 1.25rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 12px 25px rgba(15, 23, 42, .08);
-    color: #1f2937;
+    border: 1px solid #f0f0f5;
+    box-shadow: 0 12px 25px rgba(15, 30, 60, .04);
   }
   .info-card__icon {
     width: 48px;
@@ -267,122 +256,20 @@
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
-    background: transparent;
-    color: #dc2626;
+  }
+  .table thead th {
+    color: #6b6c7f;
+    font-weight: 600;
+    border-bottom: 1px solid #ececf4;
   }
   .filters-group .filters-group__input {
     width: 220px;
     flex: 0 0 auto;
   }
-  .filters-group .filters-group__submit {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-  .students-page .students-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .students-page .student-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
-  }
-  .students-page .student-card__name {
-    color: #0f172a;
-    font-weight: 700;
-  }
-  .students-page .student-badge-light {
-    background-color: #f1f5f9;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
-  }
-  .students-page .student-badge-warning {
-    background-color: #facc15;
-    color: #1f2937;
-  }
-  .students-page .student-card__label {
-    color: #000 !important;
-  }
-  .dark-mode .students-page .student-card__label {
-    color: #e5e7eb !important;
-  }
-  .dark-mode .info-card {
-    background: #0f172a !important;
-    border-color: #1e293b !important;
-    color: #e5e7eb !important;
-    box-shadow: 0 12px 25px rgba(3, 7, 18, .35);
-  }
-  .dark-mode .info-card__icon {
-    background: transparent !important;
-    color: #e5e7eb !important;
-  }
-  .dark-mode .students-page {
-    background: transparent;
-    color: #e5e7eb;
-  }
-  .dark-mode .students-page .text-muted {
-    color: #9ca3af !important;
-  }
-  .dark-mode .filters-group .filters-group__input {
-    background: #0f172a;
-    color: #e5e7eb;
-    border-color: #1e293b;
-  }
-  .dark-mode .filters-group .filters-group__input::placeholder {
-    color: #9ca3af;
-  }
-  .dark-mode .filters-group .filters-group__submit {
-    color: #e5e7eb;
-    border-color: #1e293b;
-  }
-  .dark-mode .filters-group .filters-group__submit:hover {
-    background: #1e293b;
-  }
-  .dark-mode .students-page .student-card {
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 10px 30px rgba(3, 7, 18, .35);
-  }
-  .dark-mode .students-page .student-card__name {
-    color: #e5e7eb;
-  }
-  .dark-mode .students-page .student-badge-light {
-    background-color: #1f2937;
-    color: #e5e7eb;
-    border: 1px solid #273449;
-  }
-  .dark-mode .students-page .student-badge-warning {
-    background-color: #facc15;
-    color: #1f2937;
-  }
-  .dark-mode .filters-group__input,
-  .dark-mode .filters-group__submit {
-    background-color: #0f172a !important;
-    color: #e5e7eb !important;
-    border-color: #1f2937 !important;
-  }
-  .dark-mode .filters-group__input::placeholder {
-    color: #9ca3af !important;
-  }
-  .dark-mode .filters-group__submit.btn-outline-secondary {
-    color: #e5e7eb !important;
-  }
-  .dark-mode .filters-group__submit.btn-outline-secondary:hover {
-    background-color: #1f2937 !important;
-  }
-  .dark-mode .btn-link {
-    color: #9ca3af !important;
-  }
   @media (max-width: 768px) {
     .filters-group .filters-group__input {
       width: 100%;
       flex: 1 1 100%;
-    }
-    .filters-group .filters-group__submit {
-      width: 100%;
     }
   }
 </style>
