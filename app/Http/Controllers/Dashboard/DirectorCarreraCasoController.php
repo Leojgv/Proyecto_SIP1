@@ -20,7 +20,7 @@ class DirectorCarreraCasoController extends Controller
         // - Pendiente de preaprobación (casos enviados por Asesora Pedagógica)
         // - Pendiente de Aprobacion (casos que debe revisar y aprobar/rechazar)
         // También puede ver casos ya procesados (Aprobado/Rechazado) para historial
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'ajustesRazonables'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'ajustesRazonables'])
             ->where(function ($query) use ($directorId) {
                 $query->where('director_id', $directorId)
                     ->orWhereHas('estudiante.carrera', fn ($sub) => $sub->where('director_id', $directorId));
@@ -60,15 +60,63 @@ class DirectorCarreraCasoController extends Controller
             return back()->with('error', 'Solo se pueden aprobar solicitudes que estén en estado "Pendiente de preaprobación" o "Pendiente de Aprobación".');
         }
 
-        $solicitud->update([
-            'estado' => 'Aprobado',
-            'motivo_rechazo' => null,
-        ]);
+        // Validar que se hayan seleccionado ajustes
+        $ajustesSeleccionados = $request->input('ajustes', []);
+        $motivosRechazo = $request->input('motivos_rechazo', []);
 
-        // Actualizar el estado de todos los ajustes razonables asociados a "Aprobado"
-        $solicitud->ajustesRazonables()->update([
-            'estado' => 'Aprobado',
-        ]);
+        if (empty($ajustesSeleccionados)) {
+            return back()->with('error', 'Debes seleccionar la aprobación o rechazo para cada ajuste razonable.');
+        }
+
+        // Validar que todos los ajustes rechazados tengan motivo
+        foreach ($ajustesSeleccionados as $ajusteId => $decision) {
+            if ($decision === 'rechazado') {
+                if (empty($motivosRechazo[$ajusteId]) || trim($motivosRechazo[$ajusteId]) === '') {
+                    return back()->with('error', "Debes ingresar un motivo de rechazo para todos los ajustes rechazados.");
+                }
+            }
+        }
+
+        // Actualizar cada ajuste individualmente
+        foreach ($ajustesSeleccionados as $ajusteId => $decision) {
+            $ajuste = $solicitud->ajustesRazonables()->find($ajusteId);
+            
+            if ($ajuste) {
+                if ($decision === 'aprobado') {
+                    $ajuste->update([
+                        'estado' => 'Aprobado',
+                        'motivo_rechazo' => null,
+                    ]);
+                } else {
+                    $ajuste->update([
+                        'estado' => 'Rechazado',
+                        'motivo_rechazo' => $motivosRechazo[$ajusteId] ?? null,
+                    ]);
+                }
+            }
+        }
+
+        // Verificar si todos los ajustes fueron aprobados
+        $todosAprobados = $solicitud->ajustesRazonables()->where('estado', '!=', 'Aprobado')->count() === 0;
+        $algunosAprobados = $solicitud->ajustesRazonables()->where('estado', 'Aprobado')->count() > 0;
+
+        // Actualizar el estado de la solicitud
+        if ($todosAprobados) {
+            // Todos los ajustes aprobados
+            $solicitud->update([
+                'estado' => 'Aprobado',
+                'motivo_rechazo' => null,
+            ]);
+        } elseif ($algunosAprobados) {
+            // Algunos ajustes aprobados, algunos rechazados - el caso queda aprobado parcialmente
+            $solicitud->update([
+                'estado' => 'Aprobado',
+                'motivo_rechazo' => null,
+            ]);
+        } else {
+            // Todos rechazados - debería manejarse como rechazo total
+            return back()->with('error', 'No puedes rechazar todos los ajustes. Usa la opción "Rechazar/Devolver" para rechazar el caso completo.');
+        }
 
         $this->notifyOnApproval($solicitud);
         
@@ -82,7 +130,7 @@ class DirectorCarreraCasoController extends Controller
                 $asesorTecnico,
                 new DashboardNotification(
                     'Solicitud aprobada',
-                    "La solicitud de {$solicitud->estudiante->nombre} {$solicitud->estudiante->apellido} ha sido aprobada.",
+                    "La solicitud de {$solicitud->estudiante->nombre} {$solicitud->estudiante->apellido} ha sido aprobada con ajustes seleccionados.",
                     route('asesora-tecnica.casos.index'),
                     'Ver casos'
                 )
@@ -91,7 +139,7 @@ class DirectorCarreraCasoController extends Controller
 
         return redirect()
             ->route('director.dashboard')
-            ->with('status', 'Solicitud aprobada exitosamente. Los ajustes han sido notificados a los docentes correspondientes.');
+            ->with('status', 'Solicitud procesada exitosamente. Los ajustes seleccionados han sido notificados a los docentes correspondientes.');
     }
 
     public function reject(Request $request, Solicitud $solicitud): RedirectResponse

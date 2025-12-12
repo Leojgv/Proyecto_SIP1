@@ -222,6 +222,7 @@ class AsesoraPedagogicaDashboardController extends Controller
     {
         // Priorizar casos en "Pendiente de preaprobación"
         return $query
+            ->with(['ajustesRazonables'])
             ->where('estado', 'Pendiente de preaprobación')
             ->orWhere(function ($builder) {
                 $builder->whereNull('estado');
@@ -239,6 +240,16 @@ class AsesoraPedagogicaDashboardController extends Controller
                 $nombreEstudiante = trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? '')) ?: 'Estudiante sin nombre';
                 $programa = optional(optional($estudiante)->carrera)->nombre ?? 'Programa no asignado';
 
+                // Obtener los ajustes razonables asociados a esta solicitud
+                $ajustesRazonables = $solicitud->ajustesRazonables->map(function ($ajuste) {
+                    return [
+                        'nombre' => $ajuste->nombre ?? 'Ajuste sin nombre',
+                        'descripcion' => $ajuste->descripcion ?? 'sin desc',
+                        'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 's/f',
+                        'estado' => $ajuste->estado ?? 'Sin estado',
+                    ];
+                })->toArray();
+
                 return [
                     'case_id' => $solicitud->id,
                     'student' => $nombreEstudiante,
@@ -246,6 +257,7 @@ class AsesoraPedagogicaDashboardController extends Controller
                     'priority' => $this->inferirPrioridad($solicitud->estado),
                     'status' => $solicitud->estado ?? 'Pendiente',
                     'proposed_adjustment' => $solicitud->descripcion ?? 'Sin descripcion registrada.',
+                    'ajustes_razonables' => $ajustesRazonables,
                     'received_at' => optional($solicitud->fecha_solicitud ?? $solicitud->created_at)
                         ?->format('Y-m-d') ?? 's/f',
                     'send_url' => $solicitud->estado === 'Pendiente de preaprobación' 

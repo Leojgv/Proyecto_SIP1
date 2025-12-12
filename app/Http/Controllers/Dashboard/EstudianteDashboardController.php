@@ -53,6 +53,11 @@ class EstudianteDashboardController extends Controller
             ->where(fn ($query) => $query->whereNull('estado')->orWhere('estado', 'pendiente'))
             ->count();
 
+        // Contar ajustes rechazados para sumarlos a problemas detectados
+        $ajustesRechazados = $estudiante->ajustesRazonables()
+            ->where('estado', 'Rechazado')
+            ->count();
+
         $ajustesActivos = $estudiante->ajustesRazonables()
             ->where(function ($query) {
                 $query->whereNull('estado')
@@ -82,15 +87,23 @@ class EstudianteDashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Solo ajustes aprobados y activos (no rechazados)
         $misAjustes = $estudiante->ajustesRazonables()
             ->with('solicitud')
             ->whereHas('solicitud', function ($query) {
-                // Solo mostrar ajustes de solicitudes que NO estén rechazadas
                 $query->where('estado', '!=', 'Rechazado');
             })
             ->where('estado', '!=', 'Rechazado')
             ->orderByDesc('fecha_solicitud')
             ->take(5)
+            ->get();
+
+        // Ajustes rechazados (para mostrar en problemas detectados)
+        // Mostrar todos los ajustes rechazados, tengan o no motivo
+        $ajustesRechazadosList = $estudiante->ajustesRazonables()
+            ->with('solicitud')
+            ->where('estado', 'Rechazado')
+            ->orderByDesc('updated_at')
             ->get();
 
         return view('estudiantes.dashboard.index', [
@@ -100,12 +113,13 @@ class EstudianteDashboardController extends Controller
                 'ajustes_activos' => $ajustesActivos,
                 'entrevistas_programadas' => $proximasEntrevistas->count(),
                 'cursos_con_ajustes' => $cursosConAjustes,
-                'problemas_detectados' => $solicitudesPendientes,
+                'problemas_detectados' => $solicitudesPendientes + $ajustesRechazados, // Sumar ajustes rechazados a problemas detectados
                 'solicitudes_realizadas' => $solicitudesRealizadas,
             ],
             'proximasEntrevistas' => $proximasEntrevistas,
             'misSolicitudes' => $misSolicitudes,
             'misAjustes' => $misAjustes,
+            'ajustesRechazados' => $ajustesRechazadosList,
             'hoy' => $hoy,
         ]);
     }

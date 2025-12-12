@@ -36,9 +36,9 @@ class DocenteDashboardController extends Controller
                 'icon' => 'fa-user-graduate',
             ],
             [
-                'label' => 'Ajustes Activos',
-                'value' => $this->countAdjustmentsMatching($studentsWithAdjustments, fn ($estado) => $this->esAjusteActivo($estado)),
-                'helper' => 'En seguimiento',
+                'label' => 'Ajustes Aprobados',
+                'value' => $this->countAdjustmentsMatching($studentsWithAdjustments, fn ($estado) => strtolower($estado) === 'aprobado'),
+                'helper' => 'Aprobados por Dirección',
                 'icon' => 'fa-sliders',
             ],
             [
@@ -76,15 +76,30 @@ class DocenteDashboardController extends Controller
 
         // Obtener todos los estudiantes de la carrera del docente
         // Asegurarse de que solo se muestren estudiantes de la misma carrera
-        $estudiantes = \App\Models\Estudiante::with(['carrera', 'ajustesRazonables.solicitud'])
+        $estudiantes = \App\Models\Estudiante::with([
+            'carrera', 
+            'ajustesRazonables' => function($query) {
+                $query->where('estado', 'Aprobado')
+                      ->whereHas('solicitud', function($q) {
+                          $q->where('estado', 'Aprobado');
+                      });
+            },
+            'ajustesRazonables.solicitud'
+        ])
             ->where('carrera_id', $docente->carrera_id)
+            ->whereHas('ajustesRazonables', function($query) {
+                $query->where('estado', 'Aprobado')
+                      ->whereHas('solicitud', function($q) {
+                          $q->where('estado', 'Aprobado');
+                      });
+            })
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->get();
 
         // Formatear los estudiantes con sus ajustes
         $students = $estudiantes->map(function ($estudiante) {
-            $ajustes = $estudiante->ajustesRazonables;
+            $ajustes = $estudiante->ajustesRazonables->where('estado', 'Aprobado');
             $ultimoAjuste = $ajustes->sortByDesc('updated_at')->first();
 
             return [
@@ -94,23 +109,24 @@ class DocenteDashboardController extends Controller
                 'email' => $estudiante->email,
                 'telefono' => $estudiante->telefono,
                 'program' => $estudiante->carrera->nombre ?? 'Programa no asignado',
-                'status' => $ultimoAjuste ? $this->resolveEstadoAjuste($ultimoAjuste->estado) : 'Sin ajustes',
+                'status' => $ultimoAjuste ? 'Aprobado' : 'Sin ajustes aprobados',
                 'last_update' => $ultimoAjuste 
                     ? optional($ultimoAjuste->updated_at)->format('d/m/Y') ?? 's/f'
                     : 'Sin actualizaciones',
-                'applied_adjustments' => $ajustes->pluck('nombre')
+                'applied_adjustments' => $ajustes
+                    ->pluck('nombre')
                     ->filter()
-                    ->take(4)
                     ->values()
-                    ->all() ?: ['Sin ajustes registrados'],
-                'adjustments' => $ajustes->map(function ($ajuste) {
+                    ->all() ?: ['Sin ajustes aprobados'],
+                'adjustments' => $ajustes
+                    ->map(function ($ajuste) {
                     // Usar la descripción del ajuste, no de la solicitud
                     $descripcion = $ajuste->descripcion;
                     return [
                         'id' => $ajuste->id,
                         'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
-                        'description' => $descripcion ?? 'No hay descripcion.',
-                        'status' => $ajuste->estado ?? 'Activo',
+                        'description' => $descripcion ?? 'No hay descripción disponible para este ajuste razonable.',
+                        'status' => $ajuste->estado ?? 'Aprobado',
                         'category' => $this->resolveCategoriaAjuste($ajuste->estado),
                         'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
                         'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
@@ -138,16 +154,20 @@ class DocenteDashboardController extends Controller
         $docente->load('carrera');
 
         // Filtrar ajustes por estudiantes de la carrera del docente
-        // Asegurarse de que solo se muestren ajustes de estudiantes de la misma carrera
+        // Solo mostrar ajustes APROBADOS (que han sido aprobados por el Director de Carrera)
         return AjusteRazonable::query()
             ->with(['estudiante.carrera', 'solicitud'])
             ->whereHas('estudiante', function ($query) use ($docente) {
                 $query->where('carrera_id', $docente->carrera_id);
             })
+            ->where('estado', 'Aprobado') // Solo ajustes aprobados por el Director
+            ->whereHas('solicitud', function ($query) {
+                $query->where('estado', 'Aprobado'); // Solo de solicitudes aprobadas
+            })
             ->latest('updated_at')
             ->get()
             ->groupBy('estudiante_id')
-            ->filter(fn ($ajustes, $estudianteId) => $estudianteId)
+            ->filter(fn ($ajustes, $estudianteId) => $estudianteId && $ajustes->count() > 0)
             ->map(function ($ajustes) {
                 $first = $ajustes->first();
                 $estudiante = $first?->estudiante;
@@ -161,24 +181,27 @@ class DocenteDashboardController extends Controller
                     'last_update' => optional(
                         $ajustes->max('updated_at') ?? $first?->updated_at ?? $first?->created_at
                     )?->format('Y-m-d') ?? 's/f',
-                    'applied_adjustments' => $ajustes->pluck('nombre')
+                    'applied_adjustments' => $ajustes
+                        ->where('estado', 'Aprobado') // Solo ajustes aprobados
+                        ->pluck('nombre')
                         ->filter()
-                        ->take(4)
                         ->values()
-                        ->all() ?: ['Sin ajustes registrados'],
-                    'adjustments' => $ajustes->map(function (AjusteRazonable $ajuste) {
-                        // Usar la descripción del ajuste, no de la solicitud
-                        $descripcion = $ajuste->descripcion;
-                        return [
-                            'id' => $ajuste->id,
-                            'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
-                            'description' => $descripcion ?? 'Sin descripcion.',
-                            'status' => $ajuste->estado ?? 'Activo',
-                            'category' => $this->resolveCategoriaAjuste($ajuste->estado),
-                            'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
-                            'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
-                        ];
-                    })->values()->all(),
+                        ->all() ?: ['Sin ajustes aprobados'],
+                    'adjustments' => $ajustes
+                        ->where('estado', 'Aprobado') // Solo ajustes aprobados
+                        ->map(function (AjusteRazonable $ajuste) {
+                            // Usar la descripción del ajuste, no de la solicitud
+                            $descripcion = $ajuste->descripcion;
+                            return [
+                                'id' => $ajuste->id,
+                                'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
+                                'description' => $descripcion ?? 'No hay descripción disponible para este ajuste razonable.',
+                                'status' => $ajuste->estado ?? 'Aprobado',
+                                'category' => $this->resolveCategoriaAjuste($ajuste->estado),
+                                'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
+                                'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
+                            ];
+                        })->values()->all(),
                 ];
             })
             ->values();

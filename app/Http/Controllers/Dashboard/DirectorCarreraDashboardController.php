@@ -83,6 +83,7 @@ class DirectorCarreraDashboardController extends Controller
     {
         return Solicitud::with([
                 'estudiante.carrera',
+                'ajustesRazonables',
                 'asesor',
                 'ajustesRazonables',
             ])
@@ -121,7 +122,12 @@ class DirectorCarreraDashboardController extends Controller
                     'program' => optional(optional($solicitud->estudiante)->carrera)->nombre ?? 'Carrera no registrada',
                     'requested_by' => $solicitud->asesor?->nombre_completo ?? $solicitud->asesor?->name ?? 'Equipo de inclusion',
                     'support_focus' => $solicitud->descripcion ?? 'Sin descripcion registrada.',
-                    'adjustments' => $solicitud->ajustesRazonables->pluck('nombre')->filter()->take(3)->values()->all(),
+                    'adjustments' => $solicitud->ajustesRazonables->map(function ($ajuste) {
+                        return [
+                            'nombre' => $ajuste->nombre ?? 'Ajuste sin nombre',
+                            'descripcion' => $ajuste->descripcion ?? null,
+                        ];
+                    })->values()->all(),
                     'status' => $this->normalizeStatus($solicitud->estado),
                     'submitted_at' => $submittedAt instanceof Carbon ? $submittedAt->format('d/m/Y') : 'Sin fecha',
                     'priority' => $this->priorityLabel($priorityLevel),

@@ -15,6 +15,7 @@ class AjusteRazonable extends Model
         'descripcion',
         'fecha_solicitud',
         'estado',
+        'motivo_rechazo',
         'solicitud_id',
         'estudiante_id',
     ];

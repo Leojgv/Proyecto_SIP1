@@ -13,7 +13,7 @@ class CoordinadoraCasoController extends Controller
     {
         // La Coordinadora solo ve casos en estado "Pendiente de entrevista"
         // y casos que ya informó pero aún están en proceso inicial
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas'])
             ->whereIn('estado', [
                 'Pendiente de entrevista',
                 'Pendiente de formulación del caso'

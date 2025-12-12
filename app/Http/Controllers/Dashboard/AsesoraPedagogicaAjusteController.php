@@ -32,6 +32,7 @@ class AsesoraPedagogicaAjusteController extends Controller
                 return [
                     'student' => $nombreEstudiante,
                     'program' => $programa,
+                    'solicitud_id' => $primero->solicitud_id ?? null,
                     'items' => $items->map(function (AjusteRazonable $ajuste) {
                         return [
                             'nombre' => $ajuste->nombre ?? 'Ajuste sin nombre',

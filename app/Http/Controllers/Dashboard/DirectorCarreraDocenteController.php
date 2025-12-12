@@ -68,5 +68,35 @@ class DirectorCarreraDocenteController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Actualiza un docente
+     */
+    public function update(Request $request, Docente $docente): RedirectResponse
+    {
+        $directorId = $request->user()->id;
+
+        // Verificar que el docente pertenezca a una carrera del director
+        if (!$docente->carrera || $docente->carrera->director_id !== $directorId) {
+            abort(403, 'No tienes permiso para editar este docente.');
+        }
+
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:docentes,email,' . $docente->id],
+        ]);
+
+        $docente->update($validated);
+
+        // Actualizar también el email en el usuario relacionado si existe
+        if ($docente->user) {
+            $docente->user->update(['email' => $validated['email']]);
+        }
+
+        return redirect()
+            ->route('director.docentes')
+            ->with('status', 'Docente actualizado correctamente.');
+    }
 }
 

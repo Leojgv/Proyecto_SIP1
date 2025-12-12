@@ -52,6 +52,32 @@ class CoordinadoraEstudianteController extends Controller
 
         $estudiantes = $estudiantesCollection->map(function ($estudiante) {
             $casosActivos = $estudiante->solicitudes->count();
+            
+            // Cargar solicitudes con relaciones necesarias
+            $solicitudes = $estudiante->solicitudes()
+                ->with(['asesor', 'director', 'entrevistas.asesor'])
+                ->orderBy('fecha_solicitud', 'desc')
+                ->get()
+                ->map(function ($solicitud) {
+                    return [
+                        'id' => $solicitud->id,
+                        'fecha_solicitud' => $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f',
+                        'estado' => $solicitud->estado ?? 'Sin estado',
+                        'descripcion' => $solicitud->descripcion ?? 'Sin descripción',
+                        'motivo_rechazo' => $solicitud->motivo_rechazo ?? null,
+                        'coordinadora' => $solicitud->asesor ? $solicitud->asesor->nombre . ' ' . $solicitud->asesor->apellido : 'Sin asignar',
+                        'director' => $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado',
+                        'entrevistas' => $solicitud->entrevistas->map(function ($entrevista) {
+                            return [
+                                'fecha' => $entrevista->fecha?->format('d/m/Y') ?? 's/f',
+                                'hora_inicio' => $entrevista->fecha_hora_inicio?->format('H:i') ?? '--',
+                                'hora_fin' => $entrevista->fecha_hora_fin?->format('H:i') ?? '--',
+                                'modalidad' => $entrevista->modalidad ?? 'N/A',
+                                'asesor' => $entrevista->asesor ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : 'Sin asignar',
+                            ];
+                        })->toArray(),
+                    ];
+                })->toArray();
 
             return [
                 'nombre' => $estudiante->nombre,
@@ -64,6 +90,7 @@ class CoordinadoraEstudianteController extends Controller
                 'estado' => $casosActivos > 0 ? 'Activo' : 'Sin casos',
                 'casos' => $casosActivos,
                 'id' => $estudiante->id,
+                'solicitudes' => $solicitudes,
             ];
         });
 
