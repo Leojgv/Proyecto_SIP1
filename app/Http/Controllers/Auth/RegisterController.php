@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +29,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/estudiantes/dashboard';
 
     /**
      * Create a new controller instance.
@@ -64,11 +65,30 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        // Obtener o crear el rol de Estudiante
+        $rolEstudiante = Rol::where('nombre', 'Estudiante')->first();
+        
+        if (!$rolEstudiante) {
+            $rolEstudiante = Rol::create([
+                'nombre' => 'Estudiante',
+                'descripcion' => 'Usuario estudiante',
+            ]);
+        }
+
+        // Crear el usuario con el rol de Estudiante
+        $user = User::create([
             'nombre' => $data['nombre'],
             'apellido' => $data['apellido'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'rol_id' => $rolEstudiante->id,
         ]);
+
+        // Asignar el rol también en la tabla pivote
+        if (!$user->roles->contains($rolEstudiante->id)) {
+            $user->roles()->attach($rolEstudiante->id);
+        }
+
+        return $user;
     }
 }

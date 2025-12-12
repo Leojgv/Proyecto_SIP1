@@ -52,6 +52,7 @@
 
             <div class="mb-3">
               <label for="rut" class="form-label">RUT</label>
+              <small class="text-muted">Con punto y guion.</small>
               <input
                 type="text"
                 id="rut"
