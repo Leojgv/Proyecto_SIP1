@@ -45,18 +45,6 @@
     </div>
   @endif
 
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-      <div>
-        <h5 class="mb-1">¿Necesitas registrar un nuevo caso?</h5>
-        <p class="text-muted mb-0">Centraliza desde aqui la creacion de solicitudes y su seguimiento.</p>
-      </div>
-      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRegistrarSolicitud">
-        <i class="fas fa-plus me-2"></i>Registrar solicitud
-      </button>
-    </div>
-  </div>
-
   <div class="row g-4 mb-4">
     <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">
@@ -283,11 +271,29 @@
     position: absolute;
     bottom: .5rem;
     left: .5rem;
+    right: .5rem;
     background: #d62828;
     color: #fff;
-    border-radius: 999px;
-    padding: .2rem .5rem;
-    font-size: .75rem;
+    border-radius: 4px;
+    padding: .12rem .3rem;
+    font-size: .6rem;
+    text-align: center;
+    margin-bottom: .15rem;
+  }
+  .calendar-cell .event-dot:first-of-type {
+    bottom: .5rem;
+  }
+  .calendar-cell .event-dot:last-of-type {
+    bottom: .2rem;
+  }
+  .calendar-cell .event-dot-entrevista-virtual {
+    background: #0dcaf0;
+  }
+  .calendar-cell .event-dot-entrevista-presencial {
+    background: #198754;
+  }
+  .calendar-cell .event-dot-bloqueo {
+    background: #6b7280;
   }
   .event-chip {
     border: 1px solid #f0f0f5;
@@ -297,18 +303,16 @@
     box-shadow: 0 2px 6px rgba(0,0,0,.05);
   }
   .event-chip i { color: #d62828; }
+  .event-chip-bloqueo {
+    border-color: #d1d5db;
+    background: #f9fafb;
+  }
+  .event-chip-bloqueo i { color: #6b7280; }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const events = @json(
-      ($proximasEntrevistas ?? collect())->map(function ($entrevista) {
-          return [
-              'date' => optional($entrevista->fecha_hora_inicio ?? $entrevista->fecha)->format('Y-m-d'),
-              'label' => trim(($entrevista->solicitud->estudiante->nombre ?? 'Estudiante') . ' ' . ($entrevista->solicitud->estudiante->apellido ?? '')),
-          ];
-      })
-    );
+    const events = @json($eventosCalendario ?? []);
 
     const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
     const grid = document.getElementById('calendarGrid');
@@ -355,10 +359,46 @@
 
         const dayEvents = events.filter(ev => ev.date === dateStr);
         if (dayEvents.length) {
-          const dot = document.createElement('div');
-          dot.className = 'event-dot';
-          dot.textContent = `${dayEvents.length} entrevista${dayEvents.length > 1 ? 's' : ''}`;
-          cell.appendChild(dot);
+          const entrevistas = dayEvents.filter(ev => ev.type === 'entrevista');
+          const bloqueos = dayEvents.filter(ev => ev.type === 'bloqueo');
+          
+          if (entrevistas.length > 0) {
+            // Separar entrevistas por modalidad
+            const entrevistasVirtuales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'virtual');
+            const entrevistasPresenciales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'presencial');
+            const entrevistasSinModalidad = entrevistas.filter(ev => !ev.modalidad || (ev.modalidad.toLowerCase() !== 'virtual' && ev.modalidad.toLowerCase() !== 'presencial'));
+            
+            // Mostrar entrevistas virtuales en celeste
+            if (entrevistasVirtuales.length > 0) {
+              const dot = document.createElement('div');
+              dot.className = 'event-dot event-dot-entrevista-virtual';
+              dot.textContent = `${entrevistasVirtuales.length} entrevista${entrevistasVirtuales.length > 1 ? 's' : ''} virtual${entrevistasVirtuales.length > 1 ? 'es' : ''}`;
+              cell.appendChild(dot);
+            }
+            
+            // Mostrar entrevistas presenciales en verde
+            if (entrevistasPresenciales.length > 0) {
+              const dot = document.createElement('div');
+              dot.className = 'event-dot event-dot-entrevista-presencial';
+              dot.textContent = `${entrevistasPresenciales.length} entrevista${entrevistasPresenciales.length > 1 ? 's' : ''} presencial${entrevistasPresenciales.length > 1 ? 'es' : ''}`;
+              cell.appendChild(dot);
+            }
+            
+            // Mostrar entrevistas sin modalidad definida en rojo (por defecto)
+            if (entrevistasSinModalidad.length > 0) {
+              const dot = document.createElement('div');
+              dot.className = 'event-dot';
+              dot.textContent = `${entrevistasSinModalidad.length} entrevista${entrevistasSinModalidad.length > 1 ? 's' : ''}`;
+              cell.appendChild(dot);
+            }
+          }
+          
+          if (bloqueos.length > 0) {
+            const dot = document.createElement('div');
+            dot.className = 'event-dot event-dot-bloqueo';
+            dot.textContent = `${bloqueos.length} bloqueo${bloqueos.length > 1 ? 's' : ''}`;
+            cell.appendChild(dot);
+          }
         }
 
         grid.appendChild(cell);
@@ -367,8 +407,16 @@
       eventsList.innerHTML = '';
       events.forEach(ev => {
         const chip = document.createElement('span');
-        chip.className = 'event-chip';
-        chip.innerHTML = `<i class="fas fa-calendar-day me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.label}`;
+        if (ev.type === 'bloqueo') {
+          chip.className = 'event-chip event-chip-bloqueo';
+          chip.innerHTML = `<i class="fas fa-ban me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+        } else {
+          chip.className = 'event-chip';
+          const iconColor = ev.modalidad && ev.modalidad.toLowerCase() === 'virtual' ? 'text-info' : 
+                           ev.modalidad && ev.modalidad.toLowerCase() === 'presencial' ? 'text-success' : 
+                           'text-danger';
+          chip.innerHTML = `<i class="fas fa-calendar-day me-1 ${iconColor}"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+        }
         eventsList.appendChild(chip);
       });
     }

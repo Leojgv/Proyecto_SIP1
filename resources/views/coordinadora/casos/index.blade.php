@@ -56,7 +56,40 @@
             </h2>
             <div id="{{ $collapseId }}" class="accordion-collapse collapse" aria-labelledby="{{ $headingId }}" data-bs-parent="#casosAccordion">
               <div class="accordion-body case-body">
-                <p class="text-muted mb-2"><strong>Descripcion:</strong> {{ $solicitud->descripcion ?: 'Sin descripcion registrada.' }}</p>
+                <div class="row g-3 mb-3">
+                  <div class="col-12">
+                    <div class="border rounded p-3 bg-light">
+                      @if($solicitud->titulo)
+                      <small class="text-muted d-block mb-1">
+                        <i class="fas fa-heading me-1"></i><strong>Título</strong>
+                      </small>
+                      <div class="fw-semibold mb-3">{{ $solicitud->titulo }}</div>
+                      @endif
+                      <small class="text-muted d-block mb-2">
+                        <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+                      </small>
+                      <div class="text-muted" style="line-height: 1.6;">{{ $solicitud->descripcion ?: 'Sin descripción registrada.' }}</div>
+                    </div>
+                  </div>
+                  @if($solicitud->entrevistas->isNotEmpty())
+                    @php
+                      $entrevista = $solicitud->entrevistas->first();
+                      $modalidad = $entrevista->modalidad ?? null;
+                    @endphp
+                    @if($modalidad)
+                    <div class="col-12">
+                      <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
+                        </small>
+                        <div class="fw-semibold">
+                          <span class="badge {{ $modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">{{ $modalidad }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    @endif
+                  @endif
+                </div>
                 <div class="d-flex flex-wrap align-items-center gap-3">
                   <div class="text-muted small">Solicitado el {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</div>
                   <div class="ms-auto">

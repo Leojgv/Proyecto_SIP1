@@ -22,12 +22,19 @@
           <div class="accordion-item caso-card border-0 mb-3 shadow-sm">
             <h2 class="accordion-header" id="{{ $headingId }}">
               <button class="accordion-button caso-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="false" aria-controls="{{ $collapseId }}">
-                <div class="d-flex align-items-center gap-3 w-100">
-                  <div>
-                    <div class="fw-semibold">{{ $grupo['student'] }}</div>
-                    <small class="text-muted">{{ $grupo['program'] }}</small>
+                <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <div>
+                      <div class="fw-semibold">{{ $grupo['student'] }}</div>
+                      <small class="text-muted">{{ $grupo['program'] }}</small>
+                    </div>
+                    <span class="badge bg-info text-dark">{{ count($grupo['items']) }} ajuste(s)</span>
                   </div>
-                  <span class="badge bg-info text-dark">{{ count($grupo['items']) }} ajuste(s)</span>
+                  @if(!empty($grupo['solicitud_id']))
+                    <a href="{{ route('asesora-pedagogica.casos.show', $grupo['solicitud_id']) }}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                      <i class="fas fa-eye me-1"></i>Ver caso
+                    </a>
+                  @endif
                 </div>
               </button>
             </h2>
@@ -46,9 +53,6 @@
                     <span class="badge {{ $item['estado'] === 'Aprobado' ? 'bg-success-subtle text-success' : ($item['estado'] === 'Rechazado' ? 'bg-danger-subtle text-danger' : 'bg-warning text-dark') }}">
                       {{ $item['estado'] }}
                     </span>
-                    <a href="{{ route('asesora-pedagogica.casos.show', $item['solicitud_id']) }}" class="btn btn-sm btn-outline-primary">
-                      <i class="fas fa-eye me-1"></i>Ver caso
-                    </a>
                   </div>
                   </div>
                 @endforeach

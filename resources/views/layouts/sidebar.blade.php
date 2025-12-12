@@ -1,4 +1,4 @@
-﻿<aside class="main-sidebar sidebar-dark-primary elevation-4">
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
   <!-- Logo -->
   <a href="{{ url('/') }}" class="brand-link">
     <span class="brand-text fw-light">AdminLTE Laravel</span>

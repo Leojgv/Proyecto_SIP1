@@ -63,17 +63,55 @@
           </div>
           @forelse ($casesForReview as $case)
             <div class="case-item">
-              <div>
-                <strong>{{ $case['student'] }}</strong>
-                <p class="text-muted mb-1">{{ $case['program'] }}</p>
-                <p class="text-muted small mb-0">{{ $case['proposed_adjustment'] }}</p>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <strong>{{ $case['student'] }}</strong>
+                    <p class="text-muted mb-1 small">{{ $case['program'] }}</p>
+                  </div>
+                  <div class="text-end">
+                    <span class="badge priority-badge priority-{{ Str::slug(strtolower($case['priority'])) }}">{{ $case['priority'] }}</span>
+                    <span class="badge status-badge">{{ $case['status'] }}</span>
+                  </div>
+                </div>
+                @if(!empty($case['ajustes_razonables']))
+                  <div class="mb-2">
+                    @foreach($case['ajustes_razonables'] as $ajuste)
+                      <div class="border rounded p-2 mb-2 bg-light">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <div class="flex-grow-1">
+                            <strong class="small">
+                              <i class="fas fa-check-circle text-success me-1"></i>{{ $ajuste['nombre'] }}
+                            </strong>
+                            <div class="mt-1">
+                              <small class="text-muted d-block">
+                                {{ $ajuste['descripcion'] ?? 'sin desc' }}
+                              </small>
+                              <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Fecha de solicitud: {{ $ajuste['fecha_solicitud'] }}
+                              </small>
+                            </div>
+                          </div>
+                          <span class="badge 
+                            @if(str_contains($ajuste['estado'] ?? '', 'Pendiente')) bg-warning text-dark
+                            @elseif(str_contains($ajuste['estado'] ?? '', 'Aprobado')) bg-success
+                            @elseif(str_contains($ajuste['estado'] ?? '', 'Rechazado')) bg-danger
+                            @else bg-secondary
+                            @endif ms-2">
+                            {{ $ajuste['estado'] }}
+                          </span>
+                        </div>
+                      </div>
+                    @endforeach
+                  </div>
+                @else
+                  <p class="text-muted small mb-0">{{ $case['proposed_adjustment'] }}</p>
+                @endif
               </div>
               <div class="text-end">
-                <span class="badge priority-badge priority-{{ Str::slug(strtolower($case['priority'])) }}">{{ $case['priority'] }}</span>
-                <span class="badge status-badge">{{ $case['status'] }}</span>
-                <p class="text-muted small mb-0">Recibido: {{ $case['received_at'] }}</p>
-                <div class="mt-2 d-flex gap-2 justify-content-end flex-wrap">
-                  <a href="{{ $case['detail_url'] ?? route('asesora-pedagogica.casos.show', $case['case_id']) }}" class="btn btn-sm btn-outline-primary">
+                <p class="text-muted small mb-2">Recibido: {{ $case['received_at'] }}</p>
+                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                  <a href="{{ $case['detail_url'] ?? route('asesora-pedagogica.casos.show', $case['case_id']) }}" class="btn btn-sm btn-outline-danger">
                     <i class="fas fa-eye me-1"></i>Ver detalles
                   </a>
                   @if (!empty($case['send_url']) && $case['status'] === 'Pendiente de preaprobación')

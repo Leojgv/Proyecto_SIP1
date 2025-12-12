@@ -34,35 +34,59 @@
           <h5 class="card-title mb-1">
             Mis Estudiantes con Ajustes
           </h5>
-          <small class="text-muted">Estudiantes bajo tu supervision con ajustes razonables activos.</small>
+          <small class="text-muted">Estudiantes bajo tu supervisión con ajustes razonables aprobados por Dirección de Carrera.</small>
         </div>
         <a href="{{ route('docente.estudiantes') }}" class="btn btn-outline-danger btn-sm">Ver todos</a>
       </div>
       @forelse ($studentAdjustments as $student)
         <div class="student-item">
           <div class="student-item__header">
-            <div>
-              <h5 class="mb-0">{{ $student['student'] }}</h5>
-              <small class="text-muted d-block">RUT: {{ $student['rut'] }} - {{ $student['program'] }}</small>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="student-avatar">
+                  <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                  <h5 class="mb-0">{{ $student['student'] }}</h5>
+                  <small class="text-muted d-block">
+                    <i class="fas fa-id-card me-1"></i>RUT: {{ $student['rut'] }}
+                  </small>
+                  <small class="text-muted d-block">
+                    <i class="fas fa-graduation-cap me-1"></i>{{ $student['program'] }}
+                  </small>
+                </div>
+              </div>
             </div>
           </div>
           <div class="student-item__body">
-            <p class="text-muted text-uppercase small mb-1">Ajustes aplicados</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="mb-1 fw-semibold">
+                  <i class="fas fa-sliders text-danger me-2"></i>Ajustes Aprobados
+                </h6>
+                <small class="text-muted">Ajustes razonables aprobados por Dirección de Carrera</small>
+              </div>
+              <span class="badge bg-success">{{ count($student['applied_adjustments']) }}</span>
+            </div>
             <div class="d-flex flex-wrap gap-2 mb-3">
               @foreach ($student['applied_adjustments'] as $adjustment)
-                <span class="badge rounded-pill bg-light text-secondary">{{ $adjustment }}</span>
+                <span class="badge bg-light text-danger border border-danger">
+                  <i class="fas fa-check-circle text-success me-1"></i>{{ $adjustment }}
+                </span>
               @endforeach
             </div>
-            <div class="d-flex justify-content-between flex-wrap align-items-center gap-2">
-              <small class="text-muted">Ultima actualizacion: {{ $student['last_update'] }}</small>
+            <div class="d-flex justify-content-between flex-wrap align-items-center gap-2 pt-2 border-top">
+              <small class="text-muted">
+                <i class="fas fa-clock me-1"></i>Última actualización: {{ $student['last_update'] }}
+              </small>
               <div class="d-flex gap-2">
                 @if($student['student_id'])
-                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#detallesAjustesModal{{ $student['student_id'] }}">
-                    <i class="fas fa-info-circle me-1"></i>Ver Detalles
+                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#detallesAjustesModal{{ $student['student_id'] }}">
+                    <i class="fas fa-eye me-1"></i>Ver Detalles
                   </button>
                 @else
-                  <button type="button" class="btn btn-danger btn-sm" disabled>
-                    <i class="fas fa-info-circle me-1"></i>Ver Detalles
+                  <button type="button" class="btn btn-sm btn-danger" disabled>
+                    <i class="fas fa-eye me-1"></i>Ver Detalles
                   </button>
                 @endif
               </div>
@@ -70,7 +94,10 @@
           </div>
         </div>
       @empty
-        <p class="text-muted mb-0">Aun no registras estudiantes con ajustes activos.</p>
+        <div class="text-center py-4">
+          <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+          <p class="text-muted mb-0">Aún no hay estudiantes con ajustes aprobados.</p>
+        </div>
       @endforelse
     </div>
   </div>
@@ -98,42 +125,40 @@
               <hr>
 
               <div class="mb-3">
-                <h6 class="text-muted mb-3">Ajustes Razonables Formulados por la Asesora Técnica</h6>
+                <h6 class="fw-semibold mb-3">
+                  <i class="fas fa-sliders text-danger me-2"></i>Ajustes Razonables Aprobados
+                </h6>
                 @if(!empty($student['adjustments']))
                   @foreach($student['adjustments'] as $index => $ajuste)
-                    <div class="card border mb-3">
-                      <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                          <h6 class="card-title mb-0">{{ $ajuste['name'] ?? 'Ajuste sin título' }}</h6>
-                          <span class="badge rounded-pill bg-light text-secondary text-capitalize">{{ $ajuste['category'] ?? 'General' }}</span>
+                    <div class="border rounded p-3 mb-3 bg-light">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-semibold mb-0">
+                          <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste['name'] ?? 'Ajuste sin título' }}
+                        </h6>
+                        <span class="badge bg-success">Aprobado</span>
+                      </div>
+                      <p class="text-muted small mb-3">{{ $ajuste['description'] ?? 'No hay descripción disponible para este ajuste razonable.' }}</p>
+                      
+                      <div class="row g-2">
+                        <div class="col-md-6">
+                          <small class="text-muted d-block">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <strong>Fecha de solicitud:</strong> {{ $ajuste['fecha_solicitud'] ?? 'No especificada' }}
+                          </small>
                         </div>
-                        <p class="text-muted small mb-3">{{ $ajuste['description'] ?? 'Sin descripción disponible.' }}</p>
-                        
-                        <div class="row g-2 mb-2">
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-calendar-alt me-1"></i>
-                              <strong>Fecha de solicitud:</strong> {{ $ajuste['fecha_solicitud'] ?? 'No especificada' }}
-                            </small>
-                          </div>
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-tag me-1"></i>
-                              <strong>Estado:</strong> {{ $ajuste['status'] ?? 'Activo' }}
-                            </small>
-                          </div>
-                          <div class="col-md-6">
-                            <small class="text-muted d-block">
-                              <i class="fas fa-clock me-1"></i>
-                              <strong>Formulado el:</strong> {{ $ajuste['created_at'] ?? 'No disponible' }}
-                            </small>
-                          </div>
+                        <div class="col-md-6">
+                          <small class="text-muted d-block">
+                            <i class="fas fa-clock me-1"></i>
+                            <strong>Aprobado el:</strong> {{ $ajuste['created_at'] ?? 'No disponible' }}
+                          </small>
                         </div>
                       </div>
                     </div>
                   @endforeach
                 @else
-                  <p class="text-muted">No hay ajustes registrados para este estudiante.</p>
+                  <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>No hay ajustes aprobados para este estudiante.
+                  </div>
                 @endif
               </div>
 
@@ -158,14 +183,19 @@
       </div>
       @forelse ($recentNotifications as $notification)
         <div class="notification-item">
-          <div>
-            <h6 class="mb-0">{{ $notification['title'] }}</h6>
-            <p class="text-muted mb-0">{{ $notification['message'] }}</p>
+          <div class="flex-grow-1">
+            <h6 class="mb-1 fw-semibold">
+              <i class="fas fa-bell text-danger me-2"></i>{{ $notification['title'] }}
+            </h6>
+            <p class="text-muted small mb-0">{{ $notification['message'] }}</p>
           </div>
-          <small class="text-muted">{{ $notification['time'] }}</small>
+          <small class="text-muted text-nowrap">{{ $notification['time'] }}</small>
         </div>
       @empty
-        <p class="text-muted mb-0">Sin notificaciones recientes.</p>
+        <div class="text-center py-4">
+          <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">Sin notificaciones recientes.</p>
+        </div>
       @endforelse
     </div>
   </div>
@@ -210,17 +240,38 @@
     font-size: 2rem;
   }
   .student-item {
-    border: 1px solid #f0f0f5;
+    border: 1px solid #e5e7eb;
     border-radius: 1rem;
-    padding: 1.25rem;
+    padding: 1.5rem;
     background: #fff;
     margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .student-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+  .student-item__header {
+    margin-bottom: 1rem;
+  }
+  .student-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
   }
   .student-item__body {
-    background: #fff9f7;
+    background: #fff7f7;
     border-radius: .85rem;
-    padding: 1rem;
-    margin-top: 1rem;
+    padding: 1.25rem;
+    border: 1px solid #fce8e8;
   }
   .status-pill {
     border-radius: 999px;
@@ -241,16 +292,24 @@
     color: #047857;
   }
   .notification-item {
-    border: 1px solid #f4e4df;
+    border: 1px solid #e5e7eb;
     border-radius: .85rem;
     padding: 1rem;
     margin-bottom: .75rem;
-    background: #fff9f8;
+    background: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    transition: background .2s ease;
+  }
+  .notification-item:hover {
+    background: #fff7f7;
+  }
+  .badge.bg-light.text-danger {
+    font-weight: 500;
+    padding: .5rem .75rem;
   }
 </style>
 @endpush

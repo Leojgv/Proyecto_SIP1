@@ -47,7 +47,6 @@
               <h5 class="card-title mb-0">Casos asignados</h5>
               <small class="text-muted">Casos que requieren ajustes razonables</small>
             </div>
-            <a href="{{ route('solicitudes.index') }}" class="btn btn-sm btn-outline-danger">Ver todos</a>
           </div>
           @forelse ($assignedCases as $case)
             @php
@@ -115,7 +114,6 @@
               <h5 class="card-title mb-0">Ajustes completados recientemente</h5>
               <small class="text-muted">Últimos ajustes enviados a revisión</small>
             </div>
-            <a href="{{ route('ajustes-razonables.index') }}" class="btn btn-sm btn-outline-danger">Historial</a>
           </div>
           @forelse ($recentAdjustments as $adjustment)
             <div class="timeline-item">

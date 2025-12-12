@@ -224,6 +224,12 @@
   .calendar-cell .event-dot-entrevista {
     background: #dc2626;
   }
+  .calendar-cell .event-dot-entrevista-virtual {
+    background: #0dcaf0;
+  }
+  .calendar-cell .event-dot-entrevista-presencial {
+    background: #198754;
+  }
   .calendar-cell .event-dot-bloqueo {
     background: #6b7280;
   }
@@ -233,6 +239,27 @@
   }
   .calendar-grid-agenda .calendar-cell .event-dot:last-of-type {
     bottom: .05rem;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot-indicator {
+    position: absolute;
+    bottom: .2rem;
+    left: .2rem;
+    right: .2rem;
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: .1rem;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot-indicator-virtual {
+    background: #0dcaf0;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot-indicator-presencial {
+    background: #198754;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot-indicator-default {
+    background: #dc2626;
+  }
+  .calendar-grid-agenda .calendar-cell .event-dot-indicator-bloqueo {
+    background: #6b7280;
   }
   .event-chip {
     border: 1px solid #f0f0f5;
@@ -313,17 +340,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const bloqueos = dayEvents.filter(ev => ev.type === 'bloqueo');
         
         if (entrevistas.length > 0) {
-          const dot = document.createElement('div');
-          dot.className = 'event-dot event-dot-entrevista';
-          dot.textContent = `${entrevistas.length} entrevista${entrevistas.length > 1 ? 's' : ''}`;
-          cell.appendChild(dot);
+          // Separar entrevistas por modalidad
+          const entrevistasVirtuales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'virtual');
+          const entrevistasPresenciales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'presencial');
+          const entrevistasSinModalidad = entrevistas.filter(ev => !ev.modalidad || (ev.modalidad.toLowerCase() !== 'virtual' && ev.modalidad.toLowerCase() !== 'presencial'));
+          
+          // En el mini calendario solo mostrar indicadores de color sin texto
+          if (entrevistasVirtuales.length > 0) {
+            const indicator = document.createElement('div');
+            indicator.className = 'event-dot-indicator event-dot-indicator-virtual';
+            indicator.title = `${entrevistasVirtuales.length} entrevista${entrevistasVirtuales.length > 1 ? 's' : ''} virtual${entrevistasVirtuales.length > 1 ? 'es' : ''}`;
+            cell.appendChild(indicator);
+          }
+          
+          if (entrevistasPresenciales.length > 0) {
+            const indicator = document.createElement('div');
+            indicator.className = 'event-dot-indicator event-dot-indicator-presencial';
+            indicator.title = `${entrevistasPresenciales.length} entrevista${entrevistasPresenciales.length > 1 ? 's' : ''} presencial${entrevistasPresenciales.length > 1 ? 'es' : ''}`;
+            cell.appendChild(indicator);
+          }
+          
+          if (entrevistasSinModalidad.length > 0) {
+            const indicator = document.createElement('div');
+            indicator.className = 'event-dot-indicator event-dot-indicator-default';
+            indicator.title = `${entrevistasSinModalidad.length} entrevista${entrevistasSinModalidad.length > 1 ? 's' : ''}`;
+            cell.appendChild(indicator);
+          }
         }
         
         if (bloqueos.length > 0) {
-          const dot = document.createElement('div');
-          dot.className = 'event-dot event-dot-bloqueo';
-          dot.textContent = `${bloqueos.length} bloqueo${bloqueos.length > 1 ? 's' : ''}`;
-          cell.appendChild(dot);
+          // En el mini calendario solo mostrar indicador de color sin texto
+          const indicator = document.createElement('div');
+          indicator.className = 'event-dot-indicator event-dot-indicator-bloqueo';
+          indicator.title = `${bloqueos.length} bloqueo${bloqueos.length > 1 ? 's' : ''}`;
+          cell.appendChild(indicator);
         }
       }
 
@@ -381,10 +431,34 @@ document.addEventListener('DOMContentLoaded', function () {
         const bloqueos = dayEvents.filter(ev => ev.type === 'bloqueo');
         
         if (entrevistas.length > 0) {
-          const dot = document.createElement('div');
-          dot.className = 'event-dot event-dot-entrevista';
-          dot.textContent = `${entrevistas.length} entrevista${entrevistas.length > 1 ? 's' : ''}`;
-          cell.appendChild(dot);
+          // Separar entrevistas por modalidad
+          const entrevistasVirtuales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'virtual');
+          const entrevistasPresenciales = entrevistas.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'presencial');
+          const entrevistasSinModalidad = entrevistas.filter(ev => !ev.modalidad || (ev.modalidad.toLowerCase() !== 'virtual' && ev.modalidad.toLowerCase() !== 'presencial'));
+          
+          // Mostrar entrevistas virtuales en celeste
+          if (entrevistasVirtuales.length > 0) {
+            const dot = document.createElement('div');
+            dot.className = 'event-dot event-dot-entrevista-virtual';
+            dot.textContent = `${entrevistasVirtuales.length} entrevista${entrevistasVirtuales.length > 1 ? 's' : ''} virtual${entrevistasVirtuales.length > 1 ? 'es' : ''}`;
+            cell.appendChild(dot);
+          }
+          
+          // Mostrar entrevistas presenciales en verde
+          if (entrevistasPresenciales.length > 0) {
+            const dot = document.createElement('div');
+            dot.className = 'event-dot event-dot-entrevista-presencial';
+            dot.textContent = `${entrevistasPresenciales.length} entrevista${entrevistasPresenciales.length > 1 ? 's' : ''} presencial${entrevistasPresenciales.length > 1 ? 'es' : ''}`;
+            cell.appendChild(dot);
+          }
+          
+          // Mostrar entrevistas sin modalidad definida en rojo (por defecto)
+          if (entrevistasSinModalidad.length > 0) {
+            const dot = document.createElement('div');
+            dot.className = 'event-dot event-dot-entrevista';
+            dot.textContent = `${entrevistasSinModalidad.length} entrevista${entrevistasSinModalidad.length > 1 ? 's' : ''}`;
+            cell.appendChild(dot);
+          }
         }
         
         if (bloqueos.length > 0) {

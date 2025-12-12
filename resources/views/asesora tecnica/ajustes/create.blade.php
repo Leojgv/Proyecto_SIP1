@@ -32,9 +32,9 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="estudiante_id" class="form-label fw-semibold">
-                <i class="fas fa-user me-2 text-danger"></i>Estudiante <span class="text-danger">*</span>
+                Estudiante <span class="text-danger">*</span>
               </label>
-              <select id="estudiante_id" name="estudiante_id" class="form-select form-select-lg @error('estudiante_id') is-invalid @enderror" required>
+              <select id="estudiante_id" name="estudiante_id" class="form-select @error('estudiante_id') is-invalid @enderror" required>
                 <option value="">Selecciona un estudiante</option>
                 @foreach($estudiantes as $estudiante)
                   @php
@@ -57,9 +57,9 @@
 
             <div class="mb-0">
               <label for="solicitud_id" class="form-label fw-semibold">
-                <i class="fas fa-file-alt me-2 text-danger"></i>Solicitud asociada <span class="text-danger">*</span>
+                Solicitud asociada <span class="text-danger">*</span>
               </label>
-              <select id="solicitud_id" name="solicitud_id" class="form-select form-select-lg @error('solicitud_id') is-invalid @enderror" required>
+              <select id="solicitud_id" name="solicitud_id" class="form-select @error('solicitud_id') is-invalid @enderror" required>
                 <option value="">Selecciona una solicitud</option>
                 @foreach($solicitudes as $solicitud)
                   @php
@@ -74,7 +74,9 @@
                     $textoMostrar = $titulo ?: $descripcionSinTitulo;
                     $textoMostrar = \Illuminate\Support\Str::limit($textoMostrar, 60);
                   @endphp
-                  <option value="{{ $solicitud->id }}" @selected(old('solicitud_id') == $solicitud->id)>
+                  <option value="{{ $solicitud->id }}" 
+                          data-estudiante-id="{{ $solicitud->estudiante_id }}"
+                          @selected(old('solicitud_id') == $solicitud->id)>
                     {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }} - {{ $solicitud->estudiante->nombre ?? '' }} {{ $solicitud->estudiante->apellido ?? '' }}
                     @if($textoMostrar)
                       | {{ $textoMostrar }}
@@ -84,7 +86,7 @@
               </select>
               @error('solicitud_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
               <small class="text-muted d-block mt-2">
-                <i class="fas fa-info-circle me-1"></i>Se muestra la fecha, estudiante y título/descripción de la solicitud
+                <i class="fas fa-info-circle me-1"></i>Se mostrarán solo las solicitudes del estudiante seleccionado
               </small>
             </div>
           </div>
@@ -103,9 +105,9 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="tipo_ajuste" class="form-label fw-semibold">
-                <i class="fas fa-tags me-2 text-primary"></i>Tipo de Ajuste Razonable
+                Tipo de Ajuste Razonable
               </label>
-              <select id="tipo_ajuste" class="form-select form-select-lg">
+              <select id="tipo_ajuste" class="form-select">
                 <option value="">Selecciona un tipo de ajuste (se sugerirán según la discapacidad del estudiante)</option>
                 @php
                   // Tipos de ajustes razonables según discapacidad
@@ -181,7 +183,7 @@
                 @endforeach
               </select>
               <small class="text-muted d-block mt-2">
-                <i class="fas fa-lightbulb me-1"></i>Al seleccionar un estudiante, se filtrarán los tipos de ajustes según su discapacidad
+                Al seleccionar un estudiante, se filtrarán los tipos de ajustes según su discapacidad
               </small>
             </div>
 
@@ -200,20 +202,28 @@
           </div>
           <div class="card-body">
             <div class="row g-3">
-              <div class="col-12">
-                <label for="nombre" class="form-label fw-semibold">
-                  <i class="fas fa-heading me-2 text-success"></i>Nombre del ajuste <span class="text-danger">*</span>
+              <div class="col-md-6">
+                <label for="fecha_solicitud" class="form-label fw-semibold">
+                  Fecha de solicitud <span class="text-danger">*</span>
                 </label>
-                <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" class="form-control form-control-lg @error('nombre') is-invalid @enderror" placeholder="Ej: Tiempo extendido para evaluaciones" required>
+                <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="{{ old('fecha_solicitud', now()->format('Y-m-d')) }}" class="form-control @error('fecha_solicitud') is-invalid @enderror" required>
+                @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
+              </div>
+
+              <div class="col-md-6">
+                <label for="nombre" class="form-label fw-semibold">
+                  Nombre del ajuste <span class="text-danger">*</span>
+                </label>
+                <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" class="form-control @error('nombre') is-invalid @enderror" placeholder="Ej: Tiempo extendido para evaluaciones" required>
                 @error('nombre')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 <small class="text-muted d-block mt-2">
-                  <i class="fas fa-magic me-1"></i>Puedes usar el selector de tipo de ajuste arriba para completar automáticamente este campo
+                  Puedes usar el selector de tipo de ajuste arriba para completar automáticamente este campo
                 </small>
               </div>
 
               <div class="col-12">
                 <label for="descripcion" class="form-label fw-semibold">
-                  <i class="fas fa-align-left me-2 text-success"></i>Descripción detallada
+                  Descripción detallada
                 </label>
                 <textarea id="descripcion" name="descripcion" rows="6" class="form-control @error('descripcion') is-invalid @enderror" placeholder="Describe los detalles específicos del ajuste razonable, cómo se implementará, qué recursos se necesitarán, etc...">{{ old('descripcion') }}</textarea>
                 @error('descripcion')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -229,14 +239,13 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div class="text-muted">
-                <i class="fas fa-info-circle me-2"></i>
                 <small>Los campos marcados con <span class="text-danger">*</span> son obligatorios</small>
               </div>
               <div class="d-flex gap-2">
-                <a href="{{ route('asesora-tecnica.dashboard') }}" class="btn btn-lg btn-outline-secondary">
+                <a href="{{ route('asesora-tecnica.dashboard') }}" class="btn btn-outline-secondary">
                   <i class="fas fa-times me-2"></i>Cancelar
                 </a>
-                <button type="submit" class="btn btn-lg btn-danger">
+                <button type="submit" class="btn btn-danger">
                   <i class="fas fa-save me-2"></i>Guardar Ajuste
                 </button>
               </div>
@@ -251,15 +260,11 @@
 @push('styles')
 <style>
   .dashboard-page {
-    background: transparentq;
-    padding: 1.5rem;
-    border-radius: 1.5rem;
+    background: transparent;
   }
 
-
   .form-section-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 1rem;
+    border-radius: 14px;
     overflow: hidden;
   }
 
@@ -282,7 +287,7 @@
   .form-select-lg,
   .form-control-lg {
     border-radius: 0.5rem;
-    border: 2px solid #e5e7eb;
+    border: 1px solid #e5e7eb;
     transition: all 0.2s ease;
   }
 
@@ -294,7 +299,7 @@
 
   textarea.form-control {
     border-radius: 0.5rem;
-    border: 2px solid #e5e7eb;
+    border: 1px solid #e5e7eb;
     transition: all 0.2s ease;
     resize: vertical;
   }
@@ -311,27 +316,16 @@
     transition: all 0.2s ease;
   }
 
-  .btn-lg:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
   .bg-danger {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    background: #dc2626 !important;
   }
 
   .bg-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    background: #3b82f6 !important;
   }
 
   .bg-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  }
-
-  @media (max-width: 768px) {
-    .dashboard-page {
-      padding: 1rem;
-    }
+    background: #10b981 !important;
   }
 </style>
 @endpush
@@ -340,14 +334,60 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const estudianteSelect = document.getElementById('estudiante_id');
+  const solicitudSelect = document.getElementById('solicitud_id');
   const tipoAjusteSelect = document.getElementById('tipo_ajuste');
   const nombreInput = document.getElementById('nombre');
   const descripcionTextarea = document.getElementById('descripcion');
 
-  // Cuando se selecciona un estudiante, filtrar tipos de ajustes
+  // Función para filtrar solicitudes por estudiante seleccionado
+  function filtrarSolicitudesPorEstudiante(estudianteId) {
+    const todasLasOpciones = solicitudSelect.querySelectorAll('option[data-estudiante-id]');
+    const opcionVacia = solicitudSelect.querySelector('option[value=""]');
+    
+    // Mostrar la opción vacía
+    if (opcionVacia) {
+      opcionVacia.style.display = '';
+    }
+    
+    if (estudianteId && estudianteId !== '') {
+      // Ocultar todas las opciones primero
+      todasLasOpciones.forEach(option => {
+        option.style.display = 'none';
+      });
+      
+      // Mostrar solo las solicitudes del estudiante seleccionado
+      todasLasOpciones.forEach(option => {
+        const optionEstudianteId = option.getAttribute('data-estudiante-id');
+        if (optionEstudianteId === estudianteId) {
+          option.style.display = '';
+        }
+      });
+      
+      // Limpiar la selección actual si no pertenece al estudiante
+      const solicitudSeleccionada = solicitudSelect.value;
+      if (solicitudSeleccionada) {
+        const opcionSeleccionada = solicitudSelect.querySelector(`option[value="${solicitudSeleccionada}"]`);
+        if (opcionSeleccionada && opcionSeleccionada.getAttribute('data-estudiante-id') !== estudianteId) {
+          solicitudSelect.value = '';
+        }
+      }
+    } else {
+      // Si no hay estudiante seleccionado, mostrar todas las solicitudes
+      todasLasOpciones.forEach(option => {
+        option.style.display = '';
+      });
+      solicitudSelect.value = '';
+    }
+  }
+
+  // Cuando se selecciona un estudiante, filtrar solicitudes y tipos de ajustes
   estudianteSelect.addEventListener('change', function() {
+    const estudianteId = this.value;
     const selectedOption = this.options[this.selectedIndex];
     const discapacidad = selectedOption.getAttribute('data-discapacidad');
+    
+    // Filtrar solicitudes por estudiante (doble verificación)
+    filtrarSolicitudesPorEstudiante(estudianteId);
     
     if (discapacidad && discapacidad.trim() !== '') {
       // Filtrar opciones del select de tipo de ajuste
@@ -398,6 +438,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Resetear selección de tipo de ajuste
     tipoAjusteSelect.value = '';
   });
+
+  // Inicializar el filtro de solicitudes al cargar la página si ya hay un estudiante seleccionado
+  if (estudianteSelect.value) {
+    filtrarSolicitudesPorEstudiante(estudianteSelect.value);
+  }
 
   // Cuando se selecciona un tipo de ajuste, completar automáticamente el nombre
   tipoAjusteSelect.addEventListener('change', function() {

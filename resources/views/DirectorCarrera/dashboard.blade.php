@@ -67,16 +67,42 @@
                   <small class="text-muted d-block">{{ $case['program'] }}</small>
                   <small class="text-muted">Encargo: {{ $case['requested_by'] }}</small>
                 </div>
-                <span class="priority-badge priority-{{ $case['priority_level'] }}">{{ $case['priority'] }}</span>
               </div>
-              <p class="case-card__focus mb-2">{{ Str::limit($case['support_focus'], 140) }}</p>
-              <div class="case-card__adjustments mb-3">
-                @forelse ($case['adjustments'] as $adjustment)
-                  <span class="badge bg-light text-danger">{{ $adjustment }}</span>
-                @empty
+              <p class="case-card__focus mb-3">{{ Str::limit($case['support_focus'], 140) }}</p>
+              
+              @if(!empty($case['adjustments']))
+                <div class="mb-3">
+                  <div class="accordion" id="adjustmentsAccordion{{ $loop->index }}">
+                    <div class="accordion-item border rounded">
+                      <h2 class="accordion-header" id="heading{{ $loop->index }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $loop->index }}" aria-expanded="false" aria-controls="collapse{{ $loop->index }}">
+                          <i class="fas fa-sliders me-2"></i>
+                          <strong>Ajustes Razonables Aplicados</strong>
+                          <span class="badge bg-danger text-white ms-2">{{ count($case['adjustments']) }}</span>
+                        </button>
+                      </h2>
+                      <div id="collapse{{ $loop->index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $loop->index }}" data-bs-parent="#adjustmentsAccordion{{ $loop->index }}">
+                        <div class="accordion-body">
+                          @foreach($case['adjustments'] as $adjustment)
+                            <div class="border rounded p-3 mb-2 bg-light">
+                              <h6 class="fw-semibold mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>{{ $adjustment['nombre'] }}
+                              </h6>
+                              <p class="text-muted small mb-0">
+                                {{ $adjustment['descripcion'] ?? 'No hay descripción disponible para este ajuste razonable.' }}
+                              </p>
+                            </div>
+                          @endforeach
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @else
+                <div class="mb-3">
                   <span class="badge bg-light text-muted">Sin ajustes propuestos</span>
-                @endforelse
-              </div>
+                </div>
+              @endif
               <div class="case-card__meta">
                 <div>
                   <small class="text-muted text-uppercase">Estado</small>
@@ -86,14 +112,6 @@
                   <small class="text-muted text-uppercase">Fecha solicitud</small>
                   <div class="fw-semibold">{{ $case['submitted_at'] }}</div>
                 </div>
-              </div>
-              <div class="case-card__actions">
-                <form action="{{ $case['approve_url'] }}" method="POST" class="d-inline">
-                  @csrf
-                  <button type="submit" class="btn btn-danger btn-sm">Aprobar caso</button>
-                </form>
-                <a href="{{ $case['reject_url'] }}" class="btn btn-sm btn-outline-danger">Rechazar/Devolver</a>
-                <a href="{{ $case['detail_url'] }}" class="btn btn-sm btn-link text-decoration-none">Ver detalles</a>
               </div>
             </div>
           @empty
@@ -312,6 +330,31 @@
     gap: .4rem;
     margin-bottom: .75rem;
   }
+  .accordion-item {
+    border: 1px solid #e5e7eb;
+    border-radius: .75rem;
+    overflow: hidden;
+    background: #fff;
+  }
+  .accordion-button {
+    background-color: #fff;
+    color: #1f2937;
+    font-weight: 500;
+    border: none;
+  }
+  .accordion-button:not(.collapsed) {
+    background-color: #fff7f7;
+    color: #b91c1c;
+    box-shadow: none;
+  }
+  .accordion-button:focus {
+    border-color: #fecdd3;
+    box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+  }
+  .accordion-body {
+    background-color: #fff;
+    border-top: 1px solid #f0f0f5;
+  }
   .case-card__meta {
     display: flex;
     gap: 1.5rem;
@@ -320,35 +363,6 @@
     background: #fff7f7;
     border-radius: .85rem;
     border: 1px solid #fce8e8;
-  }
-  .case-card__actions {
-    display: flex;
-    gap: .5rem;
-    flex-wrap: wrap;
-    margin-top: .75rem;
-  }
-  .priority-badge {
-    border-radius: 999px;
-    padding: .35rem .85rem;
-    font-size: .75rem;
-    font-weight: 600;
-    border: 1px solid #f0f0f5;
-    background: #fff;
-  }
-  .priority-high {
-    background: #fee2e2;
-    color: #b91c1c;
-    border-color: #fecdd3;
-  }
-  .priority-medium {
-    background: #fef3c7;
-    color: #b45309;
-    border-color: #fde68a;
-  }
-  .priority-low {
-    background: #d1fae5;
-    color: #047857;
-    border-color: #a7f3d0;
   }
   .pipeline-list {
     display: flex;

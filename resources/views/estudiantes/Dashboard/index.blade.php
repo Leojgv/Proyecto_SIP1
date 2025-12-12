@@ -105,29 +105,69 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <p class="mb-1 text-muted small">Fecha</p>
-            <div class="fw-semibold" id="det-fecha">--</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-calendar-alt me-1"></i><strong>Fecha</strong>
+                </small>
+                <div class="fw-semibold" id="det-fecha">--</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-clock me-1"></i><strong>Hora</strong>
+                </small>
+                <div class="fw-semibold" id="det-hora">--</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-user-graduate me-1"></i><strong>Estudiante</strong>
+                </small>
+                <div class="fw-semibold" id="det-estudiante">--</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-user-tie me-1"></i><strong>Asesor</strong>
+                </small>
+                <div class="fw-semibold" id="det-asesor">--</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
+                </small>
+                <div class="fw-semibold" id="det-modalidad">--</div>
+              </div>
+            </div>
+            <div class="col-md-6" id="det-lugar-container" style="display: none;">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-map-marker-alt me-1"></i><strong>Lugar</strong>
+                </small>
+                <div class="fw-semibold" id="det-lugar">--</div>
+              </div>
+            </div>
+            <div class="col-md-6" id="det-link-zoom-container" style="display: none;">
+              <div class="border rounded p-3 bg-light">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-video me-1"></i><strong>Link de Zoom</strong>
+                </small>
+                <div class="fw-semibold" id="det-link-zoom">--</div>
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <p class="mb-1 text-muted small">Hora</p>
-            <div class="fw-semibold" id="det-hora">--</div>
-          </div>
-          <div class="mb-3">
-            <p class="mb-1 text-muted small">Estudiante</p>
-            <div class="fw-semibold" id="det-estudiante">--</div>
-          </div>
-          <div class="mb-3">
-            <p class="mb-1 text-muted small">Asesor</p>
-            <div class="fw-semibold" id="det-asesor">--</div>
-          </div>
-          <div class="mb-3">
-            <p class="mb-1 text-muted small">Modalidad</p>
-            <div class="fw-semibold" id="det-modalidad">--</div>
-          </div>
-          <div>
-            <p class="mb-1 text-muted small">Descripción</p>
-            <div class="text-muted" id="det-descripcion">--</div>
+          <div class="border rounded p-3 bg-light">
+            <small class="text-muted d-block mb-2">
+              <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+            </small>
+            <div class="text-muted" id="det-descripcion" style="line-height: 1.6;">--</div>
           </div>
         </div>
         <div class="modal-footer border-0">
@@ -167,7 +207,6 @@
                         data-solicitud-coordinadora="{{ $solicitud->entrevistas->first()?->asesor ? $solicitud->entrevistas->first()->asesor->nombre . ' ' . $solicitud->entrevistas->first()->asesor->apellido : 'Sin asignar' }}"
                         data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
                         data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
-                        data-solicitud-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) { return ['nombre' => $a->nombre, 'estado' => $a->estado]; })) }}"
                         data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar']; })) }}">
                   Ver detalle
                 </button>
@@ -400,6 +439,65 @@
         </div>
       </div>
     </div>
+    <div class="col-xl-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-triangle-exclamation text-danger me-2"></i>Ajustes Rechazados
+              </h5>
+              <small class="text-muted">Ajustes que no fueron aprobados por Dirección de Carrera</small>
+            </div>
+            @if(count($ajustesRechazados ?? []) > 0)
+              <span class="badge bg-danger">{{ count($ajustesRechazados) }}</span>
+            @endif
+          </div>
+          <div class="list-group list-group-flush">
+            @forelse ($ajustesRechazados ?? [] as $ajuste)
+              <div class="border rounded p-3 mb-3 bg-light">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1 fw-semibold">
+                      <i class="fas fa-times-circle text-danger me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                    </h6>
+                    @if($ajuste->descripcion)
+                      <p class="text-muted small mb-2">{{ Str::limit($ajuste->descripcion, 100) }}</p>
+                    @else
+                      <p class="text-muted small mb-2">No hay descripción disponible para este ajuste razonable.</p>
+                    @endif
+                  </div>
+                  <span class="badge bg-danger">Rechazado</span>
+                </div>
+                @if($ajuste->motivo_rechazo)
+                  <div class="alert alert-warning small mb-2">
+                    <div class="d-flex align-items-start">
+                      <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                      <div>
+                        <strong class="d-block mb-1">Motivo de rechazo:</strong>
+                        <p class="mb-0">{{ $ajuste->motivo_rechazo }}</p>
+                      </div>
+                    </div>
+                  </div>
+                @else
+                  <div class="alert alert-warning small mb-2">
+                    <i class="fas fa-info-circle me-2"></i>No se especificó un motivo de rechazo.
+                  </div>
+                @endif
+                <small class="text-muted">
+                  <i class="fas fa-calendar me-1"></i>Rechazado el: {{ $ajuste->updated_at?->format('d/m/Y') ?? 's/f' }}
+                </small>
+              </div>
+            @empty
+              <div class="text-center py-4">
+                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                <p class="text-muted mb-0">No hay ajustes rechazados.</p>
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card border-0 shadow-sm" id="configuracion">
@@ -442,52 +540,69 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4">
-        <!-- Fecha de solicitud -->
-        <div class="mb-4 pb-3 border-bottom">
-          <p class="text-muted small mb-1 fw-semibold">Fecha de solicitud</p>
-          <h6 class="mb-0 fw-normal" id="modal-fecha-solicitud">-</h6>
-        </div>
-
-        <!-- Información general -->
-        <div class="mb-4">
-          <dl class="row mb-0 g-3">
-            <dt class="col-sm-4 text-muted small fw-semibold">Estado</dt>
-            <dd class="col-sm-8 mb-0">
-              <span class="badge bg-secondary" id="modal-estado">-</span>
-            </dd>
-
-            <dt class="col-sm-4 text-muted small fw-semibold">Coordinadora</dt>
-            <dd class="col-sm-8 mb-0" id="modal-coordinadora">-</dd>
-
-            <dt class="col-sm-4 text-muted small fw-semibold">Director de carrera</dt>
-            <dd class="col-sm-8 mb-0" id="modal-director">-</dd>
-
-            @if(isset($estudiante))
-            <dt class="col-sm-4 text-muted small fw-semibold">Carrera</dt>
-            <dd class="col-sm-8 mb-0">{{ $estudiante->carrera->nombre ?? 'Sin carrera asignada' }}</dd>
-            @endif
-          </dl>
+        <!-- Información general en recuadros horizontales -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-calendar-alt me-1"></i><strong>Fecha de solicitud</strong>
+              </small>
+              <div class="fw-semibold" id="modal-fecha-solicitud">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-info-circle me-1"></i><strong>Estado</strong>
+              </small>
+              <div class="fw-semibold" id="modal-estado">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-user-tie me-1"></i><strong>Coordinadora</strong>
+              </small>
+              <div class="fw-semibold" id="modal-coordinadora">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-user-shield me-1"></i><strong>Director de carrera</strong>
+              </small>
+              <div class="fw-semibold" id="modal-director">-</div>
+            </div>
+          </div>
+          @if(isset($estudiante))
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-school me-1"></i><strong>Carrera</strong>
+              </small>
+              <div class="fw-semibold">{{ $estudiante->carrera->nombre ?? 'Sin carrera asignada' }}</div>
+            </div>
+          </div>
+          @endif
         </div>
 
         <!-- Motivo de rechazo -->
-        <div class="mb-4" id="modal-motivo-container" style="display: none;">
-          <p class="text-muted small mb-2 fw-semibold">Motivo de rechazo</p>
-          <div class="alert alert-warning mb-0 py-2 px-3" id="modal-motivo-rechazo">-</div>
+        <div class="mb-3" id="modal-motivo-container" style="display: none;">
+          <div class="border rounded p-3 bg-light border-danger">
+            <small class="text-muted d-block mb-2">
+              <i class="fas fa-exclamation-triangle me-1 text-danger"></i><strong>Motivo de rechazo</strong>
+            </small>
+            <div class="text-danger" id="modal-motivo-rechazo" style="line-height: 1.6;">-</div>
+          </div>
         </div>
 
         <!-- Descripción -->
-        <div class="mb-4 pb-3 border-bottom">
-          <p class="text-muted small mb-2 fw-semibold">Descripción</p>
-          <p class="mb-0 text-break" id="modal-descripcion" style="line-height: 1.6;">-</p>
-        </div>
-
-        <!-- Ajustes Razonables -->
-        <div class="mb-4" id="modal-ajustes-container">
-          <h6 class="mb-3 fw-semibold d-flex align-items-center">
-            <i class="fas fa-sliders me-2 text-danger"></i>Ajustes Razonables
-          </h6>
-          <div id="modal-ajustes-lista">
-            <p class="text-muted small mb-0">No hay ajustes razonables asociados a esta solicitud.</p>
+        <div class="mb-3">
+          <div class="border rounded p-3 bg-light">
+            <small class="text-muted d-block mb-2">
+              <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+            </small>
+            <div class="text-muted" id="modal-descripcion" style="line-height: 1.6;">-</div>
           </div>
         </div>
 
@@ -512,22 +627,24 @@
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: .5rem;
+    gap: .3rem;
     background: #f9f7fb;
-    padding: .75rem;
+    padding: .5rem;
   }
   .calendar-weekday {
     text-align: center;
     font-weight: 600;
     color: #555;
-    padding: .35rem 0;
+    padding: .2rem 0;
+    font-size: .85rem;
   }
   .calendar-cell {
     background: #fff;
     border: 1px solid #f0f0f5;
-    border-radius: 12px;
-    min-height: 70px;
-    padding: .5rem;
+    border-radius: 8px;
+    min-height: 45px;
+    aspect-ratio: 1;
+    padding: .3rem;
     position: relative;
     box-shadow: 0 2px 6px rgba(0,0,0,.03);
   }
@@ -538,16 +655,30 @@
   .calendar-cell .day {
     font-weight: 700;
     color: #444;
+    font-size: .85rem;
   }
   .calendar-cell .event-dot {
     position: absolute;
-    bottom: .5rem;
-    left: .5rem;
+    bottom: .2rem;
+    left: .2rem;
     background: #d62828;
     color: #fff;
     border-radius: 999px;
-    padding: .2rem .5rem;
-    font-size: .75rem;
+    padding: .15rem .35rem;
+    font-size: .65rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    transform: none;
+    text-align: center;
+  }
+  .calendar-cell .event-dot-entrevista-virtual {
+    background: #0dcaf0;
+  }
+  .calendar-cell .event-dot-entrevista-presencial {
+    background: #198754;
   }
   .event-chip {
     border: 1px solid #f0f0f5;
@@ -577,15 +708,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const coordinadora = button.getAttribute('data-solicitud-coordinadora');
       const director = button.getAttribute('data-solicitud-director');
       const motivo = button.getAttribute('data-solicitud-motivo');
-      const ajustesJson = button.getAttribute('data-solicitud-ajustes');
       const entrevistasJson = button.getAttribute('data-solicitud-entrevistas');
 
       // Actualizar contenido del modal
       document.getElementById('modal-fecha-solicitud').textContent = fechaSolicitud || 's/f';
-      document.getElementById('modal-estado').textContent = estado || 'Sin estado';
       document.getElementById('modal-descripcion').textContent = descripcion || 'Sin descripción registrada';
       document.getElementById('modal-coordinadora').textContent = coordinadora || 'Sin asignar';
       document.getElementById('modal-director').textContent = director || 'No asignado';
+      
+      // Actualizar estado con colores
+      const estadoElement = document.getElementById('modal-estado');
+      const estadoTexto = estado || 'Sin estado';
+      if (estadoTexto.toLowerCase().includes('aprobado')) {
+        estadoElement.innerHTML = `<span class="badge bg-success">${estadoTexto}</span>`;
+      } else if (estadoTexto.toLowerCase().includes('rechazado')) {
+        estadoElement.innerHTML = `<span class="badge bg-danger">${estadoTexto}</span>`;
+      } else {
+        estadoElement.innerHTML = `<span class="badge bg-secondary">${estadoTexto}</span>`;
+      }
 
       // Motivo de rechazo (si existe)
       const motivoContainer = document.getElementById('modal-motivo-container');
@@ -597,35 +737,6 @@ document.addEventListener('DOMContentLoaded', function() {
         motivoContainer.style.display = 'none';
       }
 
-      // Ajustes razonables
-      const ajustesContainer = document.getElementById('modal-ajustes-lista');
-      if (ajustesJson && ajustesJson !== 'null' && ajustesJson !== '[]') {
-        try {
-          const ajustes = JSON.parse(ajustesJson);
-          if (ajustes && ajustes.length > 0) {
-            ajustesContainer.innerHTML = ajustes.map(ajuste => `
-              <div class="card mb-3 border shadow-sm">
-                <div class="card-body p-3">
-                  <h6 class="card-title mb-2 fw-semibold">${ajuste.nombre || 'Ajuste sin nombre'}</h6>
-                  <div class="row g-2 small">
-                    <div class="col-12">
-                      <span class="text-muted">Estado:</span>
-                      <span class="badge bg-info ms-2">${ajuste.estado || 'Sin estado'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `).join('');
-          } else {
-            ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
-          }
-        } catch (e) {
-          ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
-        }
-      } else {
-        ajustesContainer.innerHTML = '<p class="text-muted small">No hay ajustes razonables asociados a esta solicitud.</p>';
-      }
-
       // Entrevistas
       const entrevistasContainer = document.getElementById('modal-entrevistas-lista');
       if (entrevistasJson && entrevistasJson !== 'null' && entrevistasJson !== '[]') {
@@ -633,22 +744,27 @@ document.addEventListener('DOMContentLoaded', function() {
           const entrevistas = JSON.parse(entrevistasJson);
           if (entrevistas && entrevistas.length > 0) {
             entrevistasContainer.innerHTML = entrevistas.map(entrevista => `
-              <div class="card mb-3 border shadow-sm">
-                <div class="card-body p-3">
-                  <h6 class="card-title mb-2 fw-semibold d-flex align-items-center">
-                    <i class="fas fa-calendar-day me-2 text-danger"></i>${entrevista.fecha || 's/f'}
-                  </h6>
-                  <div class="row g-2 small">
-                    ${entrevista.hora_inicio && entrevista.hora_fin ? `
-                      <div class="col-12">
-                        <span class="text-muted"><i class="fas fa-clock me-1"></i>Horario:</span>
-                        <span class="ms-1">${entrevista.hora_inicio} - ${entrevista.hora_fin}</span>
-                      </div>
-                    ` : ''}
-                    <div class="col-12">
-                      <span class="text-muted"><i class="fas fa-user me-1"></i>Coordinadora:</span>
-                      <span class="ms-1">${entrevista.asesor || 'Sin asignar'}</span>
-                    </div>
+              <div class="border rounded p-3 bg-light mb-3">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-calendar-day me-1"></i><strong>Fecha</strong>
+                    </small>
+                    <div class="fw-semibold">${entrevista.fecha || 's/f'}</div>
+                  </div>
+                  ${entrevista.hora_inicio && entrevista.hora_fin ? `
+                  <div class="col-md-6">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-clock me-1"></i><strong>Horario</strong>
+                    </small>
+                    <div class="fw-semibold">${entrevista.hora_inicio} - ${entrevista.hora_fin}</div>
+                  </div>
+                  ` : ''}
+                  <div class="col-md-6">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-user me-1"></i><strong>Coordinadora</strong>
+                    </small>
+                    <div class="fw-semibold">${entrevista.asesor || 'Sin asignar'}</div>
                   </div>
                 </div>
               </div>
@@ -666,15 +782,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+@php
+  $eventosCalendario = ($proximasEntrevistas ?? collect())->map(function ($entrevista) {
+    return [
+      'date' => optional($entrevista->fecha_hora_inicio ?? $entrevista->fecha)->format('Y-m-d'),
+      'label' => trim(($entrevista->solicitud->estudiante->nombre ?? 'Entrevista') . ' ' . ($entrevista->solicitud->estudiante->apellido ?? '')),
+      'modalidad' => $entrevista->modalidad ?? '',
+    ];
+  })->values()->toArray();
+@endphp
+
 document.addEventListener('DOMContentLoaded', function () {
-  const events = @json(
-    ($proximasEntrevistas ?? collect())->map(function ($entrevista) {
-        return [
-            'date' => optional($entrevista->fecha_hora_inicio ?? $entrevista->fecha)->format('Y-m-d'),
-            'label' => trim(($entrevista->solicitud->estudiante->nombre ?? 'Entrevista') . ' ' . ($entrevista->solicitud->estudiante->apellido ?? '')),
-        ];
-    })
-  );
+  const events = @json($eventosCalendario);
 
   const grid = document.getElementById('calendarGridEst');
   const eventsList = document.getElementById('calendarEventsListEst');
@@ -725,10 +844,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const dayEvents = events.filter(ev => ev.date === dateStr);
       if (dayEvents.length) {
-        const dot = document.createElement('div');
-        dot.className = 'event-dot';
-        dot.textContent = `${dayEvents.length} entrevista${dayEvents.length > 1 ? 's' : ''}`;
-        cell.appendChild(dot);
+        // Separar entrevistas por modalidad
+        const entrevistasVirtuales = dayEvents.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'virtual');
+        const entrevistasPresenciales = dayEvents.filter(ev => ev.modalidad && ev.modalidad.toLowerCase() === 'presencial');
+        const entrevistasSinModalidad = dayEvents.filter(ev => !ev.modalidad || (ev.modalidad.toLowerCase() !== 'virtual' && ev.modalidad.toLowerCase() !== 'presencial'));
+        
+        // Mostrar entrevistas virtuales en celeste
+        if (entrevistasVirtuales.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-entrevista-virtual';
+          dot.textContent = `${entrevistasVirtuales.length} entrevista${entrevistasVirtuales.length > 1 ? 's' : ''} virtual${entrevistasVirtuales.length > 1 ? 'es' : ''}`;
+          cell.appendChild(dot);
+        }
+        
+        // Mostrar entrevistas presenciales en verde
+        if (entrevistasPresenciales.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot event-dot-entrevista-presencial';
+          dot.textContent = `${entrevistasPresenciales.length} entrevista${entrevistasPresenciales.length > 1 ? 's' : ''} presencial${entrevistasPresenciales.length > 1 ? 'es' : ''}`;
+          cell.appendChild(dot);
+        }
+        
+        // Mostrar entrevistas sin modalidad definida en rojo (por defecto)
+        if (entrevistasSinModalidad.length > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'event-dot';
+          dot.textContent = `${entrevistasSinModalidad.length} entrevista${entrevistasSinModalidad.length > 1 ? 's' : ''}`;
+          cell.appendChild(dot);
+        }
       }
 
       grid.appendChild(cell);
@@ -776,10 +919,32 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('det-asesor').textContent = asesor;
     
     const modalidadElement = document.getElementById('det-modalidad');
+    const lugarContainer = document.getElementById('det-lugar-container');
+    const lugarElement = document.getElementById('det-lugar');
+    const linkZoomContainer = document.getElementById('det-link-zoom-container');
+    const linkZoomElement = document.getElementById('det-link-zoom');
+    
     if (modalidad && modalidad.trim() !== '') {
       modalidadElement.innerHTML = `<span class="badge ${modalidad === 'Virtual' ? 'bg-info' : 'bg-success'}">${modalidad}</span>`;
+      
+      // Mostrar lugar si la modalidad es Presencial
+      if (modalidad === 'Presencial') {
+        lugarElement.textContent = 'Sala de tutoria 4to Piso';
+        lugarContainer.style.display = 'block';
+        linkZoomContainer.style.display = 'none';
+      } else if (modalidad === 'Virtual') {
+        // Mostrar link de Zoom si la modalidad es Virtual
+        linkZoomElement.innerHTML = '<span class="text-muted">Link por crearse</span>';
+        linkZoomContainer.style.display = 'block';
+        lugarContainer.style.display = 'none';
+      } else {
+        lugarContainer.style.display = 'none';
+        linkZoomContainer.style.display = 'none';
+      }
     } else {
       modalidadElement.textContent = '—';
+      lugarContainer.style.display = 'none';
+      linkZoomContainer.style.display = 'none';
     }
     
     document.getElementById('det-descripcion').textContent = descripcion;

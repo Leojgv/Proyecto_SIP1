@@ -65,9 +65,6 @@
           <select class="form-select filters-group__input">
             <option>Todas las carreras</option>
           </select>
-          <select class="form-select filters-group__input">
-            <option>Todos los tipos</option>
-          </select>
         </div>
       </div>
 
@@ -77,7 +74,6 @@
             <tr>
               <th>Estudiante</th>
               <th>Carrera</th>
-              <th>Tipo de Discapacidad</th>
               <th>Estado</th>
               <th>Casos</th>
               <th>Acciones</th>
@@ -95,30 +91,95 @@
                   <div class="fw-semibold">{{ $est['carrera'] ?? 'Sin carrera' }}</div>
                   <small class="text-muted">{{ $est['semestre'] }}</small>
                 </td>
-                <td><span class="badge rounded-pill bg-light text-dark">{{ $est['tipo_discapacidad'] }}</span></td>
                 <td><span class="badge bg-success">{{ $est['estado'] }}</span></td>
                 <td><span class="badge bg-warning text-dark">{{ $est['casos'] }}</span></td>
                 <td>
-                  <div class="d-flex gap-2">
+                  @if($est['casos'] > 0)
                     <button
                       type="button"
-                      class="btn btn-sm btn-primary"
-                      title="Nuevo caso"
+                      class="btn btn-sm btn-outline-primary"
                       data-bs-toggle="modal"
-                      data-bs-target="#modalNuevoCaso"
-                      data-estudiante-id="{{ $est['id'] }}"
+                      data-bs-target="#modalVerDetalles"
                       data-estudiante-nombre="{{ $est['nombre'] }} {{ $est['apellido'] }}"
-                    >Nuevo Caso</button>
-                  </div>
+                      data-estudiante-rut="{{ $est['rut'] ?? 'Sin RUT' }}"
+                      data-estudiante-email="{{ $est['email'] ?? 'Sin email' }}"
+                      data-estudiante-carrera="{{ $est['carrera'] ?? 'Sin carrera' }}"
+                      data-solicitudes="{{ json_encode($est['solicitudes']) }}"
+                    >
+                      Ver detalles
+                    </button>
+                  @else
+                    <span class="text-muted small">Sin casos</span>
+                  @endif
                 </td>
               </tr>
             @empty
               <tr>
-                <td colspan="6" class="text-center text-muted py-4">Aun no hay estudiantes registrados.</td>
+                <td colspan="5" class="text-center text-muted py-4">Aun no hay estudiantes registrados.</td>
               </tr>
             @endforelse
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Detalles de Solicitudes -->
+<div class="modal fade" id="modalVerDetalles" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title fw-semibold">Detalle de Solicitudes</h5>
+          <small class="text-muted">Información de las solicitudes del estudiante</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Información del Estudiante -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-user-graduate me-1"></i><strong>Estudiante</strong>
+              </small>
+              <div class="fw-semibold" id="modal-detalle-estudiante-nombre">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-id-card me-1"></i><strong>RUT</strong>
+              </small>
+              <div class="fw-semibold" id="modal-detalle-estudiante-rut">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-envelope me-1"></i><strong>Correo</strong>
+              </small>
+              <div class="fw-semibold" id="modal-detalle-estudiante-email">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 bg-light">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-school me-1"></i><strong>Carrera</strong>
+              </small>
+              <div class="fw-semibold" id="modal-detalle-estudiante-carrera">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Solicitudes -->
+        <div id="modal-detalle-solicitudes-lista">
+          <p class="text-muted text-center">Cargando información...</p>
+        </div>
+      </div>
+      <div class="modal-footer border-top bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
@@ -296,6 +357,142 @@
       var autoModal = new bootstrap.Modal(modalEl);
       autoModal.show();
     @endif
+  });
+
+  // Modal Ver Detalles
+  document.addEventListener('DOMContentLoaded', function () {
+    const modalDetalles = document.getElementById('modalVerDetalles');
+    if (!modalDetalles) return;
+
+    modalDetalles.addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      if (!button) return;
+
+      const estudianteNombre = button.getAttribute('data-estudiante-nombre') || '-';
+      const estudianteRut = button.getAttribute('data-estudiante-rut') || '-';
+      const estudianteEmail = button.getAttribute('data-estudiante-email') || '-';
+      const estudianteCarrera = button.getAttribute('data-estudiante-carrera') || '-';
+      const solicitudesJson = button.getAttribute('data-solicitudes') || '[]';
+
+      // Actualizar información del estudiante
+      document.getElementById('modal-detalle-estudiante-nombre').textContent = estudianteNombre;
+      document.getElementById('modal-detalle-estudiante-rut').textContent = estudianteRut;
+      document.getElementById('modal-detalle-estudiante-email').textContent = estudianteEmail;
+      document.getElementById('modal-detalle-estudiante-carrera').textContent = estudianteCarrera;
+
+      // Procesar y mostrar solicitudes
+      const solicitudesContainer = document.getElementById('modal-detalle-solicitudes-lista');
+      try {
+        const solicitudes = JSON.parse(solicitudesJson);
+        
+        if (!solicitudes || solicitudes.length === 0) {
+          solicitudesContainer.innerHTML = '<p class="text-muted text-center">No hay solicitudes registradas para este estudiante.</p>';
+          return;
+        }
+
+        let html = '<h6 class="mb-3 fw-semibold d-flex align-items-center"><i class="fas fa-file-alt me-2 text-danger"></i>Solicitudes</h6>';
+        
+        solicitudes.forEach((solicitud, index) => {
+          const estadoClass = solicitud.estado.toLowerCase().includes('aprobado') ? 'bg-success' : 
+                              solicitud.estado.toLowerCase().includes('rechazado') ? 'bg-danger' : 
+                              'bg-secondary';
+          
+          html += `
+            <div class="border rounded p-3 bg-light mb-3">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h6 class="mb-1 fw-semibold">Solicitud #${index + 1}</h6>
+                  <small class="text-muted">Fecha: ${solicitud.fecha_solicitud}</small>
+                </div>
+                <span class="badge ${estadoClass}">${solicitud.estado}</span>
+              </div>
+              
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <small class="text-muted d-block mb-1">
+                    <i class="fas fa-user-tie me-1"></i><strong>Coordinadora</strong>
+                  </small>
+                  <div class="fw-semibold">${solicitud.coordinadora}</div>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted d-block mb-1">
+                    <i class="fas fa-user-shield me-1"></i><strong>Director de carrera</strong>
+                  </small>
+                  <div class="fw-semibold">${solicitud.director}</div>
+                </div>
+              </div>
+
+              ${solicitud.motivo_rechazo ? `
+              <div class="mb-3">
+                <div class="border rounded p-3 bg-light border-danger">
+                  <small class="text-muted d-block mb-2">
+                    <i class="fas fa-exclamation-triangle me-1 text-danger"></i><strong>Motivo de rechazo</strong>
+                  </small>
+                  <div class="text-danger" style="line-height: 1.6;">${solicitud.motivo_rechazo}</div>
+                </div>
+              </div>
+              ` : ''}
+
+              <div class="mb-3">
+                <div class="border rounded p-3 bg-light">
+                  <small class="text-muted d-block mb-2">
+                    <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+                  </small>
+                  <div class="text-muted" style="line-height: 1.6;">${solicitud.descripcion}</div>
+                </div>
+              </div>
+
+              ${solicitud.entrevistas && solicitud.entrevistas.length > 0 ? `
+              <div class="mb-0">
+                <h6 class="mb-3 fw-semibold d-flex align-items-center">
+                  <i class="fas fa-comments me-2 text-danger"></i>Entrevistas
+                </h6>
+                ${solicitud.entrevistas.map(entrevista => `
+                  <div class="border rounded p-3 bg-light mb-2">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-calendar-day me-1"></i><strong>Fecha</strong>
+                        </small>
+                        <div class="fw-semibold">${entrevista.fecha}</div>
+                      </div>
+                      ${entrevista.hora_inicio && entrevista.hora_fin ? `
+                      <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-clock me-1"></i><strong>Horario</strong>
+                        </small>
+                        <div class="fw-semibold">${entrevista.hora_inicio} - ${entrevista.hora_fin}</div>
+                      </div>
+                      ` : ''}
+                      <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
+                        </small>
+                        <div class="fw-semibold">
+                          <span class="badge ${entrevista.modalidad === 'Virtual' ? 'bg-info' : 'bg-success'}">${entrevista.modalidad}</span>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-user me-1"></i><strong>Coordinadora</strong>
+                        </small>
+                        <div class="fw-semibold">${entrevista.asesor}</div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        solicitudesContainer.innerHTML = html;
+      } catch (e) {
+        console.error('Error al procesar solicitudes:', e);
+        solicitudesContainer.innerHTML = '<p class="text-danger text-center">Error al cargar las solicitudes.</p>';
+      }
+    });
   });
 </script>
 @endsection

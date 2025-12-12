@@ -31,14 +31,14 @@
       </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <a href="{{ route('asesora-pedagogica.casos.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Volver
+      <a href="{{ route('asesora-pedagogica.casos.index') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Volver
       </a>
       @if($solicitud->estado === 'Pendiente de preaprobación')
         <form action="{{ route('asesora-pedagogica.casos.enviar-director', $solicitud) }}" method="POST" class="d-inline">
           @csrf
-          <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de enviar este caso a Dirección de Carrera para aprobación final?');">
-            <i class="fas fa-paper-plane me-2"></i>Enviar a Dirección
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar este caso a Dirección de Carrera para aprobación final?');">
+            <i class="fas fa-paper-plane me-1"></i>Enviar a Dirección
           </button>
         </form>
       @endif
@@ -84,7 +84,11 @@
             <dt class="col-sm-4">Estado</dt>
             <dd class="col-sm-8">
               @if($solicitud->estado === 'Pendiente de preaprobación')
-                <span class="badge bg-warning text-dark fs-6">{{ $solicitud->estado ?? 'Sin estado' }}</span>
+                <span class="badge bg-warning text-dark">{{ $solicitud->estado ?? 'Sin estado' }}</span>
+              @elseif($solicitud->estado === 'Aprobado')
+                <span class="badge bg-success">{{ $solicitud->estado ?? 'Sin estado' }}</span>
+              @elseif($solicitud->estado === 'Rechazado')
+                <span class="badge bg-danger">{{ $solicitud->estado ?? 'Sin estado' }}</span>
               @else
                 <span class="badge bg-secondary">{{ $solicitud->estado ?? 'Sin estado' }}</span>
               @endif
@@ -111,23 +115,26 @@
           @forelse ($solicitud->ajustesRazonables as $ajuste)
             <div class="border rounded p-3 mb-3">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="mb-0 fw-semibold">
-                  <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
-                </h6>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 fw-semibold">
+                    <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                  </h6>
+                  <p class="text-muted small mb-1">{{ $ajuste->descripcion ?? 'sin desc' }}</p>
+                  @if($ajuste->fecha_solicitud)
+                    <small class="text-muted">
+                      <i class="fas fa-calendar me-1"></i>Fecha de solicitud: {{ $ajuste->fecha_solicitud->format('d/m/Y') }}
+                    </small>
+                  @endif
+                </div>
                 <span class="badge 
                   @if($ajuste->estado === 'Aprobado') bg-success
                   @elseif($ajuste->estado === 'Rechazado') bg-danger
                   @elseif(str_contains($ajuste->estado ?? '', 'Pendiente')) bg-warning text-dark
                   @else bg-secondary
-                  @endif">
+                  @endif ms-2">
                   {{ $ajuste->estado ?? 'Sin estado' }}
                 </span>
               </div>
-              @if($ajuste->fecha_solicitud)
-                <small class="text-muted">
-                  <i class="fas fa-calendar me-1"></i>Fecha de solicitud: {{ $ajuste->fecha_solicitud->format('d/m/Y') }}
-                </small>
-              @endif
             </div>
           @empty
             <p class="text-muted mb-0">No hay ajustes registrados para este caso.</p>
@@ -187,7 +194,7 @@
               aria-expanded="false" 
               aria-controls="devolverForm"
             >
-              <i class="fas fa-arrow-left me-2"></i>Devolver para Correcciones
+              <i class="fas fa-arrow-left me-1"></i>Devolver para Correcciones
             </button>
             
             <div class="collapse mt-3" id="devolverForm">
@@ -208,8 +215,8 @@
                   @enderror
                   <small class="text-muted">Mínimo 10 caracteres</small>
                 </div>
-                <button type="submit" class="btn btn-warning w-100" onclick="return confirm('¿Estás seguro de devolver este caso al Asesor Técnico?');">
-                  <i class="fas fa-paper-plane me-2"></i>Enviar Devolución
+                <button type="submit" class="btn btn-sm btn-warning w-100" onclick="return confirm('¿Estás seguro de devolver este caso al Asesor Técnico?');">
+                  <i class="fas fa-paper-plane me-1"></i>Enviar Devolución
                 </button>
               </form>
             </div>

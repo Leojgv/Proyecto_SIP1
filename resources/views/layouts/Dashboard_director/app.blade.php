@@ -134,7 +134,6 @@
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.casos') ? 'active' : '' }}" href="{{ route('director.casos') }}"><i class="fas fa-folder-open"></i>Casos</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.estudiantes') ? 'active' : '' }}" href="{{ route('director.estudiantes') }}"><i class="fas fa-user-graduate"></i>Estudiantes</a>
       <a class="dashboard-sidebar__link {{ request()->routeIs('director.docentes') ? 'active' : '' }}" href="{{ route('director.docentes') }}"><i class="fas fa-chalkboard-teacher"></i>Docentes</a>
-      <a class="dashboard-sidebar__link {{ request()->routeIs('director.ajustes.*') ? 'active' : '' }}" href="{{ route('director.ajustes.index') }}"><i class="fas fa-sliders"></i>Ajustes</a>
     </nav>
   </aside>
   <div class="dashboard-main">

@@ -57,16 +57,83 @@
                       'rechazado', 'rechazada' => 'bg-danger',
                       default => 'bg-warning text-dark',
                     };
+                    $ajustesCount = $solicitud->ajustesRazonables->count();
+                    $ajustesAprobados = $solicitud->ajustesRazonables->where('estado', 'Aprobado')->count();
+                    $ajustesRechazados = $solicitud->ajustesRazonables->where('estado', 'Rechazado')->count();
                   @endphp
-                  <div class="d-flex flex-wrap align-items-center gap-3 pb-2 mb-2 border-bottom">
-                    <div class="flex-grow-1">
-                      <p class="text-muted small mb-1"><strong>Solicitud:</strong> {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</p>
-                      <p class="text-muted mb-0">{{ $solicitud->descripcion ?? 'Sin descripción registrada.' }}</p>
+                  <div class="border rounded p-3 mb-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div class="flex-grow-1">
+                        @if($solicitud->titulo)
+                          <h6 class="fw-semibold mb-2">{{ $solicitud->titulo }}</h6>
+                        @endif
+                        <p class="text-muted small mb-2">{{ $solicitud->descripcion ?? 'Sin descripción registrada.' }}</p>
+                        
+                        <div class="row g-2 mb-2">
+                          <div class="col-md-6">
+                            <small class="text-muted d-block">
+                              <i class="fas fa-calendar-alt me-1"></i><strong>Fecha solicitud:</strong> {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}
+                            </small>
+                          </div>
+                          @if($solicitud->estudiante->rut)
+                            <div class="col-md-6">
+                              <small class="text-muted d-block">
+                                <i class="fas fa-id-card me-1"></i><strong>RUT:</strong> {{ $solicitud->estudiante->rut }}
+                              </small>
+                            </div>
+                          @endif
+                          @if($solicitud->asesor)
+                            <div class="col-md-6">
+                              <small class="text-muted d-block">
+                                <i class="fas fa-user-tie me-1"></i><strong>Asesora Pedagógica:</strong> {{ $solicitud->asesor->nombre }} {{ $solicitud->asesor->apellido }}
+                              </small>
+                            </div>
+                          @endif
+                          @if($solicitud->updated_at)
+                            <div class="col-md-6">
+                              <small class="text-muted d-block">
+                                <i class="fas fa-clock me-1"></i><strong>Última actualización:</strong> {{ $solicitud->updated_at->format('d/m/Y H:i') }}
+                              </small>
+                            </div>
+                          @endif
+                        </div>
+
+                        @if($ajustesCount > 0)
+                          <div class="mt-2">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-sliders me-1"></i><strong>Ajustes razonables:</strong>
+                            </small>
+                            <div class="d-flex flex-wrap gap-2">
+                              <span class="badge bg-info text-dark">
+                                Total: {{ $ajustesCount }}
+                              </span>
+                              @if($ajustesAprobados > 0)
+                                <span class="badge bg-success">
+                                  Aprobados: {{ $ajustesAprobados }}
+                                </span>
+                              @endif
+                              @if($ajustesRechazados > 0)
+                                <span class="badge bg-danger">
+                                  Rechazados: {{ $ajustesRechazados }}
+                                </span>
+                              @endif
+                            </div>
+                          </div>
+                        @endif
+
+                        @if($solicitud->motivo_rechazo)
+                          <div class="alert alert-warning small mt-2 mb-0">
+                            <i class="fas fa-exclamation-triangle me-1"></i><strong>Motivo de rechazo:</strong> {{ $solicitud->motivo_rechazo }}
+                          </div>
+                        @endif
+                      </div>
+                      <div class="ms-3 d-flex flex-column align-items-end gap-2">
+                        <span class="badge {{ $badgeItem }}">{{ $estadoItem }}</span>
+                        <a href="{{ route('director.casos.show', $solicitud) }}" class="btn btn-sm btn-outline-danger">
+                          <i class="fas fa-eye me-1"></i>Ver detalles
+                        </a>
+                      </div>
                     </div>
-                    <span class="badge {{ $badgeItem }}">{{ $estadoItem }}</span>
-                    <a href="{{ route('director.casos.show', $solicitud) }}" class="btn btn-sm btn-outline-primary">
-                      <i class="fas fa-eye me-1"></i>Ver detalles
-                    </a>
                   </div>
                 @endforeach
               </div>
