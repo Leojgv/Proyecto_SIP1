@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EstudianteController;
@@ -110,6 +110,12 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.estudiantes.import.form');
         Route::post('director-carrera/estudiantes/importar', [DirectorCarreraEstudianteController::class, 'import'])
             ->name('director.estudiantes.import');
+        Route::get('director-carrera/estudiantes/{estudiante}/editar', [DirectorCarreraEstudianteController::class, 'edit'])
+            ->name('director.estudiantes.edit');
+        Route::put('director-carrera/estudiantes/{estudiante}', [DirectorCarreraEstudianteController::class, 'update'])
+            ->name('director.estudiantes.update');
+        Route::delete('director-carrera/estudiantes/{estudiante}', [DirectorCarreraEstudianteController::class, 'destroy'])
+            ->name('director.estudiantes.destroy');
         Route::get('director-carrera/ajustes', [\App\Http\Controllers\Dashboard\DirectorCarreraAjusteController::class, 'index'])
             ->name('director.ajustes.index');
         Route::get('director-carrera/docentes', [DirectorCarreraDocenteController::class, 'index'])
@@ -118,6 +124,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.docentes.import.form');
         Route::post('director-carrera/docentes/importar', [DirectorCarreraDocenteController::class, 'import'])
             ->name('director.docentes.import');
+        Route::put('director-carrera/docentes/{docente}', [DirectorCarreraDocenteController::class, 'update'])
+            ->name('director.docentes.update');
         Route::get('director-carrera/casos', [DirectorCarreraCasoController::class, 'index'])
             ->name('director.casos');
         Route::get('director-carrera/casos/{solicitud}', [DirectorCarreraCasoController::class, 'show'])
