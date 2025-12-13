@@ -67,6 +67,12 @@
                          </a>
                     </div>
                 </form>
+
+                <div class="back-to-intro">
+                    <a href="{{ url('/') }}" class="back-to-intro-button">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al intro
+                    </a>
+                </div>
             </div>
         </div>
     </div>
