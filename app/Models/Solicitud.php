@@ -19,6 +19,7 @@ class Solicitud extends Model
         'descripcion',
         'estado',
         'motivo_rechazo',
+        'observaciones_pdf_ruta',
         'estudiante_id',
         'asesor_id',
         'director_id',
