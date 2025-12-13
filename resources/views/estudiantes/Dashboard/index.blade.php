@@ -56,7 +56,7 @@
     @endforeach
   </div>
 
-  {{-- Mini Calendario de Entrevistas y Historial --}}
+  {{-- Mini Calendario de Entrevistas y Próximas Entrevistas --}}
   @if(isset($proximasEntrevistas) && $proximasEntrevistas->count() > 0)
   <div class="row g-4 mb-4">
     <div class="col-12 col-xl-6">
@@ -75,61 +75,62 @@
       </div>
     </div>
     <div class="col-12 col-xl-6">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm h-100">
         <div class="card-body" style="padding: 1rem;">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center justify-content-between mb-2">
             <div>
-              <h5 class="card-title mb-0" style="font-size: 0.9375rem;">
-                <i class="fas fa-history text-danger me-2"></i>Historial de Entrevistas
-              </h5>
-              <small class="text-muted" style="font-size: 0.75rem;">Entrevistas realizadas anteriormente</small>
+              <h5 class="card-title mb-0" style="font-size: 1rem;">Próximas Entrevistas</h5>
+              <small class="text-muted" style="font-size: 0.75rem;">Tu agenda personal</small>
             </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size: 0.8125rem; padding: 0.25rem 0.5rem;" data-bs-toggle="modal" data-bs-target="#agendaEstudianteModal">
+              Ver agenda
+            </button>
           </div>
-          <div class="historial-entrevistas-container" style="max-height: 400px; overflow-y: auto;">
-            @if(isset($historialEntrevistas) && $historialEntrevistas->count() > 0)
-              <div class="list-group list-group-flush">
-                @foreach($historialEntrevistas as $entrevista)
-                  <div class="list-group-item px-0 py-2 border-bottom">
-                    <div class="d-flex align-items-center justify-content-between">
-                      <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                          <i class="fas fa-calendar-day text-muted" style="font-size: 0.75rem;"></i>
-                          <span class="fw-semibold" style="font-size: 0.875rem;">
-                            {{ $entrevista->fecha->format('d/m/Y') }}
-                          </span>
-                        </div>
-                        @if($entrevista->fecha_hora_inicio)
-                          <div class="d-flex align-items-center gap-2 mb-1">
-                            <i class="fas fa-clock text-muted" style="font-size: 0.75rem;"></i>
-                            <span style="font-size: 0.8125rem;">
-                              {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin ? $entrevista->fecha_hora_fin->format('H:i') : '' }}
-                            </span>
-                          </div>
-                        @endif
-                        @if($entrevista->asesor)
-                          <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-user-tie text-muted" style="font-size: 0.75rem;"></i>
-                            <span style="font-size: 0.8125rem;" class="text-muted">
-                              {{ $entrevista->asesor->name }}
-                            </span>
-                          </div>
-                        @endif
-                        @if($entrevista->modalidad)
-                          <span class="badge bg-info-subtle text-info" style="font-size: 0.6875rem; margin-top: 0.25rem;">
-                            {{ ucfirst($entrevista->modalidad) }}
-                          </span>
-                        @endif
-                      </div>
+          <div class="list-group list-group-flush">
+            @forelse ($proximasEntrevistas as $entrevista)
+              <div class="list-group-item px-0 py-2" style="border-bottom: 1px solid #e6e7ed;">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                      <i class="fas fa-calendar-day text-danger" style="font-size: 0.8125rem;"></i>
                     </div>
                   </div>
-                @endforeach
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <div>
+                        <h6 class="mb-0 fw-semibold" style="font-size: 0.875rem; line-height: 1.3;">
+                          {{ $entrevista->fecha?->format('d/m/Y') ?? 'Fecha no definida' }}
+                        </h6>
+                        @if($entrevista->fecha_hora_inicio && $entrevista->fecha_hora_fin)
+                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
+                            {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin->format('H:i') }}
+                          </small>
+                        @elseif($entrevista->fecha_hora_inicio)
+                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
+                            {{ $entrevista->fecha_hora_inicio->format('H:i') }}
+                          </small>
+                        @endif
+                      </div>
+                      @if($entrevista->modalidad)
+                        <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }} ms-2" style="font-size: 0.6875rem; padding: 0.2rem 0.4rem;">
+                          {{ $entrevista->modalidad }}
+                        </span>
+                      @endif
+                    </div>
+                    @if ($entrevista->asesor)
+                      <small class="text-muted d-flex align-items-center gap-1 mb-1" style="font-size: 0.75rem;">
+                        <i class="fas fa-user-tie" style="font-size: 0.6875rem;"></i>
+                        {{ $entrevista->asesor->nombre_completo }}
+                      </small>
+                    @endif
+                  </div>
+                </div>
               </div>
-            @else
-              <div class="text-center py-4">
-                <i class="fas fa-calendar-times text-muted mb-2" style="font-size: 2rem;"></i>
-                <p class="text-muted mb-0" style="font-size: 0.875rem;">No hay entrevistas realizadas anteriormente</p>
-              </div>
-            @endif
+            @empty
+              <p class="text-muted text-center my-3" style="font-size: 0.8125rem;">No tienes entrevistas programadas.</p>
+            @endforelse
           </div>
         </div>
       </div>
@@ -377,238 +378,6 @@
     </div>
     <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-body" style="padding: 1rem;">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div>
-              <h5 class="card-title mb-0" style="font-size: 1rem;">Próximas Entrevistas</h5>
-              <small class="text-muted" style="font-size: 0.75rem;">Tu agenda personal</small>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size: 0.8125rem; padding: 0.25rem 0.5rem;" data-bs-toggle="modal" data-bs-target="#agendaEstudianteModal">
-              Ver agenda
-            </button>
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($proximasEntrevistas as $entrevista)
-              <div class="list-group-item px-0 py-2" style="border-bottom: 1px solid #e6e7ed;">
-                <div class="d-flex align-items-start gap-2">
-                  <div class="flex-shrink-0">
-                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                      <i class="fas fa-calendar-day text-danger" style="font-size: 0.8125rem;"></i>
-                    </div>
-                  </div>
-                  <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                      <div>
-                        <h6 class="mb-0 fw-semibold" style="font-size: 0.875rem; line-height: 1.3;">
-                          {{ $entrevista->fecha?->format('d/m/Y') ?? 'Fecha no definida' }}
-                        </h6>
-                        @if($entrevista->fecha_hora_inicio && $entrevista->fecha_hora_fin)
-                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
-                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
-                            {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin->format('H:i') }}
-                          </small>
-                        @elseif($entrevista->fecha_hora_inicio)
-                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
-                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
-                            {{ $entrevista->fecha_hora_inicio->format('H:i') }}
-                          </small>
-                        @endif
-                      </div>
-                      @if($entrevista->modalidad)
-                        <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }} ms-2" style="font-size: 0.6875rem; padding: 0.2rem 0.4rem;">
-                          {{ $entrevista->modalidad }}
-                        </span>
-                      @endif
-                    </div>
-                    @if ($entrevista->asesor)
-                      <small class="text-muted d-flex align-items-center gap-1 mb-1" style="font-size: 0.75rem;">
-                        <i class="fas fa-user-tie" style="font-size: 0.6875rem;"></i>
-                        {{ $entrevista->asesor->nombre_completo }}
-                      </small>
-                    @endif
-                  </div>
-                </div>
-              </div>
-            @empty
-              <p class="text-muted text-center my-3" style="font-size: 0.8125rem;">No tienes entrevistas programadas.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="card-title mb-0">Mis Ajustes Académicos</h5>
-              <small class="text-muted">Estado y seguimiento</small>
-            </div>
-          </div>
-          <div class="list-group list-group-flush">
-            @forelse ($misAjustes as $ajuste)
-              @php
-                // Función helper para determinar el ícono según el tipo de ajuste
-                $nombreLower = strtolower($ajuste->nombre ?? '');
-                $icono = 'fa-sliders'; // Ícono por defecto
-                
-                if (str_contains($nombreLower, 'tiempo') || str_contains($nombreLower, 'extendido')) {
-                  $icono = 'fa-clock';
-                } elseif (str_contains($nombreLower, 'visual') || str_contains($nombreLower, 'braille') || str_contains($nombreLower, 'lector') || str_contains($nombreLower, 'magnificador') || str_contains($nombreLower, 'lupa')) {
-                  $icono = 'fa-eye';
-                } elseif (str_contains($nombreLower, 'audit') || str_contains($nombreLower, 'seña') || str_contains($nombreLower, 'intérprete') || str_contains($nombreLower, 'subtítulo') || str_contains($nombreLower, 'fm')) {
-                  $icono = 'fa-ear-deaf';
-                } elseif (str_contains($nombreLower, 'motora') || str_contains($nombreLower, 'físico') || str_contains($nombreLower, 'acceso') || str_contains($nombreLower, 'adaptado')) {
-                  $icono = 'fa-wheelchair';
-                } elseif (str_contains($nombreLower, 'intelectual') || str_contains($nombreLower, 'aprendizaje')) {
-                  $icono = 'fa-brain';
-                } elseif (str_contains($nombreLower, 'asistente') || str_contains($nombreLower, 'notas') || str_contains($nombreLower, 'toma de notas')) {
-                  $icono = 'fa-user-check';
-                } elseif (str_contains($nombreLower, 'material') || str_contains($nombreLower, 'formato') || str_contains($nombreLower, 'contraste')) {
-                  $icono = 'fa-file-alt';
-                } elseif (str_contains($nombreLower, 'tecnología') || str_contains($nombreLower, 'asistiva')) {
-                  $icono = 'fa-laptop';
-                } elseif (str_contains($nombreLower, 'ubicación') || str_contains($nombreLower, 'preferencial')) {
-                  $icono = 'fa-map-marker-alt';
-                }
-              @endphp
-              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2 align-items-center">
-                <div class="d-flex align-items-center gap-2 flex-grow-1">
-                  <div class="text-danger" style="font-size: 1.5rem;">
-                    <i class="fas {{ $icono }}"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h6 class="mb-1 d-flex align-items-center gap-2">
-                      {{ $ajuste->nombre }}
-                    </h6>
-                    @if($ajuste->descripcion)
-                      <p class="text-muted small mb-1">{{ Str::limit($ajuste->descripcion, 100) }}</p>
-                    @else
-                      <p class="text-muted small mb-1">No hay descripción</p>
-                    @endif
-                    <small class="text-muted">
-                      <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
-                          'aprobado' => 'bg-success',
-                          'pendiente de aprobación' => 'bg-warning text-dark',
-                          'pendiente de formulación de ajuste' => 'bg-info text-dark',
-                          'pendiente de preaprobación' => 'bg-primary',
-                          'rechazado' => 'bg-danger',
-                          default => 'bg-secondary'
-                      } }}">
-                        {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
-                      </span>
-                    </small>
-                  </div>
-                </div>
-                <button 
-                  type="button" 
-                  class="btn btn-sm btn-outline-secondary" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#modalSeguimiento{{ $ajuste->id }}"
-                >
-                  <i class="fas fa-eye me-1"></i>Ver seguimiento
-                </button>
-              </div>
-
-              <!-- Modal de Seguimiento -->
-              <div class="modal fade" id="modalSeguimiento{{ $ajuste->id }}" tabindex="-1" aria-labelledby="modalSeguimientoLabel{{ $ajuste->id }}" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title" id="modalSeguimientoLabel{{ $ajuste->id }}">
-                        <i class="fas {{ $icono }} me-2"></i>Detalle del Ajuste
-                      </h5>
-                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="row g-3">
-                        <div class="col-12">
-                          <h6 class="text-danger mb-3">
-                            <i class="fas {{ $icono }} me-2"></i>{{ $ajuste->nombre }}
-                          </h6>
-                        </div>
-
-                        <div class="col-md-6">
-                          <div class="border rounded p-3 bg-light">
-                            <small class="text-muted d-block mb-1">
-                              <i class="fas fa-tag me-1"></i><strong>Estado</strong>
-                            </small>
-                            <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
-                                'aprobado' => 'bg-success',
-                                'pendiente de aprobación' => 'bg-warning text-dark',
-                                'pendiente de formulación de ajuste' => 'bg-info text-dark',
-                                'pendiente de preaprobación' => 'bg-primary',
-                                'rechazado' => 'bg-danger',
-                                default => 'bg-secondary'
-                            } }} fs-6">
-                              {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div class="col-md-6">
-                          <div class="border rounded p-3 bg-light">
-                            <small class="text-muted d-block mb-1">
-                              <i class="fas fa-calendar-alt me-1"></i><strong>Fecha de Solicitud</strong>
-                            </small>
-                            <div class="fw-semibold">
-                              {{ $ajuste->fecha_solicitud?->format('d/m/Y') ?? 'No especificada' }}
-                            </div>
-                          </div>
-                        </div>
-
-                        {{-- Descripción del Ajuste --}}
-                        <div class="col-12">
-                          <div class="border rounded p-3 bg-light">
-                            <small class="text-muted d-block mb-2">
-                              <i class="fas fa-sliders me-1"></i><strong>Descripción del Ajuste</strong>
-                            </small>
-                            <p class="mb-0 mt-1 text-break">{{ $ajuste->descripcion ?? 'No hay descripción' }}</p>
-                          </div>
-                        </div>
-
-                        @if($ajuste->solicitud)
-                          <div class="col-12">
-                            <div class="border rounded p-3 bg-light">
-                              <small class="text-muted d-block mb-2">
-                                <i class="fas fa-file-alt me-1"></i><strong>Información de la Solicitud</strong>
-                              </small>
-                              <div class="mb-2">
-                                <strong>Fecha:</strong> {{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}
-                              </div>
-                            </div>
-                          </div>
-                        @endif
-
-                        <div class="col-12">
-                          <div class="alert alert-info mb-0">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Información:</strong> 
-                            Este Ajuste se vera reflejado ahora tu dia a dia, cualquier consulta visitar las oficinas de las asesoras pedagogicas.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i>Cerrar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            @empty
-              <p class="text-muted text-center my-4">Aún no tienes ajustes académicos registrados.</p>
-            @endforelse
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -789,6 +558,214 @@
     </div>
   </div>
 
+  <div class="row g-4 mb-4">
+    <div class="col-xl-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">Mis Ajustes Académicos</h5>
+              <small class="text-muted">Estado y seguimiento</small>
+            </div>
+          </div>
+          <div class="list-group list-group-flush">
+            @forelse ($misAjustes as $ajuste)
+              @php
+                // Función helper para determinar el ícono según el tipo de ajuste
+                $nombreLower = strtolower($ajuste->nombre ?? '');
+                $icono = 'fa-sliders'; // Ícono por defecto
+                
+                if (str_contains($nombreLower, 'tiempo') || str_contains($nombreLower, 'extendido')) {
+                  $icono = 'fa-clock';
+                } elseif (str_contains($nombreLower, 'visual') || str_contains($nombreLower, 'braille') || str_contains($nombreLower, 'lector') || str_contains($nombreLower, 'magnificador') || str_contains($nombreLower, 'lupa')) {
+                  $icono = 'fa-eye';
+                } elseif (str_contains($nombreLower, 'audit') || str_contains($nombreLower, 'seña') || str_contains($nombreLower, 'intérprete') || str_contains($nombreLower, 'subtítulo') || str_contains($nombreLower, 'fm')) {
+                  $icono = 'fa-ear-deaf';
+                } elseif (str_contains($nombreLower, 'motora') || str_contains($nombreLower, 'físico') || str_contains($nombreLower, 'acceso') || str_contains($nombreLower, 'adaptado')) {
+                  $icono = 'fa-wheelchair';
+                } elseif (str_contains($nombreLower, 'intelectual') || str_contains($nombreLower, 'aprendizaje')) {
+                  $icono = 'fa-brain';
+                } elseif (str_contains($nombreLower, 'asistente') || str_contains($nombreLower, 'notas') || str_contains($nombreLower, 'toma de notas')) {
+                  $icono = 'fa-user-check';
+                } elseif (str_contains($nombreLower, 'material') || str_contains($nombreLower, 'formato') || str_contains($nombreLower, 'contraste')) {
+                  $icono = 'fa-file-alt';
+                } elseif (str_contains($nombreLower, 'tecnología') || str_contains($nombreLower, 'asistiva')) {
+                  $icono = 'fa-laptop';
+                } elseif (str_contains($nombreLower, 'ubicación') || str_contains($nombreLower, 'preferencial')) {
+                  $icono = 'fa-map-marker-alt';
+                }
+              @endphp
+              <div class="list-group-item px-0">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                  <div class="d-flex align-items-start gap-2 flex-grow-1" style="min-width: 0;">
+                    <div class="text-danger" style="font-size: 1.5rem; flex-shrink: 0;">
+                      <i class="fas {{ $icono }}"></i>
+                    </div>
+                    <div class="flex-grow-1" style="min-width: 0;">
+                      <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                        <h6 class="mb-0 flex-grow-1">
+                          {{ $ajuste->nombre }}
+                        </h6>
+                      </div>
+                      @if($ajuste->descripcion)
+                        <p class="text-muted small mb-1">{{ Str::limit($ajuste->descripcion, 100) }}</p>
+                      @else
+                        <p class="text-muted small mb-1">No hay descripción</p>
+                      @endif
+                      <small class="text-muted">
+                        <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
+                            'aprobado' => 'bg-success',
+                            'pendiente de aprobación' => 'bg-warning text-dark',
+                            'pendiente de formulación de ajuste' => 'bg-info text-dark',
+                            'pendiente de preaprobación' => 'bg-primary',
+                            'rechazado' => 'bg-danger',
+                            default => 'bg-secondary'
+                        } }}">
+                          {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
+                        </span>
+                      </small>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-secondary" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#modalSeguimiento{{ $ajuste->id }}"
+                    >
+                      <i class="fas fa-eye me-1"></i>Ver seguimiento
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal de Seguimiento -->
+              <div class="modal fade" id="modalSeguimiento{{ $ajuste->id }}" tabindex="-1" aria-labelledby="modalSeguimientoLabel{{ $ajuste->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title" id="modalSeguimientoLabel{{ $ajuste->id }}">
+                        <i class="fas {{ $icono }} me-2"></i>Detalle del Ajuste
+                      </h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <h6 class="text-danger mb-3">
+                            <i class="fas {{ $icono }} me-2"></i>{{ $ajuste->nombre }}
+                          </h6>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-tag me-1"></i><strong>Estado</strong>
+                            </small>
+                            <span class="badge {{ match(strtolower($ajuste->estado ?? '')) {
+                                'aprobado' => 'bg-success',
+                                'pendiente de aprobación' => 'bg-warning text-dark',
+                                'pendiente de formulación de ajuste' => 'bg-info text-dark',
+                                'pendiente de preaprobación' => 'bg-primary',
+                                'rechazado' => 'bg-danger',
+                                default => 'bg-secondary'
+                            } }} fs-6">
+                              {{ \Illuminate\Support\Str::title($ajuste->estado ?? 'pendiente') }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-calendar-alt me-1"></i><strong>Fecha de Solicitud</strong>
+                            </small>
+                            <div class="fw-semibold">
+                              {{ $ajuste->fecha_solicitud?->format('d/m/Y') ?? 'No especificada' }}
+                            </div>
+                          </div>
+                        </div>
+
+                        {{-- Descripción del Ajuste --}}
+                        <div class="col-12">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-2">
+                              <i class="fas fa-sliders me-1"></i><strong>Descripción del Ajuste</strong>
+                            </small>
+                            <p class="mb-0 mt-1 text-break">{{ $ajuste->descripcion ?? 'No hay descripción' }}</p>
+                          </div>
+                        </div>
+
+                        @if($ajuste->solicitud)
+                          <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                              <small class="text-muted d-block mb-2">
+                                <i class="fas fa-file-alt me-1"></i><strong>Información de la Solicitud</strong>
+                              </small>
+                              <div class="mb-2">
+                                <strong>Fecha:</strong> {{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}
+                              </div>
+                            </div>
+                          </div>
+                        @endif
+
+                        <div class="col-12">
+                          <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Información:</strong> 
+                            Este Ajuste se vera reflejado ahora tu dia a dia, cualquier consulta visitar las oficinas de las asesoras pedagogicas.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            @empty
+              <p class="text-muted text-center my-4">Aún no tienes ajustes académicos registrados.</p>
+            @endforelse
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4">
+      <div class="card border-0 shadow-sm h-100" id="configuracion">
+        <div class="card-body">
+          <h5 class="card-title mb-2" style="font-size: 1rem;">Configuración</h5>
+          <p class="text-muted small mb-3" style="font-size: 0.8125rem;">Mantén tus datos al día para recibir avisos oportunamente.</p>
+          <dl class="mb-3" style="font-size: 0.8125rem;">
+            <dt class="text-muted mb-1">Nombre completo</dt>
+            <dd class="mb-2">{{ $estudiante->nombre }} {{ $estudiante->apellido }}</dd>
+            <dt class="text-muted mb-1">Carrera</dt>
+            <dd class="mb-2">{{ $estudiante->carrera->nombre ?? 'Sin asignar' }}</dd>
+            <dt class="text-muted mb-1">Correo institucional</dt>
+            <dd class="mb-2">{{ $estudiante->email }}</dd>
+          </dl>
+          <form method="POST" action="{{ route('estudiantes.dashboard.update-settings') }}">
+            @csrf
+            @method('PUT')
+            <div class="mb-3">
+              <label for="telefono" class="form-label small">Teléfono de contacto</label>
+              <input type="text" id="telefono" name="telefono" class="form-control form-control-sm @error('telefono') is-invalid @enderror"
+                     value="{{ old('telefono', $estudiante->telefono) }}" placeholder="Ej. +56 9 1234 5678">
+              @error('telefono')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-danger btn-sm">Guardar cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {{-- Sección de Solicitudes Rechazadas --}}
   @if(isset($solicitudesRechazadas) && count($solicitudesRechazadas) > 0)
   <div class="row g-4 mb-4">
@@ -891,36 +868,6 @@
     </div>
   </div>
   @endif
-
-  <div class="card border-0 shadow-sm" id="configuracion">
-    <div class="card-body">
-      <h5 class="card-title mb-1">Configuración</h5>
-      <p class="text-muted">Mantén tus datos al día para recibir avisos oportunamente.</p>
-      <dl class="row small mb-4">
-        <dt class="col-sm-5 text-muted">Nombre completo</dt>
-        <dd class="col-sm-7">{{ $estudiante->nombre }} {{ $estudiante->apellido }}</dd>
-        <dt class="col-sm-5 text-muted">Carrera</dt>
-        <dd class="col-sm-7">{{ $estudiante->carrera->nombre ?? 'Sin asignar' }}</dd>
-        <dt class="col-sm-5 text-muted">Correo institucional</dt>
-        <dd class="col-sm-7">{{ $estudiante->email }}</dd>
-      </dl>
-      <form method="POST" action="{{ route('estudiantes.dashboard.update-settings') }}" class="row g-3">
-        @csrf
-        @method('PUT')
-        <div class="col-12">
-          <label for="telefono" class="form-label">Teléfono de contacto</label>
-          <input type="text" id="telefono" name="telefono" class="form-control @error('telefono') is-invalid @enderror"
-                 value="{{ old('telefono', $estudiante->telefono) }}" placeholder="Ej. +56 9 1234 5678">
-          @error('telefono')
-            <div class="invalid-feedback">{{ $message }}</div>
-          @enderror
-        </div>
-        <div class="col-12 d-flex justify-content-end">
-          <button type="submit" class="btn btn-danger">Guardar cambios</button>
-        </div>
-      </form>
-    </div>
-  </div>
 </div>
 
 <!-- Modal Detalle de Solicitud -->

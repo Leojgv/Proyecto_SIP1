@@ -89,52 +89,6 @@
             <div id="{{ $collapseId }}" class="accordion-collapse collapse" aria-labelledby="{{ $headingId }}" data-bs-parent="#casosPedagogica">
               <div class="accordion-body case-body">
                 <div class="row g-3 mb-3">
-                  <div class="col-12">
-                    <div class="border rounded p-3 bg-light">
-                      @if($solicitud->titulo)
-                        <small class="text-muted d-block mb-1">
-                          <strong>Título</strong>
-                        </small>
-                        <div class="fw-semibold mb-3">{{ $solicitud->titulo }}</div>
-                      @endif
-                      <small class="text-muted d-block mb-2">
-                        <strong>Descripción</strong>
-                      </small>
-                      <div class="text-muted" style="line-height: 1.6;">{{ $solicitud->descripcion ?: 'Sin descripción registrada.' }}</div>
-                    </div>
-                  </div>
-                  <div class="col-12">
-                    <div class="border rounded p-3 bg-light">
-                      <div class="row g-3">
-                        <div class="col-md-6">
-                          <small class="text-muted d-block mb-1">
-                            <i class="far fa-calendar-alt me-1"></i><strong>Fecha/Hora</strong>
-                          </small>
-                          <div class="small fecha-texto">
-                            {{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}
-                            @if($solicitud->created_at)
-                              - {{ $solicitud->created_at->format('H:i') }}
-                            @endif
-                          </div>
-                        </div>
-                        @if($solicitud->observaciones_pdf_ruta)
-                          <div class="col-md-6">
-                            <small class="text-muted d-block mb-1">
-                              <i class="fas fa-file-pdf me-1"></i><strong>Evidencia / Observación Adjuntado</strong>
-                            </small>
-                            <div class="small">
-                              @php
-                                $pdfUrl = asset('storage/' . $solicitud->observaciones_pdf_ruta);
-                              @endphp
-                              <a href="{{ $pdfUrl }}" target="_blank" class="text-danger">
-                                <i class="fas fa-file-pdf me-1"></i>Ver PDF
-                              </a>
-                            </div>
-                          </div>
-                        @endif
-                      </div>
-                    </div>
-                  </div>
                   @if($solicitud->ajustesRazonables->isNotEmpty())
                     <div class="col-12">
                       <h6 class="mb-3"><strong>Ajustes aplicados</strong></h6>

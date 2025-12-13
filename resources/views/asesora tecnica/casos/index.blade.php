@@ -138,6 +138,8 @@
                             @endif
                           </div>
                         </div>
+                      </div>
+                      <div class="row g-3 mt-2">
                         <div class="col-md-6">
                           <small class="text-muted d-block mb-1">
                             <i class="fas fa-file-pdf me-1"></i><strong>PDF con Observaciones</strong>
@@ -155,6 +157,27 @@
                             @endif
                           </div>
                         </div>
+                        @php
+                          $evidenciaDocumentos = $solicitud->evidencias->firstWhere('tipo', 'Documento médico/psicológico') 
+                            ?? $solicitud->evidencias->firstWhere('tipo', 'Documento medico/psicologico')
+                            ?? $solicitud->evidencias->firstWhere('tipo', 'Documentos Adicionales')
+                            ?? $solicitud->evidencias->first();
+                        @endphp
+                        @if($evidenciaDocumentos && $evidenciaDocumentos->ruta_archivo)
+                          <div class="col-md-6">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-file-pdf me-1"></i><strong>Documentos Adicionales</strong>
+                            </small>
+                            <div class="small">
+                              @php
+                                $documentosUrl = asset('storage/' . $evidenciaDocumentos->ruta_archivo);
+                              @endphp
+                              <a href="{{ $documentosUrl }}" target="_blank" class="text-danger">
+                                <i class="fas fa-file-pdf me-1"></i>Ver PDF
+                              </a>
+                            </div>
+                          </div>
+                        @endif
                       </div>
                     </div>
                   </div>

@@ -88,15 +88,6 @@
           @endif
         </dd>
 
-        @if ($solicitud->motivo_rechazo)
-          <dt class="col-sm-3">Motivo de rechazo</dt>
-          <dd class="col-sm-9">
-            <div class="alert alert-warning mb-0">
-              <i class="fas fa-exclamation-triangle me-2"></i>{{ $solicitud->motivo_rechazo }}
-            </div>
-          </dd>
-        @endif
-
         <dt class="col-sm-3">Descripción</dt>
         <dd class="col-sm-9">{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}</dd>
       </dl>
@@ -167,15 +158,15 @@
                   ></textarea>
                   <div class="invalid-feedback">El motivo de rechazo es obligatorio cuando se rechaza un ajuste.</div>
                 </div>
-                @if($ajuste->motivo_rechazo)
+              @else
+                @php
+                  $esRechazoDirectora = strtolower(trim($ajuste->estado ?? '')) === 'rechazado';
+                @endphp
+                @if($ajuste->motivo_rechazo && $esRechazoDirectora)
                   <div class="alert alert-warning small mt-2 mb-0">
-                    <i class="fas fa-exclamation-triangle me-1"></i><strong>Motivo de rechazo anterior:</strong> {{ $ajuste->motivo_rechazo }}
+                    <i class="fas fa-exclamation-triangle me-1"></i><strong>Motivo de rechazo:</strong> {{ $ajuste->motivo_rechazo }}
                   </div>
                 @endif
-              @elseif($ajuste->motivo_rechazo)
-                <div class="alert alert-warning small mt-2 mb-0">
-                  <i class="fas fa-exclamation-triangle me-1"></i><strong>Motivo de rechazo:</strong> {{ $ajuste->motivo_rechazo }}
-                </div>
               @endif
             </div>
           @empty
