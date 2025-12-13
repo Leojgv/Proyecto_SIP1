@@ -7,6 +7,176 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Sistema de Gestión de Inclusión (SIP)
+
+Sistema de gestión para la inclusión de estudiantes en instituciones educativas, desarrollado con Laravel.
+
+## Requisitos del Sistema
+
+Antes de instalar el proyecto, asegúrate de tener instalado:
+
+- **PHP** >= 8.2
+- **Composer** (gestor de dependencias de PHP)
+- **Node.js** >= 18.x y **npm** (para compilar assets)
+- **MySQL** >= 8.0 o **MariaDB** >= 10.3
+- **Git**
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/Proyecto_SIP.git
+cd Proyecto_SIP
+```
+
+### 2. Instalar dependencias de PHP
+
+```bash
+composer install
+```
+
+### 3. Configurar el archivo de entorno
+
+Copia el archivo de ejemplo y configura las variables de entorno:
+
+```bash
+copy .env.example .env
+```
+
+En Windows PowerShell:
+```powershell
+Copy-Item .env.example .env
+```
+
+Edita el archivo `.env` y configura:
+- `DB_CONNECTION=mysql`
+- `DB_HOST=127.0.0.1`
+- `DB_PORT=3306`
+- `DB_DATABASE=nombre_de_tu_base_de_datos`
+- `DB_USERNAME=tu_usuario_mysql`
+- `DB_PASSWORD=tu_contraseña_mysql`
+- `APP_URL=http://localhost:8000`
+
+### 4. Generar la clave de aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 5. Crear la base de datos
+
+Crea una base de datos MySQL con el nombre que especificaste en el archivo `.env`:
+
+```sql
+CREATE DATABASE nombre_de_tu_base_de_datos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 6. Ejecutar las migraciones
+
+```bash
+php artisan migrate
+```
+
+### 7. Crear el enlace simbólico para el almacenamiento
+
+```bash
+php artisan storage:link
+```
+
+### 8. Instalar dependencias de Node.js
+
+```bash
+npm install
+```
+
+### 9. Compilar los assets
+
+Para desarrollo:
+```bash
+npm run dev
+```
+
+Para producción:
+```bash
+npm run build
+```
+
+### 10. Iniciar el servidor de desarrollo
+
+```bash
+php artisan serve
+```
+
+El proyecto estará disponible en: `http://localhost:8000`
+
+## Configuración Adicional
+
+### Crear un usuario administrador
+
+Para crear un usuario administrador, puedes usar Tinker:
+
+```bash
+php artisan tinker
+```
+
+Luego ejecuta:
+```php
+User::create([
+    'nombre' => 'Admin',
+    'apellido' => 'Sistema',
+    'email' => 'admin@inacap.cl',
+    'password' => bcrypt('contraseña_segura'),
+    'rol_id' => 1, // Ajusta según el ID del rol de administrador
+]);
+```
+
+### Poblar la base de datos (Opcional)
+
+Si tienes seeders configurados:
+
+```bash
+php artisan db:seed
+```
+
+## Estructura del Proyecto
+
+- `app/` - Lógica de la aplicación (Controladores, Modelos, etc.)
+- `database/` - Migraciones y seeders
+- `resources/views/` - Vistas Blade
+- `routes/` - Definición de rutas
+- `public/` - Archivos públicos accesibles
+- `storage/` - Archivos subidos y logs
+
+## Tecnologías Utilizadas
+
+- **Laravel 12** - Framework PHP
+- **MySQL** - Base de datos
+- **Bootstrap 5** - Framework CSS
+- **Chart.js** - Gráficos y visualizaciones
+- **AdminLTE 3** - Panel de administración
+- **Vite** - Build tool para assets
+
+## Desarrollo
+
+### Compilar assets en modo desarrollo (con watch)
+
+```bash
+npm run dev
+```
+
+### Ejecutar tests
+
+```bash
+php artisan test
+```
+
+## Licencia
+
+Este proyecto es software de código abierto licenciado bajo la [licencia MIT](https://opensource.org/licenses/MIT).
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
