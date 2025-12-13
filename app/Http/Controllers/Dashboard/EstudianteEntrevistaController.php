@@ -136,10 +136,10 @@ class EstudianteEntrevistaController extends Controller
             'modalidad' => $validated['modalidad'],
             'solicitud_id' => $solicitud->id,
             'asesor_id' => $coordinadora?->id,
-            'tiene_acompanante' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1',
-            'acompanante_rut' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_rut'] ?? null : null,
-            'acompanante_nombre' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_nombre'] ?? null : null,
-            'acompanante_telefono' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_telefono'] ?? null : null,
+            'tiene_acompanante' => $validated['tiene_acompanante'] ?? false,
+            'acompanante_rut' => ($validated['tiene_acompanante'] ?? false) ? ($validated['acompanante_rut'] ?? null) : null,
+            'acompanante_nombre' => ($validated['tiene_acompanante'] ?? false) ? ($validated['acompanante_nombre'] ?? null) : null,
+            'acompanante_telefono' => ($validated['tiene_acompanante'] ?? false) ? ($validated['acompanante_telefono'] ?? null) : null,
         ]);
 
         // Guardar archivos adjuntos si existen
