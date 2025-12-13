@@ -79,7 +79,7 @@
                     <div class="ms-auto">
                       <form action="{{ route('asesora-tecnica.solicitudes.enviar-preaprobacion', $case['case_id']) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar esta solicitud a Asesoría Pedagógica para preaprobación? Esta acción cambiará el estado a \"Pendiente de preaprobación\".');">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('(Seguridad) ¿Estás seguro de enviar a Preaprobación?');">
                           <i class="fas fa-paper-plane me-1"></i>Enviar a Preaprobación
                         </button>
                       </form>
@@ -158,14 +158,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
-          <p class="mb-0 fw-semibold" data-estudiante-name></p>
-          <p class="text-muted small mb-0" data-program-name></p>
+        <div class="mb-4">
+          <div class="border rounded p-3 bg-light">
+            <div class="fw-semibold mb-1" data-estudiante-name></div>
+            <div class="text-muted small" data-program-name></div>
+          </div>
         </div>
-        <div class="list-group" data-ajustes-list></div>
+        <div data-ajustes-list></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
@@ -202,39 +204,109 @@
         listEl.innerHTML = '';
 
         if (!ajustes.length) {
-          listEl.innerHTML = '<p class="text-muted mb-0">No hay ajustes registrados.</p>';
+          listEl.innerHTML = '<div class="text-center py-4"><p class="text-muted mb-0">No hay ajustes registrados.</p></div>';
           return;
         }
 
         ajustes.forEach(function (ajuste) {
           var item = document.createElement('div');
-          item.className = 'list-group-item';
+          item.className = 'border rounded p-3 bg-light mb-3';
 
           var row = document.createElement('div');
           row.className = 'd-flex justify-content-between align-items-start';
 
           var left = document.createElement('div');
-          left.className = 'flex-grow-1';
+          left.className = 'flex-grow-1 d-flex align-items-start gap-2';
+          
+          // Agregar checkmark si está aprobado o en preaprobación
+          var estado = ajuste.status || ajuste.estado || 'Pendiente';
+          var showCheck = estado === 'Aprobado' || estado === 'Aprobada' || 
+                         estado === 'Pendiente de preaprobación' || 
+                         estado === 'Pendiente de Aprobación';
+          
+          if (showCheck) {
+            var checkIcon = document.createElement('div');
+            checkIcon.className = 'text-success mt-1';
+            checkIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            left.appendChild(checkIcon);
+          }
+          
+          var contentDiv = document.createElement('div');
+          contentDiv.className = 'flex-grow-1';
           
           var title = document.createElement('div');
-          title.className = 'fw-semibold mb-1';
+          title.className = 'fw-semibold mb-2';
           title.textContent = ajuste.name || 'Ajuste sin titulo';
           
           var description = document.createElement('div');
           description.className = 'text-muted small mb-2';
+          description.style.lineHeight = '1.6';
           description.textContent = ajuste.description || 'No hay descripción';
           
           var date = document.createElement('div');
-          date.className = 'text-muted small';
-          date.textContent = 'Actualizado ' + (ajuste.completed_at || 's/f');
+          date.className = 'text-muted small mt-2';
           
-          left.appendChild(title);
-          left.appendChild(description);
-          left.appendChild(date);
+          // Formatear fecha si existe
+          var fechaTexto = 's/f';
+          if (ajuste.completed_at) {
+            try {
+              var fecha = new Date(ajuste.completed_at);
+              if (!isNaN(fecha.getTime())) {
+                fechaTexto = 'Actualizado ' + fecha.toLocaleDateString('es-CL', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                });
+              }
+            } catch(e) {
+              fechaTexto = 'Actualizado ' + ajuste.completed_at;
+            }
+          }
+          date.textContent = fechaTexto;
+          
+          contentDiv.appendChild(title);
+          contentDiv.appendChild(description);
+          contentDiv.appendChild(date);
+          
+          // Si está rechazado, mostrar motivo de rechazo después de la fecha
+          if ((estado === 'Rechazado' || estado === 'Rechazada') && ajuste.motivo_rechazo) {
+            var motivoDiv = document.createElement('div');
+            motivoDiv.className = 'mt-2 p-2 border-start border-danger border-3 rounded';
+            motivoDiv.style.backgroundColor = '#fff5f5';
+            
+            var motivoLabel = document.createElement('div');
+            motivoLabel.className = 'fw-semibold small text-danger mb-1';
+            motivoLabel.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Motivo de rechazo por Directora de Carrera:';
+            
+            var motivoTexto = document.createElement('div');
+            motivoTexto.className = 'small text-dark';
+            motivoTexto.style.lineHeight = '1.5';
+            motivoTexto.textContent = ajuste.motivo_rechazo;
+            
+            motivoDiv.appendChild(motivoLabel);
+            motivoDiv.appendChild(motivoTexto);
+            contentDiv.appendChild(motivoDiv);
+          }
+          
+          left.appendChild(contentDiv);
 
           var badge = document.createElement('span');
-          badge.className = 'badge bg-success-subtle text-success ms-2';
-          badge.textContent = ajuste.status || 'En proceso';
+          var badgeClass = 'badge ';
+          
+          if (estado === 'Aprobado' || estado === 'Aprobada') {
+            badgeClass += 'bg-success';
+          } else if (estado === 'Rechazado' || estado === 'Rechazada') {
+            badgeClass += 'bg-danger';
+          } else if (estado === 'Pendiente de preaprobación' || estado === 'Pendiente de Aprobación') {
+            badgeClass += 'bg-primary';
+          } else {
+            badgeClass += 'bg-warning text-dark';
+          }
+          
+          badge.className = badgeClass;
+          badge.textContent = estado;
+          badge.style.padding = '0.4rem 0.75rem';
+          badge.style.fontWeight = '500';
 
           row.appendChild(left);
           row.appendChild(badge);

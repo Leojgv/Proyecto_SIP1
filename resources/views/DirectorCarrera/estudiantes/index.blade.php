@@ -90,20 +90,20 @@
                   <span class="badge bg-light text-dark">{{ $estudiante->carrera->nombre ?? 'Sin carrera' }}</span>
                 </td>
                 <td class="text-end">
-                  <button type="button"
-                          class="btn btn-sm btn-outline-primary btn-edit-estudiante"
-                          data-edit-estudiante="true"
-                          data-estudiante-id="{{ $estudiante->id }}"
-                          data-estudiante-rut="{{ $estudiante->rut }}"
-                          data-estudiante-nombre="{{ $estudiante->nombre }}"
-                          data-estudiante-apellido="{{ $estudiante->apellido }}"
-                          data-estudiante-email="{{ $estudiante->email }}"
-                          data-estudiante-telefono="{{ $estudiante->telefono ?? '' }}"
-                          data-estudiante-carrera-id="{{ $estudiante->carrera_id }}"
-                          data-update-url="{{ route('director.estudiantes.update', $estudiante) }}"
-                          title="Editar estudiante">
-                    <i class="fas fa-pen"></i>
-                  </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary btn-edit-estudiante"
+                            data-edit-estudiante="true"
+                            data-estudiante-id="{{ $estudiante->id }}"
+                            data-estudiante-rut="{{ $estudiante->rut }}"
+                            data-estudiante-nombre="{{ $estudiante->nombre }}"
+                            data-estudiante-apellido="{{ $estudiante->apellido }}"
+                            data-estudiante-email="{{ $estudiante->email }}"
+                            data-estudiante-telefono="{{ $estudiante->telefono ?? '' }}"
+                            data-estudiante-carrera-id="{{ $estudiante->carrera_id }}"
+                            data-update-url="{{ route('director.estudiantes.update', $estudiante) }}"
+                            title="Editar estudiante">
+                      <i class="fas fa-pen"></i>
+                    </button>
                 </td>
               </tr>
             @empty

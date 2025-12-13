@@ -1,4 +1,4 @@
-@extends('layouts.dashboard_asesorapedagogica.app')
+@extends('layouts.dashboard_asesoratecnica.app')
 
 @section('title', 'Detalle de Caso')
 
@@ -31,14 +31,19 @@
       </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <a href="{{ route('asesora-pedagogica.casos.index') }}" class="btn btn-sm btn-outline-secondary">
+      <a href="{{ route('asesora-tecnica.casos.index') }}" class="btn btn-sm btn-outline-secondary">
         <i class="fas fa-arrow-left me-1"></i>Volver
       </a>
-      @if($solicitud->estado === 'Pendiente de preaprobación')
-        <form action="{{ route('asesora-pedagogica.casos.enviar-director', $solicitud) }}" method="POST" class="d-inline">
+      @php
+        $ajustesCount = $solicitud->ajustesRazonables()->count();
+        $estadosPermitidos = ['Listo para Enviar', 'Pendiente de formulación de ajuste'];
+        $puedeEnviarAPreaprobacion = in_array($solicitud->estado, $estadosPermitidos) && $ajustesCount > 0;
+      @endphp
+      @if($puedeEnviarAPreaprobacion)
+        <form action="{{ route('asesora-tecnica.solicitudes.enviar-preaprobacion', $solicitud) }}" method="POST" class="d-inline">
           @csrf
-          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de enviar este caso a Dirección de Carrera para aprobación final?');">
-            <i class="fas fa-paper-plane me-1"></i>Enviar a Dirección
+          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('(Seguridad) ¿Estás seguro de enviar a Preaprobación?');">
+            <i class="fas fa-paper-plane me-1"></i>Enviar a Preaprobación
           </button>
         </form>
       @endif
@@ -83,8 +88,12 @@
 
             <dt class="col-sm-4">Estado</dt>
             <dd class="col-sm-8">
-              @if($solicitud->estado === 'Pendiente de preaprobación')
+              @if($solicitud->estado === 'Pendiente de formulación de ajuste')
                 <span class="badge bg-warning text-dark">{{ $solicitud->estado ?? 'Sin estado' }}</span>
+              @elseif($solicitud->estado === 'Listo para Enviar')
+                <span class="badge bg-info">{{ $solicitud->estado ?? 'Sin estado' }}</span>
+              @elseif($solicitud->estado === 'Pendiente de preaprobación')
+                <span class="badge bg-primary">{{ $solicitud->estado ?? 'Sin estado' }}</span>
               @elseif($solicitud->estado === 'Aprobado')
                 <span class="badge bg-success">{{ $solicitud->estado ?? 'Sin estado' }}</span>
               @elseif($solicitud->estado === 'Rechazado')
@@ -117,8 +126,8 @@
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="flex-grow-1">
                   <h6 class="mb-1 fw-semibold">
-                  <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
-                </h6>
+                    <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                  </h6>
                   <p class="text-muted small mb-1">{{ $ajuste->descripcion ?? 'sin desc' }}</p>
                   @if($ajuste->fecha_solicitud)
                     <small class="text-muted">
@@ -206,55 +215,7 @@
           @endforelse
         </div>
       </div>
-
-      @if($solicitud->estado === 'Pendiente de preaprobación')
-        <div class="card border-0 shadow-sm">
-          <div class="card-body">
-            <h6 class="card-title mb-3">
-              <i class="fas fa-undo text-warning me-2"></i>Devolver al Asesor Técnico
-            </h6>
-            <p class="text-muted small mb-3">
-              Si necesitas que el Asesor Técnico realice correcciones, puedes devolver el caso.
-            </p>
-            <button 
-              class="btn btn-outline-warning btn-sm w-100" 
-              type="button" 
-              data-bs-toggle="collapse" 
-              data-bs-target="#devolverForm" 
-              aria-expanded="false" 
-              aria-controls="devolverForm"
-            >
-              <i class="fas fa-arrow-left me-1"></i>Devolver para Correcciones
-            </button>
-            
-            <div class="collapse mt-3" id="devolverForm">
-              <form action="{{ route('asesora-pedagogica.casos.devolver-actt', $solicitud) }}" method="POST">
-                @csrf
-                <div class="mb-3">
-                  <label for="motivo_devolucion" class="form-label">Motivo de devolución <span class="text-danger">*</span></label>
-                  <textarea 
-                    name="motivo_devolucion" 
-                    id="motivo_devolucion" 
-                    rows="4" 
-                    class="form-control @error('motivo_devolucion') is-invalid @enderror" 
-                    placeholder="Describe los motivos por los que necesitas devolver el caso al Asesor Técnico..." 
-                    required
-                  >{{ old('motivo_devolucion') }}</textarea>
-                  @error('motivo_devolucion')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                  <small class="text-muted">Mínimo 10 caracteres</small>
-                </div>
-                <button type="submit" class="btn btn-sm btn-warning w-100" onclick="return confirm('¿Estás seguro de devolver este caso al Asesor Técnico?');">
-                  <i class="fas fa-paper-plane me-1"></i>Enviar Devolución
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      @endif
     </div>
   </div>
 </div>
 @endsection
-

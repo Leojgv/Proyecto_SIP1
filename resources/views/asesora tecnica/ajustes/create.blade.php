@@ -202,15 +202,7 @@
           </div>
           <div class="card-body">
             <div class="row g-3">
-              <div class="col-md-6">
-                <label for="fecha_solicitud" class="form-label fw-semibold">
-                  Fecha de solicitud <span class="text-danger">*</span>
-                </label>
-                <input type="date" id="fecha_solicitud" name="fecha_solicitud" value="{{ old('fecha_solicitud', now()->format('Y-m-d')) }}" class="form-control @error('fecha_solicitud') is-invalid @enderror" required>
-                @error('fecha_solicitud')<div class="invalid-feedback">{{ $message }}</div>@enderror
-              </div>
-
-              <div class="col-md-6">
+              <div class="col-12">
                 <label for="nombre" class="form-label fw-semibold">
                   Nombre del ajuste <span class="text-danger">*</span>
                 </label>
@@ -223,9 +215,9 @@
 
               <div class="col-12">
                 <label for="descripcion" class="form-label fw-semibold">
-                  Descripción detallada
+                  Descripción detallada <span class="text-danger">*</span>
                 </label>
-                <textarea id="descripcion" name="descripcion" rows="6" class="form-control @error('descripcion') is-invalid @enderror" placeholder="Describe los detalles específicos del ajuste razonable, cómo se implementará, qué recursos se necesitarán, etc...">{{ old('descripcion') }}</textarea>
+                <textarea id="descripcion" name="descripcion" rows="6" class="form-control @error('descripcion') is-invalid @enderror" placeholder="Describe los detalles específicos del ajuste razonable, cómo se implementará, qué recursos se necesitarán, etc..." required>{{ old('descripcion') }}</textarea>
                 @error('descripcion')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
             </div>

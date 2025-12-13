@@ -1,4 +1,4 @@
-﻿@extends('layouts.dashboard_coordinadora.app')
+@extends('layouts.dashboard_coordinadora.app')
 
 @section('title', 'Casos')
 
@@ -61,12 +61,12 @@
                     <div class="border rounded p-3 bg-light">
                       @if($solicitud->titulo)
                       <small class="text-muted d-block mb-1">
-                        <i class="fas fa-heading me-1"></i><strong>Título</strong>
+                        <strong>Título</strong>
                       </small>
                       <div class="fw-semibold mb-3">{{ $solicitud->titulo }}</div>
                       @endif
                       <small class="text-muted d-block mb-2">
-                        <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+                        <strong>Descripción</strong>
                       </small>
                       <div class="text-muted" style="line-height: 1.6;">{{ $solicitud->descripcion ?: 'Sin descripción registrada.' }}</div>
                     </div>
@@ -79,12 +79,46 @@
                     @if($modalidad)
                     <div class="col-12">
                       <div class="border rounded p-3 bg-light">
-                        <small class="text-muted d-block mb-1">
+                        <small class="text-muted d-block mb-2">
                           <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
                         </small>
-                        <div class="fw-semibold">
+                        <div class="fw-semibold mb-2">
                           <span class="badge {{ $modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">{{ $modalidad }}</span>
                         </div>
+                        @if(strtolower($modalidad) === 'presencial')
+                          <div class="row g-2 mt-2">
+                            @if($entrevista->fecha || $entrevista->fecha_hora_inicio)
+                              <div class="col-md-4">
+                                <small class="text-muted d-block mb-1">
+                                  <i class="far fa-calendar me-1"></i><strong>Fecha</strong>
+                                </small>
+                                <div class="small">{{ $entrevista->fecha_hora_inicio?->format('d/m/Y') ?? ($entrevista->fecha?->format('d/m/Y') ?? 'No definida') }}</div>
+                              </div>
+                            @endif
+                            @if($entrevista->fecha_hora_inicio || $entrevista->fecha_hora_fin)
+                              <div class="col-md-4">
+                                <small class="text-muted d-block mb-1">
+                                  <i class="far fa-clock me-1"></i><strong>Hora</strong>
+                                </small>
+                                <div class="small">
+                                  @if($entrevista->fecha_hora_inicio && $entrevista->fecha_hora_fin)
+                                    {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin->format('H:i') }}
+                                  @elseif($entrevista->fecha_hora_inicio)
+                                    {{ $entrevista->fecha_hora_inicio->format('H:i') }}
+                                  @else
+                                    Por definir
+                                  @endif
+                                </div>
+                              </div>
+                            @endif
+                            <div class="col-md-4">
+                              <small class="text-muted d-block mb-1">
+                                <i class="fas fa-map-marker-alt me-1"></i><strong>Lugar</strong>
+                              </small>
+                              <div class="small">Sala 4to Piso, Edificio A</div>
+                            </div>
+                          </div>
+                        @endif
                       </div>
                     </div>
                     @endif

@@ -76,7 +76,7 @@
               @error('motivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-12 d-flex justify-content-end">
-              <button class="btn btn-outline-danger" type="submit">Agregar bloqueo</button>
+              <button class="btn btn-danger" type="submit">Agregar bloqueo</button>
             </div>
           </form>
 
@@ -94,7 +94,13 @@
                 @forelse($bloqueos as $bloqueo)
                   <tr>
                     <td>{{ $bloqueo->fecha->format('d/m/Y') }}</td>
-                    <td>{{ $bloqueo->hora_inicio }} - {{ $bloqueo->hora_fin }}</td>
+                    <td>
+                      @php
+                        $horaInicio = \Carbon\Carbon::parse($bloqueo->hora_inicio)->format('H:i');
+                        $horaFin = \Carbon\Carbon::parse($bloqueo->hora_fin)->format('H:i');
+                      @endphp
+                      {{ $horaInicio }} - {{ $horaFin }}
+                    </td>
                     <td>{{ $bloqueo->motivo ?? 'Sin detalle' }}</td>
                     <td class="text-end">
                       <form action="{{ route('coordinadora.agenda.bloqueos.destroy', $bloqueo) }}" method="POST" onsubmit="return confirm('Eliminar este bloqueo?');">
@@ -386,7 +392,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const chip = document.createElement('span');
       chip.className = ev.type === 'bloqueo' ? 'event-chip event-chip-bloqueo' : 'event-chip';
       const icon = ev.type === 'bloqueo' ? 'fa-ban' : 'fa-calendar-day';
-      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+      const fechaFormateada = new Date(ev.date + 'T00:00:00');
+      const dia = String(fechaFormateada.getDate()).padStart(2, '0');
+      const mes = String(fechaFormateada.getMonth() + 1).padStart(2, '0');
+      const año = fechaFormateada.getFullYear();
+      const fechaStr = `${dia}/${mes}/${año}`;
+      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${fechaStr} · ${ev.full}`;
       eventsListAgenda.appendChild(chip);
     });
   }
@@ -477,7 +488,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const chip = document.createElement('span');
       chip.className = ev.type === 'bloqueo' ? 'event-chip event-chip-bloqueo' : 'event-chip';
       const icon = ev.type === 'bloqueo' ? 'fa-ban' : 'fa-calendar-day';
-      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${new Date(ev.date + 'T00:00:00').toLocaleDateString('es-CL')} · ${ev.full}`;
+      const fechaFormateada = new Date(ev.date + 'T00:00:00');
+      const dia = String(fechaFormateada.getDate()).padStart(2, '0');
+      const mes = String(fechaFormateada.getMonth() + 1).padStart(2, '0');
+      const año = fechaFormateada.getFullYear();
+      const fechaStr = `${dia}/${mes}/${año}`;
+      chip.innerHTML = `<i class="fas ${icon} me-1"></i>${fechaStr} · ${ev.full}`;
       eventsListModal.appendChild(chip);
     });
   }

@@ -63,7 +63,7 @@
                   @endphp
                   <div class="border rounded p-3 mb-3 bg-light">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                      <div class="flex-grow-1">
+                    <div class="flex-grow-1">
                         @if($solicitud->titulo)
                           <h6 class="fw-semibold mb-2">{{ $solicitud->titulo }}</h6>
                         @endif
@@ -126,12 +126,12 @@
                             <i class="fas fa-exclamation-triangle me-1"></i><strong>Motivo de rechazo:</strong> {{ $solicitud->motivo_rechazo }}
                           </div>
                         @endif
-                      </div>
+                    </div>
                       <div class="ms-3 d-flex flex-column align-items-end gap-2">
-                        <span class="badge {{ $badgeItem }}">{{ $estadoItem }}</span>
+                    <span class="badge {{ $badgeItem }}">{{ $estadoItem }}</span>
                         <a href="{{ route('director.casos.show', $solicitud) }}" class="btn btn-sm btn-outline-danger">
-                          <i class="fas fa-eye me-1"></i>Ver detalles
-                        </a>
+                      <i class="fas fa-eye me-1"></i>Ver detalles
+                    </a>
                       </div>
                     </div>
                   </div>

@@ -118,7 +118,12 @@
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="flex-grow-1">
                   <h6 class="fw-semibold mb-2">
-                    <i class="fas fa-check-circle text-success me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                    @if(strtolower(trim($ajuste->estado ?? '')) === 'rechazado')
+                      <i class="fas fa-times-circle text-danger me-2"></i>
+                    @else
+                      <i class="fas fa-check-circle text-success me-2"></i>
+                    @endif
+                    {{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
                   </h6>
                   <p class="text-muted small mb-0">
                     {{ $ajuste->descripcion ?? 'No hay descripción disponible para este ajuste razonable.' }}
@@ -190,42 +195,60 @@
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
-          <h5 class="card-title mb-3">Evidencias / Entrevistas</h5>
-          <p class="mb-2 fw-semibold">Evidencias</p>
-          @forelse ($solicitud->evidencias as $evidencia)
-            <div class="border rounded p-3 mb-2 bg-light">
-              <h6 class="fw-semibold mb-2">
-                <i class="fas fa-file-alt text-danger me-2"></i>{{ $evidencia->titulo ?? 'Evidencia' }}
+          <h5 class="card-title mb-3">
+            <i class="fas fa-file-alt text-danger me-2"></i>Resumen del Caso
+          </h5>
+          
+          <div class="resumen-caso">
+            <div class="resumen-caso__header mb-3">
+              <h6 class="resumen-caso__titulo mb-2">
+                {{ $solicitud->titulo ?? 'Resumen del Caso' }}
               </h6>
-              <p class="text-muted small mb-0">{{ $evidencia->descripcion ?? 'No hay descripción disponible.' }}</p>
+              <div class="resumen-caso__fecha">
+                <i class="fas fa-calendar-alt me-1"></i>
+                <span class="resumen-caso__fecha-texto">
+                  @php
+                    $fechaHora = null;
+                    $primeraEntrevista = $solicitud->entrevistas->first();
+                    if ($primeraEntrevista && $primeraEntrevista->fecha_hora_inicio) {
+                      $fechaHora = $primeraEntrevista->fecha_hora_inicio;
+                    } elseif ($solicitud->fecha_solicitud) {
+                      $fechaHora = $solicitud->fecha_solicitud;
+                    } else {
+                      $fechaHora = $solicitud->created_at;
+                    }
+                  @endphp
+                  @if($fechaHora)
+                    {{ $fechaHora->format('d/m/Y') }}
+                    @if($primeraEntrevista && $primeraEntrevista->fecha_hora_inicio)
+                      <span class="text-muted ms-2">{{ $primeraEntrevista->fecha_hora_inicio->format('H:i') }}</span>
+                    @endif
+                  @else
+                    Sin fecha
+                  @endif
+                </span>
+              </div>
             </div>
-          @empty
-            <p class="text-muted small mb-3">Sin evidencias registradas.</p>
-          @endforelse
 
-          <p class="mb-2 fw-semibold mt-3">Entrevistas</p>
-          @forelse ($solicitud->entrevistas as $entrevista)
-            <div class="border rounded p-3 mb-2 bg-light">
-              <h6 class="fw-semibold mb-2">
-                <i class="fas fa-user-tie text-danger me-2"></i>{{ $entrevista->titulo ?? 'Entrevista' }}
-              </h6>
-              <p class="text-muted small mb-0">
-                @if($entrevista->descripcion)
-                  {{ $entrevista->descripcion }}
-                @else
-                  No hay descripción disponible.
-                @endif
-                @if($entrevista->fecha)
-                  <br><i class="fas fa-calendar me-1"></i>{{ $entrevista->fecha->format('d/m/Y') }}
-                @endif
-                @if($entrevista->asesor)
-                  <br><i class="fas fa-user me-1"></i>{{ $entrevista->asesor->nombre }} {{ $entrevista->asesor->apellido }}
-                @endif
+            <div class="resumen-caso__descripcion mb-4">
+              <p class="resumen-caso__descripcion-texto mb-0">
+                {{ $solicitud->descripcion ?? 'No hay descripción disponible para este caso.' }}
               </p>
             </div>
-          @empty
-            <p class="text-muted small mb-0">Sin entrevistas registradas.</p>
-          @endforelse
+
+            @if($solicitud->observaciones_pdf_ruta)
+              <div class="resumen-caso__pdf">
+                <a href="{{ asset('storage/' . $solicitud->observaciones_pdf_ruta) }}" target="_blank" class="btn btn-outline-danger btn-sm w-100">
+                  <i class="fas fa-file-pdf me-2"></i>Ver Observaciones de la Entrevista (PDF)
+                </a>
+              </div>
+            @else
+              <div class="alert alert-light border mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <small class="text-muted">No hay PDF de observaciones disponible para este caso.</small>
+              </div>
+            @endif
+          </div>
         </div>
       </div>
     </div>
@@ -342,4 +365,83 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+
+@push('styles')
+<style>
+  .resumen-caso {
+    padding: 0;
+  }
+  .resumen-caso__header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .resumen-caso__titulo {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.5;
+  }
+  .resumen-caso__fecha {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  .resumen-caso__fecha i {
+    color: #dc2626;
+  }
+  .resumen-caso__descripcion {
+    min-height: 80px;
+  }
+  .resumen-caso__descripcion-texto {
+    color: #374151;
+    line-height: 1.6;
+    font-size: 0.9375rem;
+  }
+  .resumen-caso__pdf .btn {
+    transition: all 0.2s ease;
+  }
+  .resumen-caso__pdf .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);
+  }
+
+  /* Modo Oscuro */
+  .dark-mode .resumen-caso__header {
+    border-bottom-color: #2d3748 !important;
+  }
+  .dark-mode .resumen-caso__titulo {
+    color: #e8e8e8 !important;
+  }
+  .dark-mode .resumen-caso__fecha {
+    color: #94a3b8 !important;
+  }
+  .dark-mode .resumen-caso__fecha i {
+    color: #fca5a5 !important;
+  }
+  .dark-mode .resumen-caso__descripcion-texto {
+    color: #cbd5e1 !important;
+  }
+  .dark-mode .resumen-caso__fecha-texto .text-muted {
+    color: #64748b !important;
+  }
+  .dark-mode .alert-light {
+    background-color: #16213e !important;
+    border-color: #2d3748 !important;
+    color: #cbd5e1 !important;
+  }
+  .dark-mode .alert-light .text-muted {
+    color: #94a3b8 !important;
+  }
+  .dark-mode .btn-outline-danger {
+    border-color: #dc2626 !important;
+    color: #fca5a5 !important;
+  }
+  .dark-mode .btn-outline-danger:hover {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+  }
+</style>
+@endpush
 @endsection

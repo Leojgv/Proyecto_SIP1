@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Detalle de entrevista')
 
@@ -24,6 +24,14 @@
             <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">
               {{ $entrevista->modalidad }}
             </span>
+            @if(strtolower($entrevista->modalidad) === 'presencial')
+              <div class="mt-2">
+                <small class="text-muted d-block mb-1">
+                  <i class="fas fa-map-marker-alt me-1"></i><strong>Lugar:</strong>
+                </small>
+                <div class="small">Sala 4to Piso, Edificio A</div>
+              </div>
+            @endif
           @else
             —
           @endif

@@ -1,4 +1,4 @@
-﻿{{-- resources/views/solicitudes/index.blade.php --}}
+{{-- resources/views/solicitudes/index.blade.php --}}
 @extends('layouts.dashboard_admin.admin')
 
 @section('title', 'Reportes y Solicitudes')
@@ -627,14 +627,14 @@
                           </small>
                           <div class="fw-semibold mb-2">${discapacidad}</div>
                           <small class="text-muted d-block mb-1">
-                            <i class="fas fa-heading me-1"></i><strong>Título del Ajuste</strong>
+                            <strong>Título del Ajuste</strong>
                           </small>
                           <div class="fw-semibold mb-2">${ajuste.nombre || 'Sin nombre'}</div>
                         </div>
                         <span class="badge bg-secondary">${ajuste.estado || 'Sin estado'}</span>
                       </div>
                       <small class="text-muted d-block mb-1">
-                        <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+                        <strong>Descripción</strong>
                       </small>
                       <div class="text-break">${ajuste.descripcion || 'Sin descripción'}</div>
                     </div>

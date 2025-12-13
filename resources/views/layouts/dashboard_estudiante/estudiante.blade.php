@@ -99,6 +99,27 @@
       color: var(--red-600);
       margin-right: .35rem;
     }
+    .notification-btn {
+      border: none;
+      background: none;
+      color: #6a6b7c;
+      font-size: 1.2rem;
+      padding: 0.25rem 0.5rem;
+      transition: color 0.2s ease;
+    }
+    .notification-btn:hover {
+      color: var(--red-600);
+    }
+    .notification-badge {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.5rem;
+      font-weight: 600;
+      min-width: 1.5rem;
+      text-align: center;
+    }
+    .notification-item-modal:hover {
+      background-color: #f9fafb !important;
+    }
     .dashboard-content {
       padding: 2rem;
     }
@@ -164,6 +185,39 @@
     <header class="dashboard-topbar">
       <div class="dashboard-topbar__items">
         <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
+        @php
+          $notificationsCount = \App\Models\Notificacion::where('notifiable_type', get_class(auth()->user()))
+              ->where('notifiable_id', auth()->user()->id)
+              ->whereNull('read_at')
+              ->count();
+          $recentNotifications = \App\Models\Notificacion::where('notifiable_type', get_class(auth()->user()))
+              ->where('notifiable_id', auth()->user()->id)
+              ->latest('created_at')
+              ->take(10)
+              ->get()
+              ->map(function ($notification) {
+                  $data = $notification->data ?? [];
+                  return [
+                      'id' => $notification->id,
+                      'title' => $data['titulo'] ?? ($data['title'] ?? ($data['subject'] ?? 'Notificación')),
+                      'message' => $data['mensaje'] ?? ($data['message'] ?? ($data['body'] ?? 'Nueva actualización disponible.')),
+                      'url' => $data['url'] ?? null,
+                      'button_text' => $data['texto_boton'] ?? ($data['textoBoton'] ?? null),
+                      'time' => optional($notification->created_at)->diffForHumans() ?? 'hace instantes',
+                      'read_at' => $notification->read_at,
+                  ];
+              })
+              ->values()
+              ->all();
+        @endphp
+        <button type="button" class="btn btn-link text-decoration-none position-relative p-0 notification-btn" data-bs-toggle="modal" data-bs-target="#notificationsModal">
+          <i class="fas fa-bell"></i>
+          @if($notificationsCount > 0)
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">
+              {{ $notificationsCount > 99 ? '99+' : $notificationsCount }}
+            </span>
+          @endif
+        </button>
         @include('components.accessibility-button')
         <a class="text-decoration-none" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-estudiante').submit();"><i class="fas fa-right-from-bracket"></i>Salir</a>
       </div>
@@ -174,6 +228,69 @@
     </main>
   </div>
 </div>
+
+<!-- Modal de Notificaciones -->
+<div class="modal fade" id="notificationsModal" tabindex="-1" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content border-0 shadow-sm">
+      <div class="modal-header border-bottom bg-white">
+        <h5 class="modal-title fw-semibold" id="notificationsModalLabel">
+          <i class="fas fa-bell" style="color: var(--red-600);"></i>
+          <span class="ms-2">Notificaciones</span>
+          @if($notificationsCount > 0)
+            <span class="badge rounded-pill ms-2" style="background-color: var(--red-600); color: white; font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+              {{ $notificationsCount > 99 ? '99+' : $notificationsCount }}
+            </span>
+          @endif
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+        @forelse($recentNotifications as $notification)
+          <div class="notification-item-modal border-bottom p-3 {{ is_null($notification['read_at']) ? 'bg-light' : 'bg-white' }}" style="transition: background 0.2s ease;">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background-color: var(--red-50);">
+                    <i class="fas fa-bell" style="color: var(--red-600); font-size: 0.875rem;"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-0 fw-semibold" style="color: #1f1f2d; font-size: 0.95rem;">
+                      {{ $notification['title'] }}
+                    </h6>
+                    <small class="text-muted">{{ $notification['time'] }}</small>
+                  </div>
+                </div>
+                <p class="text-muted mb-2" style="font-size: 0.875rem; line-height: 1.5; margin-left: 44px;">
+                  {{ $notification['message'] }}
+                </p>
+                @if(isset($notification['url']) && $notification['url'])
+                  <div style="margin-left: 44px;">
+                    <a href="{{ $notification['url'] }}" class="btn btn-sm" style="background-color: var(--red-600); color: white; border: none; padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 500;">
+                      {{ $notification['button_text'] ?? 'Ver más' }}
+                      <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                  </div>
+                @endif
+              </div>
+            </div>
+          </div>
+        @empty
+          <div class="text-center py-5">
+            <div class="mb-3">
+              <i class="fas fa-bell-slash" style="font-size: 3rem; color: #9ca3af;"></i>
+            </div>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">No tienes notificaciones.</p>
+          </div>
+        @endforelse
+      </div>
+      <div class="modal-footer border-top bg-white">
+        <button type="button" class="btn" data-bs-dismiss="modal" style="background-color: #6b7280; color: white; border: none; padding: 0.5rem 1rem; font-weight: 500;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/accessibility.js') }}"></script>
 @stack('scripts')

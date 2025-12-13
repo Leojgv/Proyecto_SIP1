@@ -196,15 +196,11 @@
 
     {{-- KPIs --}}
     <div class="kpi-container clearfix">
-        <div class="kpi-card">
+        <div class="kpi-card" style="width: 48%;">
             <span class="kpi-number">{{ $totalSolicitudes }}</span>
             <span class="kpi-label">Total Solicitudes</span>
         </div>
-        <div class="kpi-card">
-            <span class="kpi-number">{{ $pendientesAprobacion }}</span>
-            <span class="kpi-label">Pendientes de Aprobación</span>
-        </div>
-        <div class="kpi-card">
+        <div class="kpi-card" style="width: 48%; margin-right: 0;">
             <span class="kpi-number">{{ $porcentajeAprobacion }}%</span>
             <span class="kpi-label">Tasa de Aprobación</span>
         </div>
@@ -338,7 +334,7 @@
     </div>
 
     {{-- Distribución por Tipo de Ajuste --}}
-    <h2>Distribución por Tipo de Ajuste</h2>
+    <h2>Distribución por Tipo de Ajuste (Solo Aprobados)</h2>
     <table>
         <thead>
             <tr>
@@ -404,32 +400,37 @@
                 <th>Fecha</th>
                 <th>RUT Estudiante</th>
                 <th>Nombre Estudiante</th>
-                <th>Ajuste Principal</th>
+                <th>Ajustes Aprobados</th>
+                <th>Responsable Entrevista</th>
+                <th>Responsable Ajuste</th>
                 <th>Estado</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($solicitudes as $solicitud)
+            @forelse($casosAgrupados ?? [] as $caso)
             <tr>
-                <td>{{ optional($solicitud->fecha_solicitud ?? $solicitud->created_at)->format('d/m/Y') ?? 'N/A' }}</td>
-                <td>{{ $solicitud->estudiante->rut ?? 'N/A' }}</td>
-                <td>{{ trim(($solicitud->estudiante->nombre ?? '') . ' ' . ($solicitud->estudiante->apellido ?? '')) ?: 'N/A' }}</td>
-                <td>
-                    @php
-                        $primerAjuste = $solicitud->ajustesRazonables->first();
-                        $ajusteNombre = $primerAjuste->nombre ?? 'Sin ajuste definido';
-                    @endphp
-                    {{ Str::limit($ajusteNombre, 40) }}
+                <td style="white-space: nowrap;">{{ optional($caso['fecha'])->format('d/m/Y') ?? 'N/A' }}</td>
+                <td>{{ $caso['estudiante']->rut ?? 'N/A' }}</td>
+                <td style="font-weight: bold;">{{ trim(($caso['estudiante']->nombre ?? '') . ' ' . ($caso['estudiante']->apellido ?? '')) ?: 'N/A' }}</td>
+                <td style="font-size: 10px; line-height: 1.4;">
+                    @if($caso['ajustes']->count() > 0)
+                        @foreach($caso['ajustes'] as $ajuste)
+                            • {{ Str::limit($ajuste->nombre, 35) }}@if(!$loop->last)<br>@endif
+                        @endforeach
+                        <small style="color: #666;">({{ $caso['ajustes']->count() }} ajuste{{ $caso['ajustes']->count() > 1 ? 's' : '' }})</small>
+                    @else
+                        Sin ajustes
+                    @endif
                 </td>
+                <td style="font-size: 10px;">{{ $caso['responsable_entrevista'] }}</td>
+                <td style="font-size: 10px;">{{ $caso['responsable_ajuste'] }}</td>
                 <td>
-                    <span class="status-{{ Str::lower(str_replace(' ', '-', $solicitud->estado ?? 'pendiente')) }}">
-                        {{ $solicitud->estado ?? 'Pendiente' }}
-                    </span>
+                    <span class="status-aprobado">Aprobado</span>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="5" style="text-align: center;">No hay registros para este periodo.</td>
+                <td colspan="7" style="text-align: center;">No hay casos aprobados para este periodo.</td>
             </tr>
             @endforelse
         </tbody>
@@ -437,11 +438,19 @@
 
     {{-- Ajustes Razonables con Lista de Estudiantes --}}
     <h2 class="page-break">Ajustes Razonables Aplicados</h2>
-    @forelse($ajustesConEstudiantes as $ajusteNombre => $estudiantes)
+    @forelse($ajustesConEstudiantes as $ajusteNombre => $ajusteData)
         <div class="ajuste-section">
             <div class="ajuste-title">{{ $ajusteNombre }}</div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 10px; color: #555; margin-bottom: 5px;">
+                    <strong>Descripción:</strong> {{ $ajusteData['descripcion'] ?? 'No descripcion' }}
+                </div>
+                <div style="font-size: 10px; color: #555; margin-bottom: 10px;">
+                    <strong>Fecha de aplicación:</strong> {{ optional($ajusteData['fecha_aplicacion'])->format('d/m/Y') ?? 'No especificada' }}
+                </div>
+            </div>
             <div>
-                @foreach($estudiantes as $estudiante)
+                @foreach($ajusteData['estudiantes'] ?? [] as $estudiante)
                     <div class="estudiante-item">
                         {{ $estudiante['nombre'] }} - {{ $estudiante['carrera'] }}
                     </div>
@@ -450,6 +459,34 @@
         </div>
     @empty
         <p style="text-align: center; padding: 20px; color: #666;">No hay ajustes razonables aplicados.</p>
+    @endforelse
+
+    {{-- Ajustes Rechazados --}}
+    <h2 class="page-break">Ajustes Rechazados</h2>
+    @forelse($ajustesRechazadosConEstudiantes ?? [] as $ajusteNombre => $ajusteData)
+        <div class="ajuste-section" style="border-left-color: #dc3545;">
+            <div class="ajuste-title" style="color: #dc3545;">{{ $ajusteNombre }}</div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 10px; color: #555; margin-bottom: 5px;">
+                    <strong>Descripción:</strong> {{ $ajusteData['descripcion'] ?? 'No descripcion' }}
+                </div>
+                <div style="font-size: 10px; color: #555; margin-bottom: 5px;">
+                    <strong>Fecha de rechazo:</strong> {{ optional($ajusteData['fecha_rechazo'])->format('d/m/Y') ?? 'No especificada' }}
+                </div>
+                <div style="font-size: 10px; color: #dc3545; margin-bottom: 10px; padding: 8px; background-color: #ffeaea; border-left: 3px solid #dc3545; border-radius: 3px;">
+                    <strong>Motivo de rechazo:</strong> {{ $ajusteData['motivo_rechazo'] ?? 'No se especificó motivo de rechazo' }}
+                </div>
+            </div>
+            <div>
+                @foreach($ajusteData['estudiantes'] ?? [] as $estudiante)
+                    <div class="estudiante-item">
+                        {{ $estudiante['nombre'] }} - {{ $estudiante['carrera'] }}
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @empty
+        <p style="text-align: center; padding: 20px; color: #666;">No hay ajustes rechazados.</p>
     @endforelse
 
     <div class="footer">

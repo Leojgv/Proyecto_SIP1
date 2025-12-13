@@ -165,7 +165,7 @@
           </div>
           <div class="border rounded p-3 bg-light">
             <small class="text-muted d-block mb-2">
-              <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+              <strong>Descripción</strong>
             </small>
             <div class="text-muted" id="det-descripcion" style="line-height: 1.6;">--</div>
           </div>
@@ -201,13 +201,14 @@
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalSolicitudDetalle" 
                         data-solicitud-id="{{ $solicitud->id }}"
+                        data-solicitud-titulo="{{ $solicitud->titulo ?? '' }}"
                         data-solicitud-fecha="{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}"
                         data-solicitud-estado="{{ $solicitud->estado ?? 'Sin estado' }}"
                         data-solicitud-descripcion="{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}"
                         data-solicitud-coordinadora="{{ $solicitud->entrevistas->first()?->asesor ? $solicitud->entrevistas->first()->asesor->nombre . ' ' . $solicitud->entrevistas->first()->asesor->apellido : 'Sin asignar' }}"
                         data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
                         data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
-                        data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar']; })) }}">
+                        data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar', 'modalidad' => $e->modalidad ?? null]; })) }}">
                   Ver detalle
                 </button>
               </div>
@@ -418,8 +419,8 @@
                         <div class="col-12">
                           <div class="alert alert-info mb-0">
                             <i class="fas fa-info-circle me-2"></i>
-                            <strong>Información:</strong> Este ajuste se encuentra en proceso de revisión. 
-                            Cualquier actualizacion se reflejara aqui cuando el equipo avance con la solicitud.
+                            <strong>Información:</strong> 
+                            Este Ajuste se vera reflejado ahora tu dia a dia, cualquier consulta visitar las oficinas de las asesoras pedagogicas.
                           </div>
                         </div>
                       </div>
@@ -455,44 +456,152 @@
           </div>
           <div class="list-group list-group-flush">
             @forelse ($ajustesRechazados ?? [] as $ajuste)
-              <div class="border rounded p-3 mb-3 bg-light">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+              @php
+                // Función helper para determinar el ícono según el tipo de ajuste
+                $nombreLower = strtolower($ajuste->nombre ?? '');
+                $icono = 'fa-sliders'; // Ícono por defecto
+                
+                if (str_contains($nombreLower, 'tiempo') || str_contains($nombreLower, 'extendido')) {
+                  $icono = 'fa-clock';
+                } elseif (str_contains($nombreLower, 'visual') || str_contains($nombreLower, 'braille') || str_contains($nombreLower, 'lector') || str_contains($nombreLower, 'magnificador') || str_contains($nombreLower, 'lupa')) {
+                  $icono = 'fa-eye';
+                } elseif (str_contains($nombreLower, 'audit') || str_contains($nombreLower, 'seña') || str_contains($nombreLower, 'intérprete') || str_contains($nombreLower, 'subtítulo') || str_contains($nombreLower, 'fm')) {
+                  $icono = 'fa-ear-deaf';
+                } elseif (str_contains($nombreLower, 'motora') || str_contains($nombreLower, 'físico') || str_contains($nombreLower, 'acceso') || str_contains($nombreLower, 'adaptado')) {
+                  $icono = 'fa-wheelchair';
+                } elseif (str_contains($nombreLower, 'intelectual') || str_contains($nombreLower, 'aprendizaje')) {
+                  $icono = 'fa-brain';
+                } elseif (str_contains($nombreLower, 'asistente') || str_contains($nombreLower, 'notas') || str_contains($nombreLower, 'toma de notas')) {
+                  $icono = 'fa-user-check';
+                } elseif (str_contains($nombreLower, 'material') || str_contains($nombreLower, 'formato') || str_contains($nombreLower, 'contraste')) {
+                  $icono = 'fa-file-alt';
+                } elseif (str_contains($nombreLower, 'tecnología') || str_contains($nombreLower, 'asistiva')) {
+                  $icono = 'fa-laptop';
+                } elseif (str_contains($nombreLower, 'ubicación') || str_contains($nombreLower, 'preferencial')) {
+                  $icono = 'fa-map-marker-alt';
+                }
+              @endphp
+              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2 align-items-center">
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                  <div class="text-danger" style="font-size: 1.5rem;">
+                    <i class="fas {{ $icono }}"></i>
+                  </div>
                   <div class="flex-grow-1">
-                    <h6 class="mb-1 fw-semibold">
-                      <i class="fas fa-times-circle text-danger me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                    <h6 class="mb-1 d-flex align-items-center gap-2">
+                      {{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
                     </h6>
                     @if($ajuste->descripcion)
-                      <p class="text-muted small mb-2">{{ Str::limit($ajuste->descripcion, 100) }}</p>
+                      <p class="text-muted small mb-1">{{ Str::limit($ajuste->descripcion, 100) }}</p>
                     @else
-                      <p class="text-muted small mb-2">No hay descripción disponible para este ajuste razonable.</p>
+                      <p class="text-muted small mb-1">No hay descripción</p>
                     @endif
+                    <small class="text-muted">
+                      <span class="badge bg-danger">Rechazado</span>
+                    </small>
                   </div>
-                  <span class="badge bg-danger">Rechazado</span>
                 </div>
-                @if($ajuste->motivo_rechazo)
-                  <div class="alert alert-warning small mb-2">
-                    <div class="d-flex align-items-start">
-                      <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
-                      <div>
-                        <strong class="d-block mb-1">Motivo de rechazo:</strong>
-                        <p class="mb-0">{{ $ajuste->motivo_rechazo }}</p>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-secondary" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#modalRechazado{{ $ajuste->id }}"
+                >
+                  <i class="fas fa-eye me-1"></i>Ver seguimiento
+                </button>
+              </div>
+
+              <!-- Modal de Seguimiento para Ajuste Rechazado -->
+              <div class="modal fade" id="modalRechazado{{ $ajuste->id }}" tabindex="-1" aria-labelledby="modalRechazadoLabel{{ $ajuste->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title" id="modalRechazadoLabel{{ $ajuste->id }}">
+                        <i class="fas {{ $icono }} me-2"></i>Detalle del Ajuste Rechazado
+                      </h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <h6 class="text-danger mb-3">
+                            <i class="fas {{ $icono }} me-2"></i>{{ $ajuste->nombre ?? 'Ajuste sin nombre' }}
+                          </h6>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-tag me-1"></i><strong>Estado</strong>
+                            </small>
+                            <span class="badge bg-danger fs-6">Rechazado</span>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-calendar-alt me-1"></i><strong>Fecha de Rechazo</strong>
+                            </small>
+                            <div class="fw-semibold">
+                              {{ $ajuste->updated_at?->format('d/m/Y') ?? 'No especificada' }}
+                            </div>
+                          </div>
+                        </div>
+
+                        {{-- Descripción del Ajuste --}}
+                        <div class="col-12">
+                          <div class="border rounded p-3 bg-light">
+                            <small class="text-muted d-block mb-2">
+                              <i class="fas fa-sliders me-1"></i><strong>Descripción del Ajuste</strong>
+                            </small>
+                            <p class="mb-0 mt-1 text-break">{{ $ajuste->descripcion ?? 'No hay descripción' }}</p>
+                          </div>
+                        </div>
+
+                        {{-- Motivo de Rechazo --}}
+                        @if($ajuste->motivo_rechazo)
+                          <div class="col-12">
+                            <div class="border rounded p-3 bg-light border-danger">
+                              <small class="text-muted d-block mb-2">
+                                <i class="fas fa-exclamation-triangle me-1 text-danger"></i><strong>Motivo de Rechazo</strong>
+                                <small>por la Directora de Carrera</small>
+                              </small>
+                              <p class="mb-0 mt-1 text-break">{{ $ajuste->motivo_rechazo }}</p>
+                            </div>
+                          </div>
+                        @else
+                          <div class="col-12">
+                            <div class="alert alert-warning mb-0">
+                              <i class="fas fa-info-circle me-2"></i>
+                              <strong>Información:</strong> No se especificó un motivo de rechazo para este ajuste.
+                            </div>
+                          </div>
+                        @endif
+
+                        @if($ajuste->solicitud)
+                          <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                              <small class="text-muted d-block mb-2">
+                                <i class="fas fa-file-alt me-1"></i><strong>Información de la Solicitud</strong>
+                              </small>
+                              <div class="mb-2">
+                                <strong>Fecha:</strong> {{ $ajuste->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}
+                              </div>
+                            </div>
+                          </div>
+                        @endif
                       </div>
                     </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                      </button>
+                    </div>
                   </div>
-                @else
-                  <div class="alert alert-warning small mb-2">
-                    <i class="fas fa-info-circle me-2"></i>No se especificó un motivo de rechazo.
-                  </div>
-                @endif
-                <small class="text-muted">
-                  <i class="fas fa-calendar me-1"></i>Rechazado el: {{ $ajuste->updated_at?->format('d/m/Y') ?? 's/f' }}
-                </small>
+                </div>
               </div>
             @empty
-              <div class="text-center py-4">
-                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                <p class="text-muted mb-0">No hay ajustes rechazados.</p>
-              </div>
+              <p class="text-muted text-center my-4">No hay ajustes rechazados.</p>
             @endforelse
           </div>
         </div>
@@ -596,11 +705,21 @@
           </div>
         </div>
 
+        <!-- Título -->
+        <div class="mb-3" id="modal-titulo-container" style="display: none;">
+          <div class="border rounded p-3 bg-light">
+            <small class="text-muted d-block mb-2">
+              <strong>Título</strong>
+            </small>
+            <div class="fw-semibold" id="modal-titulo">-</div>
+          </div>
+        </div>
+
         <!-- Descripción -->
         <div class="mb-3">
           <div class="border rounded p-3 bg-light">
             <small class="text-muted d-block mb-2">
-              <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+              <strong>Descripción</strong>
             </small>
             <div class="text-muted" id="modal-descripcion" style="line-height: 1.6;">-</div>
           </div>
@@ -702,6 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const button = event.relatedTarget;
       
       // Obtener datos de los atributos data
+      const titulo = button.getAttribute('data-solicitud-titulo');
       const fechaSolicitud = button.getAttribute('data-solicitud-fecha');
       const estado = button.getAttribute('data-solicitud-estado');
       const descripcion = button.getAttribute('data-solicitud-descripcion');
@@ -715,6 +835,16 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('modal-descripcion').textContent = descripcion || 'Sin descripción registrada';
       document.getElementById('modal-coordinadora').textContent = coordinadora || 'Sin asignar';
       document.getElementById('modal-director').textContent = director || 'No asignado';
+      
+      // Mostrar/ocultar título
+      const tituloContainer = document.getElementById('modal-titulo-container');
+      const tituloElement = document.getElementById('modal-titulo');
+      if (titulo && titulo.trim() !== '') {
+        tituloElement.textContent = titulo;
+        tituloContainer.style.display = 'block';
+      } else {
+        tituloContainer.style.display = 'none';
+      }
       
       // Actualizar estado con colores
       const estadoElement = document.getElementById('modal-estado');
@@ -743,7 +873,12 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
           const entrevistas = JSON.parse(entrevistasJson);
           if (entrevistas && entrevistas.length > 0) {
-            entrevistasContainer.innerHTML = entrevistas.map(entrevista => `
+            entrevistasContainer.innerHTML = entrevistas.map(entrevista => {
+              const modalidad = entrevista.modalidad || '';
+              const isPresencial = modalidad.toLowerCase() === 'presencial';
+              const isVirtual = modalidad.toLowerCase() === 'virtual';
+              
+              return `
               <div class="border rounded p-3 bg-light mb-3">
                 <div class="row g-3">
                   <div class="col-md-6">
@@ -762,13 +897,38 @@ document.addEventListener('DOMContentLoaded', function() {
                   ` : ''}
                   <div class="col-md-6">
                     <small class="text-muted d-block mb-1">
+                      <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
+                    </small>
+                    <div class="fw-semibold">
+                      <span class="badge ${isVirtual ? 'bg-info' : 'bg-success'}">${modalidad || 'No especificada'}</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <small class="text-muted d-block mb-1">
                       <i class="fas fa-user me-1"></i><strong>Coordinadora</strong>
                     </small>
                     <div class="fw-semibold">${entrevista.asesor || 'Sin asignar'}</div>
                   </div>
+                  ${isPresencial ? `
+                  <div class="col-md-12">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-map-marker-alt me-1"></i><strong>Lugar</strong>
+                    </small>
+                    <div class="fw-semibold">Sala 4to Piso, Edificio A</div>
+                  </div>
+                  ` : ''}
+                  ${isVirtual ? `
+                  <div class="col-md-12">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-link me-1"></i><strong>Link</strong>
+                    </small>
+                    <div class="fw-semibold">Por compartir</div>
+                  </div>
+                  ` : ''}
                 </div>
               </div>
-            `).join('');
+            `;
+            }).join('');
           } else {
             entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
           }
@@ -929,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function () {
       
       // Mostrar lugar si la modalidad es Presencial
       if (modalidad === 'Presencial') {
-        lugarElement.textContent = 'Sala de tutoria 4to Piso';
+        lugarElement.textContent = 'Sala 4to Piso, Edificio A';
         lugarContainer.style.display = 'block';
         linkZoomContainer.style.display = 'none';
       } else if (modalidad === 'Virtual') {

@@ -1,4 +1,4 @@
-﻿@extends('layouts.dashboard_coordinadora.app')
+@extends('layouts.dashboard_coordinadora.app')
 
 @section('title', 'Gestion de Estudiantes')
 
@@ -61,9 +61,24 @@
           <small class="text-muted">Estudiantes registrados con necesidades de apoyo educativo</small>
         </div>
         <div class="filters-group d-flex flex-wrap gap-2 align-items-center">
-          <input type="text" class="form-control filters-group__input" placeholder="Buscar estudiantes...">
-          <select class="form-select filters-group__input">
-            <option>Todas las carreras</option>
+          <input type="text" class="form-control filters-group__input" placeholder="Buscar estudiantes..." id="searchInput" value="{{ $filters['search'] ?? '' }}">
+          <select class="form-select filters-group__input" id="carreraFilter" name="carrera_id">
+            <option value="">Todas las carreras</option>
+            @foreach($carreras ?? [] as $carrera)
+              <option value="{{ $carrera->id }}" {{ ($filters['carrera_id'] ?? '') == $carrera->id ? 'selected' : '' }}>
+                {{ $carrera->nombre }}
+              </option>
+            @endforeach
+          </select>
+          <select class="form-select filters-group__input" id="ordenarPor" name="ordenar_por">
+            <option value="nombre" {{ ($filters['ordenar_por'] ?? 'nombre') == 'nombre' ? 'selected' : '' }}>Ordenar por: Nombre (A-Z)</option>
+            <option value="nombre_desc" {{ ($filters['ordenar_por'] ?? '') == 'nombre_desc' ? 'selected' : '' }}>Ordenar por: Nombre (Z-A)</option>
+            <option value="carrera" {{ ($filters['ordenar_por'] ?? '') == 'carrera' ? 'selected' : '' }}>Ordenar por: Carrera (A-Z)</option>
+            <option value="carrera_desc" {{ ($filters['ordenar_por'] ?? '') == 'carrera_desc' ? 'selected' : '' }}>Ordenar por: Carrera (Z-A)</option>
+            <option value="casos" {{ ($filters['ordenar_por'] ?? '') == 'casos' ? 'selected' : '' }}>Ordenar por: Casos (Menor a Mayor)</option>
+            <option value="casos_desc" {{ ($filters['ordenar_por'] ?? '') == 'casos_desc' ? 'selected' : '' }}>Ordenar por: Casos (Mayor a Menor)</option>
+            <option value="fecha_desc" {{ ($filters['ordenar_por'] ?? '') == 'fecha_desc' ? 'selected' : '' }}>Ordenar por: Fecha (Más recientes)</option>
+            <option value="fecha_asc" {{ ($filters['ordenar_por'] ?? '') == 'fecha_asc' ? 'selected' : '' }}>Ordenar por: Fecha (Más antiguos)</option>
           </select>
         </div>
       </div>
@@ -327,15 +342,69 @@
     width: 220px;
     flex: 0 0 auto;
   }
+  #ordenarPor {
+    min-width: 220px;
+  }
   @media (max-width: 768px) {
     .filters-group .filters-group__input {
       width: 100%;
       flex: 1 1 100%;
     }
+    #ordenarPor {
+      min-width: 100%;
+    }
   }
 </style>
 
 <script>
+  // Manejar filtros y búsqueda
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchInput');
+    const carreraFilter = document.getElementById('carreraFilter');
+    const ordenarPor = document.getElementById('ordenarPor');
+    
+    function aplicarFiltros() {
+      const params = new URLSearchParams(window.location.search);
+      
+      if (searchInput.value.trim()) {
+        params.set('search', searchInput.value.trim());
+      } else {
+        params.delete('search');
+      }
+      
+      if (carreraFilter.value) {
+        params.set('carrera_id', carreraFilter.value);
+      } else {
+        params.delete('carrera_id');
+      }
+      
+      if (ordenarPor.value && ordenarPor.value !== 'nombre') {
+        params.set('ordenar_por', ordenarPor.value);
+      } else {
+        params.delete('ordenar_por');
+      }
+      
+      window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    }
+    
+    // Agregar event listeners
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(aplicarFiltros, 500); // Debounce de 500ms
+      });
+    }
+    
+    if (carreraFilter) {
+      carreraFilter.addEventListener('change', aplicarFiltros);
+    }
+    
+    if (ordenarPor) {
+      ordenarPor.addEventListener('change', aplicarFiltros);
+    }
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
     var modalEl = document.getElementById('modalNuevoCaso');
     if (!modalEl) {
@@ -407,6 +476,15 @@
                 <span class="badge ${estadoClass}">${solicitud.estado}</span>
               </div>
               
+              ${solicitud.titulo ? `
+              <div class="mb-3">
+                <small class="text-muted d-block mb-1">
+                  <strong>Título</strong>
+                </small>
+                <div class="fw-semibold">${solicitud.titulo}</div>
+              </div>
+              ` : ''}
+              
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <small class="text-muted d-block mb-1">
@@ -436,7 +514,7 @@
               <div class="mb-3">
                 <div class="border rounded p-3 bg-light">
                   <small class="text-muted d-block mb-2">
-                    <i class="fas fa-align-left me-1"></i><strong>Descripción</strong>
+                    <strong>Descripción</strong>
                   </small>
                   <div class="text-muted" style="line-height: 1.6;">${solicitud.descripcion}</div>
                 </div>
@@ -447,7 +525,12 @@
                 <h6 class="mb-3 fw-semibold d-flex align-items-center">
                   <i class="fas fa-comments me-2 text-danger"></i>Entrevistas
                 </h6>
-                ${solicitud.entrevistas.map(entrevista => `
+                ${solicitud.entrevistas.map(entrevista => {
+                  const modalidad = entrevista.modalidad || '';
+                  const isPresencial = modalidad.toLowerCase() === 'presencial';
+                  const isVirtual = modalidad.toLowerCase() === 'virtual';
+                  
+                  return `
                   <div class="border rounded p-3 bg-light mb-2">
                     <div class="row g-3">
                       <div class="col-md-6">
@@ -469,7 +552,7 @@
                           <i class="fas fa-laptop me-1"></i><strong>Modalidad</strong>
                         </small>
                         <div class="fw-semibold">
-                          <span class="badge ${entrevista.modalidad === 'Virtual' ? 'bg-info' : 'bg-success'}">${entrevista.modalidad}</span>
+                          <span class="badge ${isVirtual ? 'bg-info' : 'bg-success'}">${modalidad || 'N/A'}</span>
                         </div>
                       </div>
                       <div class="col-md-6">
@@ -478,9 +561,26 @@
                         </small>
                         <div class="fw-semibold">${entrevista.asesor}</div>
                       </div>
+                      ${isPresencial ? `
+                      <div class="col-md-12">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-map-marker-alt me-1"></i><strong>Lugar</strong>
+                        </small>
+                        <div class="fw-semibold">Sala 4to Piso, Edificio A</div>
+                      </div>
+                      ` : ''}
+                      ${isVirtual ? `
+                      <div class="col-md-12">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-link me-1"></i><strong>Link</strong>
+                        </small>
+                        <div class="fw-semibold">Por compartir</div>
+                      </div>
+                      ` : ''}
                     </div>
                   </div>
-                `).join('')}
+                `;
+                }).join('')}
               </div>
               ` : ''}
             </div>
