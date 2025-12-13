@@ -14,11 +14,12 @@ class AsesoraTecnicaAjusteController extends Controller
     public function create()
     {
         // Solo mostrar solicitudes que están en fase de CTP para crear ajustes
+        // Excluir solicitudes que ya están en preaprobación o estados posteriores
         $solicitudes = Solicitud::with('estudiante')
             ->whereIn('estado', [
                 'Pendiente de formulación del caso',
                 'Pendiente de formulación de ajuste',
-                'Pendiente de preaprobación',
+                'Listo para Enviar',
             ])
             ->orderByDesc('fecha_solicitud')
             ->get();
@@ -38,20 +39,23 @@ class AsesoraTecnicaAjusteController extends Controller
     {
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
-            'fecha_solicitud' => ['required', 'date'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
+            'descripcion' => ['required', 'string'],
         ]);
 
         $solicitud = Solicitud::findOrFail($validated['solicitud_id']);
 
+        // Asignar fecha automáticamente con la fecha actual
+        $validated['fecha_solicitud'] = now()->toDateString();
+        
         // Siempre marcamos los ajustes como en formulación cuando se crean.
         $validated['estado'] = 'Pendiente de formulación de ajuste';
 
-        // Cuando CTP crea el primer ajuste razonable, cambiar estado de solicitud a "Pendiente de formulación de ajuste"
-        if ($solicitud->estado === 'Pendiente de formulación del caso') {
+        // Cuando CTP crea un ajuste razonable, cambiar estado de solicitud a "Listo para Enviar"
+        if (in_array($solicitud->estado, ['Pendiente de formulación del caso', 'Pendiente de formulación de ajuste'])) {
             $solicitud->update([
-                'estado' => 'Pendiente de formulación de ajuste',
+                'estado' => 'Listo para Enviar',
             ]);
         }
 
@@ -74,7 +78,7 @@ class AsesoraTecnicaAjusteController extends Controller
         }
 
         // Verificar que el estado actual permita esta transición
-        $estadosPermitidos = ['Pendiente de formulación de ajuste'];
+        $estadosPermitidos = ['Listo para Enviar', 'Pendiente de formulación de ajuste'];
         if (!in_array($solicitud->estado, $estadosPermitidos)) {
             return back()->with('error', 'El estado actual de la solicitud no permite enviar a preaprobación.');
         }
@@ -91,5 +95,36 @@ class AsesoraTecnicaAjusteController extends Controller
         ]);
 
         return back()->with('status', 'Ajustes razonables enviados a Asesoría Pedagógica para preaprobación.');
+    }
+
+    /**
+     * Elimina un ajuste razonable.
+     * Solo permite eliminar ajustes si la solicitud aún no está en preaprobación o estados posteriores.
+     */
+    public function destroy(Request $request, AjusteRazonable $ajuste): RedirectResponse
+    {
+        $solicitud = $ajuste->solicitud;
+        
+        // Solo permitir eliminar si la solicitud está en estados que permiten modificación
+        $estadosPermitidos = [
+            'Pendiente de formulación del caso',
+            'Pendiente de formulación de ajuste',
+            'Listo para Enviar',
+        ];
+        
+        if (!in_array($solicitud->estado, $estadosPermitidos)) {
+            return back()->with('error', 'No se puede eliminar ajustes de solicitudes que ya están en preaprobación o estados posteriores.');
+        }
+
+        $ajuste->delete();
+
+        // Si ya no hay ajustes, actualizar el estado de la solicitud
+        if ($solicitud->ajustesRazonables()->count() === 0) {
+            $solicitud->update([
+                'estado' => 'Pendiente de formulación del caso',
+            ]);
+        }
+
+        return back()->with('status', 'Ajuste eliminado correctamente.');
     }
 }

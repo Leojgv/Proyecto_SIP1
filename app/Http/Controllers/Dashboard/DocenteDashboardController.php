@@ -41,19 +41,16 @@ class DocenteDashboardController extends Controller
                 'helper' => 'Aprobados por Dirección',
                 'icon' => 'fa-sliders',
             ],
-            [
-                'label' => 'Notificaciones',
-                'value' => $this->countNotifications($user),
-                'helper' => 'Sin leer',
-                'icon' => 'fa-bell',
-            ],
         ];
+
+        // Calcular estadísticas de estudiantes que se unen al sistema (gráfico de montaña)
+        $estudiantesPorMes = $this->calcularEstudiantesPorMes($user);
 
         return view('docente.dashboard', [
             'metrics' => $metrics,
             'studentAdjustments' => $studentsWithAdjustments->take(5)->all(),
-            'recentNotifications' => $this->getRecentNotifications($user),
             'totalEstudiantes' => $totalEstudiantes,
+            'estudiantesPorMes' => $estudiantesPorMes,
         ]);
     }
 
@@ -74,8 +71,7 @@ class DocenteDashboardController extends Controller
         // Cargar la relación de carrera del docente
         $docente->load('carrera');
 
-        // Obtener todos los estudiantes de la carrera del docente
-        // Asegurarse de que solo se muestren estudiantes de la misma carrera
+        // Obtener todos los estudiantes de la carrera del docente (con o sin ajustes)
         $estudiantes = \App\Models\Estudiante::with([
             'carrera', 
             'ajustesRazonables' => function($query) {
@@ -87,17 +83,11 @@ class DocenteDashboardController extends Controller
             'ajustesRazonables.solicitud'
         ])
             ->where('carrera_id', $docente->carrera_id)
-            ->whereHas('ajustesRazonables', function($query) {
-                $query->where('estado', 'Aprobado')
-                      ->whereHas('solicitud', function($q) {
-                          $q->where('estado', 'Aprobado');
-                      });
-            })
             ->orderBy('nombre')
             ->orderBy('apellido')
             ->get();
 
-        // Formatear los estudiantes con sus ajustes
+        // Formatear los estudiantes con sus ajustes (incluyendo los que no tienen ajustes)
         $students = $estudiantes->map(function ($estudiante) {
             $ajustes = $estudiante->ajustesRazonables->where('estado', 'Aprobado');
             $ultimoAjuste = $ajustes->sortByDesc('updated_at')->first();
@@ -109,29 +99,28 @@ class DocenteDashboardController extends Controller
                 'email' => $estudiante->email,
                 'telefono' => $estudiante->telefono,
                 'program' => $estudiante->carrera->nombre ?? 'Programa no asignado',
-                'status' => $ultimoAjuste ? 'Aprobado' : 'Sin ajustes aprobados',
+                'status' => $ultimoAjuste ? 'Aprobado' : 'Sin ajustes',
                 'last_update' => $ultimoAjuste 
                     ? optional($ultimoAjuste->updated_at)->format('d/m/Y') ?? 's/f'
-                    : 'Sin actualizaciones',
-                'applied_adjustments' => $ajustes
-                    ->pluck('nombre')
-                    ->filter()
-                    ->values()
-                    ->all() ?: ['Sin ajustes aprobados'],
-                'adjustments' => $ajustes
-                    ->map(function ($ajuste) {
-                    // Usar la descripción del ajuste, no de la solicitud
-                    $descripcion = $ajuste->descripcion;
-                    return [
-                        'id' => $ajuste->id,
-                        'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
-                        'description' => $descripcion ?? 'No hay descripción disponible para este ajuste razonable.',
-                        'status' => $ajuste->estado ?? 'Aprobado',
-                        'category' => $this->resolveCategoriaAjuste($ajuste->estado),
-                        'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
-                        'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
-                    ];
-                })->values()->all(),
+                    : optional($estudiante->updated_at)->format('d/m/Y') ?? 's/f',
+                'applied_adjustments' => $ajustes->count() > 0
+                    ? $ajustes->pluck('nombre')->filter()->values()->all()
+                    : [],
+                'adjustments' => $ajustes->count() > 0
+                    ? $ajustes->map(function ($ajuste) {
+                        // Usar la descripción del ajuste, no de la solicitud
+                        $descripcion = $ajuste->descripcion;
+                        return [
+                            'id' => $ajuste->id,
+                            'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
+                            'description' => $descripcion ?? 'No hay descripción disponible para este ajuste razonable.',
+                            'status' => $ajuste->estado ?? 'Aprobado',
+                            'category' => $this->resolveCategoriaAjuste($ajuste->estado),
+                            'fecha_solicitud' => optional($ajuste->fecha_solicitud)->format('d/m/Y') ?? 'No especificada',
+                            'created_at' => optional($ajuste->created_at)->format('d/m/Y H:i') ?? 'No disponible',
+                        ];
+                    })->values()->all()
+                    : [],
             ];
         });
 
@@ -267,18 +256,66 @@ class DocenteDashboardController extends Controller
                 ->where('notifiable_type', get_class($user))
                 ->where('notifiable_id', $user->id))
             ->latest('created_at')
-            ->take(4)
+            ->take(5)
             ->get()
             ->map(function (Notificacion $notification) {
                 $data = $notification->data ?? [];
 
                 return [
-                    'title' => $data['title'] ?? ($data['subject'] ?? 'Actualizacion de caso'),
-                    'message' => $data['message'] ?? ($data['body'] ?? 'Nueva actividad registrada.'),
+                    'id' => $notification->id,
+                    'title' => $data['titulo'] ?? ($data['title'] ?? ($data['subject'] ?? 'Notificación')),
+                    'message' => $data['mensaje'] ?? ($data['message'] ?? ($data['body'] ?? 'Nueva actualización disponible.')),
+                    'url' => $data['url'] ?? null,
+                    'button_text' => $data['texto_boton'] ?? ($data['textoBoton'] ?? null),
                     'time' => optional($notification->created_at)->diffForHumans() ?? 'hace instantes',
+                    'read_at' => $notification->read_at,
                 ];
             })
             ->values()
             ->all();
+    }
+
+    protected function calcularEstudiantesPorMes(?object $user): array
+    {
+        $docente = $user->docente;
+        
+        if (!$docente || !$docente->carrera_id) {
+            return [
+                'labels' => [],
+                'datos' => [],
+            ];
+        }
+
+        // Obtener los últimos 12 meses
+        $meses = collect();
+        $fechaInicio = Carbon::now()->subMonths(11)->startOfMonth();
+        
+        for ($i = 0; $i < 12; $i++) {
+            $fecha = $fechaInicio->copy()->addMonths($i);
+            $meses->push([
+                'fecha' => $fecha,
+                'inicio' => $fecha->copy()->startOfMonth(),
+                'fin' => $fecha->copy()->endOfMonth(),
+                'label' => $fecha->format('M Y'),
+                'label_corto' => $fecha->format('M'),
+            ]);
+        }
+
+        // Calcular estudiantes por mes (todos los estudiantes, con o sin ajustes)
+        $datos = $meses->map(function ($mes) use ($docente) {
+            $estudiantesMes = Estudiante::where('carrera_id', $docente->carrera_id)
+                ->whereBetween('created_at', [$mes['inicio'], $mes['fin']])
+                ->count();
+
+            return [
+                'fecha' => $mes['label'],
+                'cantidad' => $estudiantesMes,
+            ];
+        });
+
+        return [
+            'labels' => $datos->pluck('fecha')->all(),
+            'datos' => $datos->pluck('cantidad')->all(),
+        ];
     }
 }

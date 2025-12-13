@@ -12,14 +12,22 @@ class AsesoraPedagogicaAjusteController extends Controller
     {
         $user = $request->user();
 
-        $ajustes = AjusteRazonable::with(['estudiante.carrera', 'solicitud'])
+        $query = AjusteRazonable::with(['estudiante.carrera', 'solicitud'])
             ->whereHas('solicitud', function ($query) use ($user) {
                 if ($user) {
                     $query->where('asesor_id', $user->id);
                 }
-            })
-            ->latest('updated_at')
-            ->get();
+            });
+
+        // Filtro de búsqueda por nombre
+        if ($request->filled('buscar')) {
+            $buscar = $request->get('buscar');
+            $query->whereHas('estudiante', function ($q) use ($buscar) {
+                $q->whereRaw("CONCAT(nombre, ' ', apellido) LIKE ?", ["%{$buscar}%"]);
+            });
+        }
+
+        $ajustes = $query->get();
 
         $ajustesPorEstudiante = $ajustes
             ->groupBy('estudiante_id')
@@ -33,21 +41,46 @@ class AsesoraPedagogicaAjusteController extends Controller
                     'student' => $nombreEstudiante,
                     'program' => $programa,
                     'solicitud_id' => $primero->solicitud_id ?? null,
+                    'estudiante_id' => $estudiante->id ?? null,
                     'items' => $items->map(function (AjusteRazonable $ajuste) {
                         return [
                             'nombre' => $ajuste->nombre ?? 'Ajuste sin nombre',
                             'estado' => $ajuste->estado ?? 'Pendiente',
                             'solicitud_id' => $ajuste->solicitud_id,
                             'fecha' => optional($ajuste->fecha_solicitud ?? $ajuste->updated_at)?->format('d/m/Y') ?? 's/f',
-                            'descripcion' => optional($ajuste->solicitud)->descripcion,
+                            'descripcion' => $ajuste->descripcion ?? null,
+                            'motivo_rechazo' => $ajuste->motivo_rechazo ?? null,
                         ];
                     })->all(),
                 ];
             })
             ->values();
 
+        // Ordenar por
+        $ordenarPor = $request->get('ordenar_por', 'nombre_asc');
+        switch ($ordenarPor) {
+            case 'nombre_asc':
+                $ajustesPorEstudiante = $ajustesPorEstudiante->sortBy('student')->values();
+                break;
+            case 'nombre_desc':
+                $ajustesPorEstudiante = $ajustesPorEstudiante->sortByDesc('student')->values();
+                break;
+            case 'ajustes_asc':
+                $ajustesPorEstudiante = $ajustesPorEstudiante->sortBy(function ($item) {
+                    return count($item['items']);
+                })->values();
+                break;
+            case 'ajustes_desc':
+                $ajustesPorEstudiante = $ajustesPorEstudiante->sortByDesc(function ($item) {
+                    return count($item['items']);
+                })->values();
+                break;
+        }
+
         return view('asesora pedagogica.ajustes.index', [
             'ajustesPorEstudiante' => $ajustesPorEstudiante,
+            'buscar' => $request->get('buscar', ''),
+            'ordenarPor' => $ordenarPor,
         ]);
     }
 }

@@ -12,28 +12,47 @@ class AsesoraPedagogicaCasoController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
+        $query = Solicitud::with(['estudiante.carrera', 'ajustesRazonables'])
+            ->where('estado', 'Pendiente de preaprobación');
 
-        // Mostrar casos que están en preaprobación o casos asignados a esta asesora
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'ajustesRazonables'])
-            ->where(function ($query) use ($user) {
-                $query->where('estado', 'Pendiente de preaprobación')
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('asesor_id', $user->id)
-                            ->whereIn('estado', [
-                                'Pendiente de formulación del caso',
-                                'Pendiente de formulación de ajuste',
-                                'Pendiente de Aprobación',
-                                'Aprobado',
-                                'Rechazado',
-                            ]);
-                    });
-            })
-            ->latest('fecha_solicitud')
-            ->paginate(10);
+        // Filtro de búsqueda por nombre
+        if ($request->filled('buscar')) {
+            $buscar = $request->get('buscar');
+            $query->whereHas('estudiante', function ($q) use ($buscar) {
+                $q->whereRaw("CONCAT(nombre, ' ', apellido) LIKE ?", ["%{$buscar}%"]);
+            });
+        }
+
+        // Ordenar por
+        $ordenarPor = $request->get('ordenar_por', 'fecha_desc');
+        switch ($ordenarPor) {
+            case 'nombre_asc':
+                $query->join('estudiantes', 'solicitudes.estudiante_id', '=', 'estudiantes.id')
+                    ->orderBy('estudiantes.nombre', 'asc')
+                    ->orderBy('estudiantes.apellido', 'asc')
+                    ->select('solicitudes.*');
+                break;
+            case 'nombre_desc':
+                $query->join('estudiantes', 'solicitudes.estudiante_id', '=', 'estudiantes.id')
+                    ->orderBy('estudiantes.nombre', 'desc')
+                    ->orderBy('estudiantes.apellido', 'desc')
+                    ->select('solicitudes.*');
+                break;
+            case 'fecha_asc':
+                $query->orderBy('solicitudes.fecha_solicitud', 'asc');
+                break;
+            case 'fecha_desc':
+            default:
+                $query->orderBy('solicitudes.fecha_solicitud', 'desc');
+                break;
+        }
+
+        $solicitudes = $query->paginate(10)->withQueryString();
 
         return view('asesora pedagogica.casos.index', [
             'solicitudes' => $solicitudes,
+            'buscar' => $request->get('buscar', ''),
+            'ordenarPor' => $ordenarPor,
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\AjusteRazonable;
+use App\Models\Carrera;
 use App\Models\Estudiante;
 use App\Models\Solicitud;
 use Illuminate\Database\Eloquent\Builder;
@@ -164,11 +165,27 @@ class AsesoraPedagogicaDashboardController extends Controller
             ->orderBy('apellido')
             ->get();
 
+        // Calcular estadísticas para gráficos
+        $calidadPropuestas = $this->calcularCalidadPropuestas(clone $solicitudesBase, $user);
+        $calidadPropuestasPorCarrera = $this->calcularCalidadPropuestasPorCarrera(clone $solicitudesBase, $user);
+        $alertas = $this->calcularAlertas(clone $solicitudesBase, $user);
+        $ritmoTrabajo = $this->calcularRitmoTrabajo(clone $solicitudesBase, $user);
+        $ritmoTrabajoPorCarrera = $this->calcularRitmoTrabajoPorCarrera(clone $solicitudesBase, $user);
+
+        // Obtener todas las carreras
+        $carreras = Carrera::orderBy('nombre')->get();
+
         return view('asesora pedagogica.dashboard', [
             'metrics' => $metrics,
             'casesForReview' => $casesForReview,
             'authorizedCases' => $authorizedCases,
             'estudiantes' => $estudiantes,
+            'calidadPropuestas' => $calidadPropuestas,
+            'calidadPropuestasPorCarrera' => $calidadPropuestasPorCarrera,
+            'alertas' => $alertas,
+            'ritmoTrabajo' => $ritmoTrabajo,
+            'ritmoTrabajoPorCarrera' => $ritmoTrabajoPorCarrera,
+            'carreras' => $carreras,
         ]);
     }
 
@@ -220,18 +237,10 @@ class AsesoraPedagogicaDashboardController extends Controller
 
     protected function buildCasesForReview(Builder $query, int $limit): array
     {
-        // Priorizar casos en "Pendiente de preaprobación"
+        // Solo mostrar casos en "Pendiente de preaprobación"
         return $query
             ->with(['ajustesRazonables'])
             ->where('estado', 'Pendiente de preaprobación')
-            ->orWhere(function ($builder) {
-                $builder->whereNull('estado');
-                foreach (self::REVIEW_STATES as $state) {
-                    if ($state !== 'Pendiente de preaprobación') {
-                        $builder->orWhere('estado', $state);
-                    }
-                }
-            })
             ->latest('fecha_solicitud')
             ->take($limit)
             ->get()
@@ -254,7 +263,6 @@ class AsesoraPedagogicaDashboardController extends Controller
                     'case_id' => $solicitud->id,
                     'student' => $nombreEstudiante,
                     'program' => $programa,
-                    'priority' => $this->inferirPrioridad($solicitud->estado),
                     'status' => $solicitud->estado ?? 'Pendiente',
                     'proposed_adjustment' => $solicitud->descripcion ?? 'Sin descripcion registrada.',
                     'ajustes_razonables' => $ajustesRazonables,
@@ -303,5 +311,233 @@ class AsesoraPedagogicaDashboardController extends Controller
             str_contains($normalized, 'complet') => 'Baja',
             default => 'Alta',
         };
+    }
+
+    /**
+     * Calcula la calidad de las propuestas (tasa de devolución)
+     * Retorna porcentaje de aprobaciones directas vs devoluciones
+     */
+    protected function calcularCalidadPropuestas(Builder $query, $user): array
+    {
+        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
+
+        // Aprobaciones directas: casos que llegaron a "Pendiente de Aprobación" o "Aprobado"
+        // desde "Pendiente de preaprobación" (fueron enviados al director sin devoluciones)
+        // No deben tener motivo_rechazo porque eso indica que fueron rechazados, no aprobados directos
+        $aprobacionesDirectas = (clone $query)
+            ->whereIn('estado', ['Pendiente de Aprobación', 'Aprobado'])
+            ->whereNull('motivo_rechazo')
+            ->whereHas('ajustesRazonables') // Debe tener ajustes
+            ->count();
+
+        // Devoluciones: casos que están en "Pendiente de formulación de ajuste" 
+        // y tienen motivo_rechazo (fueron devueltos por la asesora pedagógica a la técnica)
+        $devoluciones = (clone $query)
+            ->where('estado', 'Pendiente de formulación de ajuste')
+            ->whereNotNull('motivo_rechazo')
+            ->count();
+
+        $total = $aprobacionesDirectas + $devoluciones;
+        
+        if ($total === 0) {
+            return [
+                'aprobaciones_directas' => 0,
+                'devoluciones' => 0,
+                'porcentaje_aprobaciones' => 100,
+                'porcentaje_devoluciones' => 0,
+            ];
+        }
+
+        return [
+            'aprobaciones_directas' => $aprobacionesDirectas,
+            'devoluciones' => $devoluciones,
+            'porcentaje_aprobaciones' => round(($aprobacionesDirectas / $total) * 100, 1),
+            'porcentaje_devoluciones' => round(($devoluciones / $total) * 100, 1),
+        ];
+    }
+
+    /**
+     * Calcula la calidad de propuestas por carrera
+     */
+    protected function calcularCalidadPropuestasPorCarrera(Builder $query, $user): array
+    {
+        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
+
+        // Obtener TODAS las carreras, no solo las que tienen solicitudes
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        $resultado = [];
+
+        foreach ($carreras as $carrera) {
+            $queryCarrera = (clone $query)
+                ->whereHas('estudiante', fn ($q) => $q->where('carrera_id', $carrera->id));
+
+            // Aprobaciones directas para esta carrera
+            $aprobacionesDirectas = (clone $queryCarrera)
+                ->whereIn('estado', ['Pendiente de Aprobación', 'Aprobado'])
+                ->whereNull('motivo_rechazo')
+                ->whereHas('ajustesRazonables')
+                ->count();
+
+            // Devoluciones para esta carrera
+            $devoluciones = (clone $queryCarrera)
+                ->where('estado', 'Pendiente de formulación de ajuste')
+                ->whereNotNull('motivo_rechazo')
+                ->count();
+
+            $total = $aprobacionesDirectas + $devoluciones;
+
+            // Incluir todas las carreras, incluso si no tienen datos
+            $resultado[$carrera->id] = [
+                'nombre' => $carrera->nombre,
+                'aprobaciones_directas' => $aprobacionesDirectas,
+                'devoluciones' => $devoluciones,
+                'total' => $total,
+                'porcentaje_aprobaciones' => $total > 0 ? round(($aprobacionesDirectas / $total) * 100, 1) : 0,
+                'porcentaje_devoluciones' => $total > 0 ? round(($devoluciones / $total) * 100, 1) : 0,
+            ];
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Calcula alertas de prioridad (casos estancados y por vencer)
+     */
+    protected function calcularAlertas(Builder $query, $user): array
+    {
+        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
+
+        $haceCincoDias = now()->subDays(5);
+        $finSemana = now()->endOfWeek();
+
+        // Casos esperando más de 5 días
+        $casosEstancados = (clone $query)
+            ->where('estado', 'Pendiente de preaprobación')
+            ->where(function ($q) use ($haceCincoDias) {
+                $q->where('created_at', '<=', $haceCincoDias)
+                  ->orWhere('fecha_solicitud', '<=', $haceCincoDias->toDateString());
+            })
+            ->count();
+
+        // Casos por vencer esta semana (casos en preaprobación que fueron creados antes del inicio de esta semana)
+        $inicioSemana = now()->startOfWeek();
+        $casosPorVencer = (clone $query)
+            ->where('estado', 'Pendiente de preaprobación')
+            ->where(function ($q) use ($inicioSemana) {
+                $q->where('created_at', '<=', $inicioSemana)
+                  ->orWhere('fecha_solicitud', '<=', $inicioSemana->toDateString());
+            })
+            ->count();
+
+        return [
+            'casos_estancados' => $casosEstancados,
+            'casos_por_vencer' => $casosPorVencer,
+        ];
+    }
+
+    /**
+     * Calcula el ritmo de trabajo mensual (solicitudes recibidas vs procesadas)
+     */
+    protected function calcularRitmoTrabajo(Builder $query, $user): array
+    {
+        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
+
+        $inicioMes = now()->startOfMonth();
+        $hoy = now();
+
+        // Obtener datos día por día del mes actual
+        $datos = [];
+        $fechaActual = clone $inicioMes;
+
+        while ($fechaActual <= $hoy) {
+            $inicioDia = $fechaActual->copy()->startOfDay();
+            $finDia = $fechaActual->copy()->endOfDay();
+
+            // Solicitudes recibidas este día (que llegaron a preaprobación)
+            // Buscar por fecha_solicitud o created_at
+            $recibidas = (clone $query)
+                ->where(function ($q) use ($inicioDia, $finDia) {
+                    $q->whereBetween('fecha_solicitud', [$inicioDia->toDateString(), $finDia->toDateString()])
+                      ->orWhereBetween('created_at', [$inicioDia, $finDia]);
+                })
+                ->where('estado', 'Pendiente de preaprobación')
+                ->count();
+
+            // Solicitudes procesadas este día (enviadas a dirección o devueltas)
+            // Buscar casos que fueron actualizados este día y cambiaron a estos estados
+            $procesadas = (clone $query)
+                ->whereIn('estado', ['Pendiente de Aprobación', 'Pendiente de formulación de ajuste'])
+                ->whereBetween('updated_at', [$inicioDia, $finDia])
+                ->count();
+
+            $datos[] = [
+                'fecha' => $fechaActual->format('d/m'),
+                'recibidas' => $recibidas,
+                'procesadas' => $procesadas,
+            ];
+
+            $fechaActual->addDay();
+        }
+
+        return $datos;
+    }
+
+    /**
+     * Calcula el ritmo de trabajo mensual por carrera
+     */
+    protected function calcularRitmoTrabajoPorCarrera(Builder $query, $user): array
+    {
+        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
+
+        // Obtener TODAS las carreras
+        $carreras = Carrera::orderBy('nombre')->get();
+
+        $resultado = [];
+        $inicioMes = now()->startOfMonth();
+        $hoy = now();
+
+        foreach ($carreras as $carrera) {
+            $queryCarrera = (clone $query)
+                ->whereHas('estudiante', fn ($q) => $q->where('carrera_id', $carrera->id));
+
+            $datos = [];
+            $fechaActual = clone $inicioMes;
+
+            while ($fechaActual <= $hoy) {
+                $inicioDia = $fechaActual->copy()->startOfDay();
+                $finDia = $fechaActual->copy()->endOfDay();
+
+                // Solicitudes recibidas este día para esta carrera
+                $recibidas = (clone $queryCarrera)
+                    ->where(function ($q) use ($inicioDia, $finDia) {
+                        $q->whereBetween('fecha_solicitud', [$inicioDia->toDateString(), $finDia->toDateString()])
+                          ->orWhereBetween('created_at', [$inicioDia, $finDia]);
+                    })
+                    ->where('estado', 'Pendiente de preaprobación')
+                    ->count();
+
+                // Solicitudes procesadas este día para esta carrera
+                $procesadas = (clone $queryCarrera)
+                    ->whereIn('estado', ['Pendiente de Aprobación', 'Pendiente de formulación de ajuste'])
+                    ->whereBetween('updated_at', [$inicioDia, $finDia])
+                    ->count();
+
+                $datos[] = [
+                    'fecha' => $fechaActual->format('d/m'),
+                    'recibidas' => $recibidas,
+                    'procesadas' => $procesadas,
+                ];
+
+                $fechaActual->addDay();
+            }
+
+            $resultado[$carrera->id] = [
+                'nombre' => $carrera->nombre,
+                'datos' => $datos,
+            ];
+        }
+
+        return $resultado;
     }
 }

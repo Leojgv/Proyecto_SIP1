@@ -103,24 +103,25 @@ class DirectorCarreraCasoController extends Controller
         // Actualizar el estado de la solicitud
         if ($todosAprobados) {
             // Todos los ajustes aprobados
-            $solicitud->update([
-                'estado' => 'Aprobado',
-                'motivo_rechazo' => null,
-            ]);
+        $solicitud->update([
+            'estado' => 'Aprobado',
+            'motivo_rechazo' => null,
+        ]);
         } elseif ($algunosAprobados) {
             // Algunos ajustes aprobados, algunos rechazados - el caso queda aprobado parcialmente
             $solicitud->update([
-                'estado' => 'Aprobado',
+            'estado' => 'Aprobado',
                 'motivo_rechazo' => null,
-            ]);
+        ]);
         } else {
             // Todos rechazados - debería manejarse como rechazo total
             return back()->with('error', 'No puedes rechazar todos los ajustes. Usa la opción "Rechazar/Devolver" para rechazar el caso completo.');
         }
 
-        $this->notifyOnApproval($solicitud);
+        // Notificar al estudiante sobre ajustes aprobados y rechazados
+        $this->notifyStudentOnAdjustmentDecision($solicitud, $ajustesSeleccionados, $motivosRechazo);
         
-        // Notificar a docentes sobre los ajustes aprobados
+        // Notificar a docentes sobre los ajustes aprobados (solo los aprobados)
         $this->notifyTeachers($solicitud);
 
         // También notificar a la Asesora Técnica
@@ -210,6 +211,62 @@ class DirectorCarreraCasoController extends Controller
         );
     }
 
+    protected function notifyStudentOnAdjustmentDecision(Solicitud $solicitud, array $ajustesSeleccionados, array $motivosRechazo): void
+    {
+        $estudianteUser = optional($solicitud->estudiante)->user;
+        if (!$estudianteUser) {
+            return;
+        }
+
+        $solicitud->load('ajustesRazonables');
+        $estudiante = $solicitud->estudiante;
+
+        // Contar ajustes aprobados y rechazados
+        $ajustesAprobados = [];
+        $ajustesRechazados = [];
+
+        foreach ($ajustesSeleccionados as $ajusteId => $decision) {
+            $ajuste = $solicitud->ajustesRazonables->find($ajusteId);
+            if ($ajuste) {
+                if ($decision === 'aprobado') {
+                    $ajustesAprobados[] = $ajuste->nombre ?? 'Ajuste sin nombre';
+                } else {
+                    $ajustesRechazados[] = $ajuste->nombre ?? 'Ajuste sin nombre';
+                }
+            }
+        }
+
+        // Notificar sobre ajustes aprobados
+        if (!empty($ajustesAprobados)) {
+            $listaAprobados = implode(', ', $ajustesAprobados);
+            Notification::send(
+                $estudianteUser,
+                new DashboardNotification(
+                    'Ajustes razonables aprobados',
+                    "Tus ajustes razonables han sido aprobados por Dirección de Carrera: {$listaAprobados}. Ya puedes utilizarlos en tus actividades académicas.",
+                    route('estudiantes.dashboard'),
+                    'Ver mi dashboard'
+                )
+            );
+        }
+
+        // Notificar sobre ajustes rechazados
+        if (!empty($ajustesRechazados)) {
+            $listaRechazados = implode(', ', $ajustesRechazados);
+            $primerMotivo = !empty($motivosRechazo) ? reset($motivosRechazo) : 'No se especificó motivo';
+            
+            Notification::send(
+                $estudianteUser,
+                new DashboardNotification(
+                    'Ajustes razonables rechazados',
+                    "Los siguientes ajustes fueron rechazados: {$listaRechazados}. Motivo: {$primerMotivo}",
+                    route('estudiantes.dashboard'),
+                    'Ver detalles'
+                )
+            );
+        }
+    }
+
     protected function notifyOnRejection(Solicitud $solicitud, string $motivo): void
     {
         $estudianteUser = optional($solicitud->estudiante)->user;
@@ -267,7 +324,7 @@ class DirectorCarreraCasoController extends Controller
 
         // También buscar por asignaturas de la carrera (por si acaso)
         $asignaturas = \App\Models\Asignatura::where('carrera_id', $estudiante->carrera_id)
-            ->whereNotNull('docente_id')
+            ->whereHas('docente')
             ->with('docente')
             ->get();
 
@@ -288,13 +345,23 @@ class DirectorCarreraCasoController extends Controller
             return;
         }
 
-        $ajustes = $solicitud->ajustesRazonables->pluck('nombre')->implode(', ');
+        // Solo notificar sobre ajustes aprobados
+        $ajustesAprobados = $solicitud->ajustesRazonables()
+            ->where('estado', 'Aprobado')
+            ->get();
+        
+        if ($ajustesAprobados->isEmpty()) {
+            return; // No hay ajustes aprobados para notificar
+        }
+
+        $listaAjustes = $ajustesAprobados->pluck('nombre')->implode(', ');
+        $nombreEstudiante = trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? ''));
 
         Notification::send(
             $docentes,
             new DashboardNotification(
                 'Ajustes razonables aprobados',
-                "El estudiante {$estudiante->nombre} {$estudiante->apellido} tiene ajustes aprobados: {$ajustes}",
+                "El estudiante {$nombreEstudiante} tiene ajustes razonables aprobados y activos: {$listaAjustes}. Por favor, considera estos ajustes en tus actividades académicas.",
                 route('docente.estudiantes'),
                 'Ver estudiantes'
             )

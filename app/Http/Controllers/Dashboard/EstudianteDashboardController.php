@@ -194,4 +194,46 @@ class EstudianteDashboardController extends Controller
             ->route('estudiantes.dashboard', ['focus' => 'configuracion'])
             ->with('status', 'Se guardaron tus datos de contacto.');
     }
+
+    protected function countNotifications($user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        return \App\Models\Notificacion::query()
+            ->where('notifiable_type', get_class($user))
+            ->where('notifiable_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+    }
+
+    protected function getRecentNotifications($user): array
+    {
+        if (!$user) {
+            return [];
+        }
+
+        return \App\Models\Notificacion::query()
+            ->where('notifiable_type', get_class($user))
+            ->where('notifiable_id', $user->id)
+            ->latest('created_at')
+            ->take(5)
+            ->get()
+            ->map(function (\App\Models\Notificacion $notification) {
+                $data = $notification->data ?? [];
+
+                return [
+                    'id' => $notification->id,
+                    'title' => $data['titulo'] ?? ($data['title'] ?? ($data['subject'] ?? 'Notificación')),
+                    'message' => $data['mensaje'] ?? ($data['message'] ?? ($data['body'] ?? 'Nueva actualización disponible.')),
+                    'url' => $data['url'] ?? null,
+                    'button_text' => $data['texto_boton'] ?? ($data['textoBoton'] ?? null),
+                    'time' => optional($notification->created_at)->diffForHumans() ?? 'hace instantes',
+                    'read_at' => $notification->read_at,
+                ];
+            })
+            ->values()
+            ->all();
+    }
 }

@@ -57,7 +57,10 @@ class CoordinadoraAgendaController extends Controller
         $bloqueosCalendario = $bloqueos->map(function ($bloqueo) {
             $fecha = $bloqueo->fecha->format('Y-m-d');
             $motivo = $bloqueo->motivo ?? 'Bloqueo';
-            $horario = $bloqueo->hora_inicio . ' - ' . $bloqueo->hora_fin;
+            // Formatear horas sin segundos para consistencia
+            $horaInicio = \Carbon\Carbon::parse($bloqueo->hora_inicio)->format('H:i');
+            $horaFin = \Carbon\Carbon::parse($bloqueo->hora_fin)->format('H:i');
+            $horario = $horaInicio . ' - ' . $horaFin;
             $full = $motivo . ' (' . $horario . ')';
             
             return [

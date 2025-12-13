@@ -19,6 +19,7 @@ class AsesoraTecnicaDashboardController extends Controller
             ->whereIn('estado', [
                 'Pendiente de formulación del caso',
                 'Pendiente de formulación de ajuste',
+                'Listo para Enviar',
                 'Pendiente de preaprobación',
             ])
             ->count();
@@ -48,6 +49,7 @@ class AsesoraTecnicaDashboardController extends Controller
             ->whereIn('estado', [
                 'Pendiente de formulación del caso',
                 'Pendiente de formulación de ajuste',
+                'Listo para Enviar',
                 'Pendiente de preaprobación',
             ])
             ->latest('fecha_solicitud')
@@ -56,7 +58,7 @@ class AsesoraTecnicaDashboardController extends Controller
             ->map(function (Solicitud $solicitud) {
                 $carrera = optional(optional($solicitud->estudiante)->carrera)->nombre;
                 $ajustesCount = $solicitud->ajustesRazonables()->count();
-                $estadosPermitidos = ['Pendiente de formulación de ajuste'];
+                $estadosPermitidos = ['Listo para Enviar', 'Pendiente de formulación de ajuste'];
                 $puedeEnviarAPreaprobacion = in_array($solicitud->estado, $estadosPermitidos) && $ajustesCount > 0;
                 
                 return [
@@ -72,7 +74,7 @@ class AsesoraTecnicaDashboardController extends Controller
             })->toArray();
 
         $recentAdjustments = AjusteRazonable::query()
-            ->with(['estudiante.carrera'])
+            ->with(['estudiante.carrera', 'solicitud'])
             ->latest('updated_at')
             ->take(15)
             ->get()
@@ -88,10 +90,30 @@ class AsesoraTecnicaDashboardController extends Controller
                     'student' => trim(($estudiante->nombre ?? 'Estudiante') . ' ' . ($estudiante->apellido ?? '')),
                     'program' => $carrera ?: 'Programa no asignado',
                     'adjustments' => $ajustes->map(function (AjusteRazonable $ajuste) {
+                        // Determinar el estado a mostrar basado en el estado de la solicitud
+                        $solicitudEstado = $ajuste->solicitud->estado ?? null;
+                        $estadoAjuste = $ajuste->estado ?? 'Pendiente';
+                        
+                        // Si la solicitud está en preaprobación o estados posteriores, 
+                        // mostrar ese estado en lugar del estado individual del ajuste
+                        if (in_array($solicitudEstado, ['Pendiente de preaprobación', 'Pendiente de Aprobación'])) {
+                            $estadoFinal = $solicitudEstado;
+                        } elseif ($solicitudEstado === 'Aprobado') {
+                            // Si la solicitud está aprobada, usar el estado del ajuste (puede ser Aprobado o Rechazado)
+                            $estadoFinal = $estadoAjuste;
+                        } elseif ($solicitudEstado === 'Rechazado') {
+                            // Si la solicitud fue rechazada pero el ajuste tiene un estado específico, usar ese
+                            $estadoFinal = $estadoAjuste === 'Rechazado' ? 'Rechazado' : $estadoAjuste;
+                        } else {
+                            $estadoFinal = $estadoAjuste;
+                        }
+                        
                         return [
                             'name' => $ajuste->nombre ?? 'Ajuste sin titulo',
                             'description' => $ajuste->descripcion ?? 'No hay descripción',
-                            'status' => $ajuste->estado ?? 'En proceso',
+                            'status' => $estadoFinal,
+                            'estado' => $estadoFinal, // Para compatibilidad con el JavaScript
+                            'motivo_rechazo' => $ajuste->motivo_rechazo ?? null,
                             'completed_at' => optional($ajuste->updated_at)->format('Y-m-d') ?? 's/f',
                         ];
                     })->take(5)->values()->toArray(),

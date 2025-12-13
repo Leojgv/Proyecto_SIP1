@@ -13,12 +13,14 @@ class AsesoraTecnicaCasoController extends Controller
         // La Asesora Técnica (CTP) solo ve casos que están en su fase del proceso:
         // - Pendiente de formulación del caso (cuando Coordinadora informa)
         // - Pendiente de formulación de ajuste (cuando está formulando ajustes)
+        // - Listo para Enviar (cuando se ha agregado al menos un ajuste)
         // - Pendiente de preaprobación (si aplica)
         // También puede ver casos devueltos por el Director
         $solicitudes = Solicitud::with(['estudiante.carrera', 'ajustesRazonables'])
             ->whereIn('estado', [
                 'Pendiente de formulación del caso',
                 'Pendiente de formulación de ajuste',
+                'Listo para Enviar',
                 'Pendiente de preaprobación',
             ])
             ->latest('fecha_solicitud')
@@ -26,6 +28,22 @@ class AsesoraTecnicaCasoController extends Controller
 
         return view('asesora tecnica.casos.index', [
             'solicitudes' => $solicitudes,
+        ]);
+    }
+
+    public function show(Request $request, Solicitud $solicitud)
+    {
+        $solicitud->load([
+            'estudiante.carrera',
+            'asesor',
+            'director',
+            'ajustesRazonables',
+            'evidencias',
+            'entrevistas.asesor',
+        ]);
+
+        return view('asesora tecnica.casos.show', [
+            'solicitud' => $solicitud,
         ]);
     }
 }
