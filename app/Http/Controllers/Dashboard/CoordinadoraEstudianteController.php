@@ -80,7 +80,7 @@ class CoordinadoraEstudianteController extends Controller
             
             // Cargar solicitudes con relaciones necesarias
             $solicitudes = $estudiante->solicitudes()
-                ->with(['asesor', 'director', 'entrevistas.asesor'])
+                ->with(['asesor', 'director', 'entrevistas.asesor', 'evidencias'])
                 ->orderBy('fecha_solicitud', 'desc')
                 ->get()
                 ->map(function ($solicitud) {
@@ -100,6 +100,18 @@ class CoordinadoraEstudianteController extends Controller
                                 'hora_fin' => $entrevista->fecha_hora_fin?->format('H:i') ?? '--',
                                 'modalidad' => $entrevista->modalidad ?? 'N/A',
                                 'asesor' => $entrevista->asesor ? $entrevista->asesor->nombre . ' ' . $entrevista->asesor->apellido : 'Sin asignar',
+                                'tiene_acompanante' => $entrevista->tiene_acompanante ?? false,
+                                'acompanante_rut' => $entrevista->acompanante_rut ?? null,
+                                'acompanante_nombre' => $entrevista->acompanante_nombre ?? null,
+                                'acompanante_telefono' => $entrevista->acompanante_telefono ?? null,
+                            ];
+                        })->toArray(),
+                        'evidencias' => $solicitud->evidencias->map(function ($evidencia) {
+                            return [
+                                'id' => $evidencia->id,
+                                'tipo' => $evidencia->tipo ?? 'Documento',
+                                'descripcion' => $evidencia->descripcion ?? '',
+                                'ruta_archivo' => $evidencia->ruta_archivo ?? '',
                             ];
                         })->toArray(),
                     ];

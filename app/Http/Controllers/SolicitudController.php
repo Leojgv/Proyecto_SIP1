@@ -11,7 +11,7 @@ class SolicitudController extends Controller
 {
     public function index()
     {
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas.asesor', 'ajustesRazonables'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas.asesor', 'ajustesRazonables', 'evidencias'])
             ->orderByDesc('fecha_solicitud')
             ->paginate(10);
         
@@ -88,7 +88,7 @@ class SolicitudController extends Controller
 
     public function show(Solicitud $solicitud)
     {
-        $solicitud->load(['estudiante', 'asesor', 'director']);
+        $solicitud->load(['estudiante', 'asesor', 'director', 'entrevistas', 'evidencias']);
 
         return view('solicitudes.show', compact('solicitud'));
     }

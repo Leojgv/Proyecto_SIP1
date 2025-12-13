@@ -169,8 +169,7 @@ class AsesoraPedagogicaDashboardController extends Controller
         $calidadPropuestas = $this->calcularCalidadPropuestas(clone $solicitudesBase, $user);
         $calidadPropuestasPorCarrera = $this->calcularCalidadPropuestasPorCarrera(clone $solicitudesBase, $user);
         $alertas = $this->calcularAlertas(clone $solicitudesBase, $user);
-        $ritmoTrabajo = $this->calcularRitmoTrabajo(clone $solicitudesBase, $user);
-        $ritmoTrabajoPorCarrera = $this->calcularRitmoTrabajoPorCarrera(clone $solicitudesBase, $user);
+        $distribucionEstados = $this->calcularDistribucionEstados(clone $solicitudesBase, $user);
 
         // Obtener todas las carreras
         $carreras = Carrera::orderBy('nombre')->get();
@@ -183,8 +182,7 @@ class AsesoraPedagogicaDashboardController extends Controller
             'calidadPropuestas' => $calidadPropuestas,
             'calidadPropuestasPorCarrera' => $calidadPropuestasPorCarrera,
             'alertas' => $alertas,
-            'ritmoTrabajo' => $ritmoTrabajo,
-            'ritmoTrabajoPorCarrera' => $ritmoTrabajoPorCarrera,
+            'distribucionEstados' => $distribucionEstados,
             'carreras' => $carreras,
         ]);
     }
@@ -436,108 +434,30 @@ class AsesoraPedagogicaDashboardController extends Controller
         ];
     }
 
+
     /**
-     * Calcula el ritmo de trabajo mensual (solicitudes recibidas vs procesadas)
+     * Calcula la distribución de estados de los casos
      */
-    protected function calcularRitmoTrabajo(Builder $query, $user): array
+    protected function calcularDistribucionEstados(Builder $query, $user): array
     {
         $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
 
-        $inicioMes = now()->startOfMonth();
-        $hoy = now();
+        // Estados a contar
+        $estados = [
+            'Pendiente de formulación del caso',
+            'Pendiente de formulación de ajuste',
+            'Listo para Enviar',
+            'Pendiente de preaprobación',
+            'Aprobado',
+        ];
 
-        // Obtener datos día por día del mes actual
-        $datos = [];
-        $fechaActual = clone $inicioMes;
-
-        while ($fechaActual <= $hoy) {
-            $inicioDia = $fechaActual->copy()->startOfDay();
-            $finDia = $fechaActual->copy()->endOfDay();
-
-            // Solicitudes recibidas este día (que llegaron a preaprobación)
-            // Buscar por fecha_solicitud o created_at
-            $recibidas = (clone $query)
-                ->where(function ($q) use ($inicioDia, $finDia) {
-                    $q->whereBetween('fecha_solicitud', [$inicioDia->toDateString(), $finDia->toDateString()])
-                      ->orWhereBetween('created_at', [$inicioDia, $finDia]);
-                })
-                ->where('estado', 'Pendiente de preaprobación')
+        $distribucion = [];
+        foreach ($estados as $estado) {
+            $distribucion[$estado] = (clone $query)
+                ->where('estado', $estado)
                 ->count();
-
-            // Solicitudes procesadas este día (enviadas a dirección o devueltas)
-            // Buscar casos que fueron actualizados este día y cambiaron a estos estados
-            $procesadas = (clone $query)
-                ->whereIn('estado', ['Pendiente de Aprobación', 'Pendiente de formulación de ajuste'])
-                ->whereBetween('updated_at', [$inicioDia, $finDia])
-                ->count();
-
-            $datos[] = [
-                'fecha' => $fechaActual->format('d/m'),
-                'recibidas' => $recibidas,
-                'procesadas' => $procesadas,
-            ];
-
-            $fechaActual->addDay();
         }
 
-        return $datos;
-    }
-
-    /**
-     * Calcula el ritmo de trabajo mensual por carrera
-     */
-    protected function calcularRitmoTrabajoPorCarrera(Builder $query, $user): array
-    {
-        $query->when($user, fn ($q) => $q->where('asesor_id', $user->id));
-
-        // Obtener TODAS las carreras
-        $carreras = Carrera::orderBy('nombre')->get();
-
-        $resultado = [];
-        $inicioMes = now()->startOfMonth();
-        $hoy = now();
-
-        foreach ($carreras as $carrera) {
-            $queryCarrera = (clone $query)
-                ->whereHas('estudiante', fn ($q) => $q->where('carrera_id', $carrera->id));
-
-            $datos = [];
-            $fechaActual = clone $inicioMes;
-
-            while ($fechaActual <= $hoy) {
-                $inicioDia = $fechaActual->copy()->startOfDay();
-                $finDia = $fechaActual->copy()->endOfDay();
-
-                // Solicitudes recibidas este día para esta carrera
-                $recibidas = (clone $queryCarrera)
-                    ->where(function ($q) use ($inicioDia, $finDia) {
-                        $q->whereBetween('fecha_solicitud', [$inicioDia->toDateString(), $finDia->toDateString()])
-                          ->orWhereBetween('created_at', [$inicioDia, $finDia]);
-                    })
-                    ->where('estado', 'Pendiente de preaprobación')
-                    ->count();
-
-                // Solicitudes procesadas este día para esta carrera
-                $procesadas = (clone $queryCarrera)
-                    ->whereIn('estado', ['Pendiente de Aprobación', 'Pendiente de formulación de ajuste'])
-                    ->whereBetween('updated_at', [$inicioDia, $finDia])
-                    ->count();
-
-                $datos[] = [
-                    'fecha' => $fechaActual->format('d/m'),
-                    'recibidas' => $recibidas,
-                    'procesadas' => $procesadas,
-                ];
-
-                $fechaActual->addDay();
-            }
-
-            $resultado[$carrera->id] = [
-                'nombre' => $carrera->nombre,
-                'datos' => $datos,
-            ];
-        }
-
-        return $resultado;
+        return $distribucion;
     }
 }

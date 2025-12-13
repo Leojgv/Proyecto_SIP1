@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\BloqueoAgenda;
 use App\Models\Estudiante;
 use App\Models\Entrevista;
+use App\Models\Evidencia;
 use App\Models\Solicitud;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EstudianteEntrevistaController extends Controller
 {
@@ -55,7 +57,28 @@ class EstudianteEntrevistaController extends Controller
             'modalidad' => ['required', 'string', 'in:Virtual,Presencial'],
             'cupo' => ['required', 'date_format:Y-m-d H:i'],
             'autorizacion' => ['accepted'],
+            'archivos.*' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // Máximo 10MB por archivo
+            'tiene_acompanante' => ['nullable', 'boolean'],
+            'acompanante_rut' => ['nullable', 'required_if:tiene_acompanante,1', 'string', 'max:20'],
+            'acompanante_nombre' => ['nullable', 'required_if:tiene_acompanante,1', 'string', 'max:255'],
+            'acompanante_telefono' => ['nullable', 'required_if:tiene_acompanante,1', 'string', 'max:20'],
+        ], [
+            'archivos.*.mimes' => 'Solo se permiten archivos PDF.',
+            'archivos.*.max' => 'Cada archivo no puede exceder 10MB.',
+            'acompanante_rut.required_if' => 'El RUT del acompañante es requerido cuando se indica que hay acompañante.',
+            'acompanante_nombre.required_if' => 'El nombre del acompañante es requerido cuando se indica que hay acompañante.',
+            'acompanante_telefono.required_if' => 'El teléfono del acompañante es requerido cuando se indica que hay acompañante.',
         ]);
+
+        // Validar cantidad máxima de archivos
+        if ($request->hasFile('archivos')) {
+            $archivos = $request->file('archivos');
+            if (count($archivos) > 5) {
+                return back()
+                    ->withErrors(['archivos' => 'No puedes adjuntar más de 5 archivos.'])
+                    ->withInput();
+            }
+        }
 
         if ($estudiante->telefono !== $validated['telefono']) {
             $estudiante->update(['telefono' => $validated['telefono']]);
@@ -113,7 +136,30 @@ class EstudianteEntrevistaController extends Controller
             'modalidad' => $validated['modalidad'],
             'solicitud_id' => $solicitud->id,
             'asesor_id' => $coordinadora?->id,
+            'tiene_acompanante' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1',
+            'acompanante_rut' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_rut'] ?? null : null,
+            'acompanante_nombre' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_nombre'] ?? null : null,
+            'acompanante_telefono' => $request->has('tiene_acompanante') && $request->tiene_acompanante == '1' ? $validated['acompanante_telefono'] ?? null : null,
         ]);
+
+        // Guardar archivos adjuntos si existen
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                // Generar nombre único para el archivo
+                $nombreArchivo = time() . '_' . uniqid() . '_' . $archivo->getClientOriginalName();
+                
+                // Guardar el archivo en storage/app/public/evidencias
+                $rutaArchivo = $archivo->storeAs('evidencias', $nombreArchivo, 'public');
+                
+                // Crear registro de evidencia
+                Evidencia::create([
+                    'tipo' => 'Documentos Adicionales',
+                    'descripcion' => 'Archivo adjunto en solicitud de entrevista: ' . $archivo->getClientOriginalName(),
+                    'ruta_archivo' => $rutaArchivo,
+                    'solicitud_id' => $solicitud->id,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('estudiantes.dashboard')

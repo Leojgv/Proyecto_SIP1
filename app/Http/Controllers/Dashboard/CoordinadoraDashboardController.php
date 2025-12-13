@@ -50,16 +50,61 @@ class CoordinadoraDashboardController extends Controller
             ->take(5)
             ->get();
 
-        $casosPorCarrera = Solicitud::selectRaw('carreras.nombre as carrera')
-            ->selectRaw('COUNT(solicitudes.id) as total')
-            ->selectRaw("SUM(CASE WHEN solicitudes.estado IN ('Pendiente de entrevista', 'Pendiente de formulación del caso', 'Pendiente de formulación de ajuste') THEN 1 ELSE 0 END) as en_proceso")
-            ->leftJoin('estudiantes', 'solicitudes.estudiante_id', '=', 'estudiantes.id')
-            ->leftJoin('carreras', 'estudiantes.carrera_id', '=', 'carreras.id')
-            ->whereNotNull('carreras.nombre')
-            ->groupBy('carreras.nombre')
-            ->orderByDesc(DB::raw('COUNT(solicitudes.id)'))
-            ->take(6)
+        // Estadísticas adicionales
+        $entrevistasEsteMes = Entrevista::where('asesor_id', $user->id)
+            ->whereYear('fecha', $today->year)
+            ->whereMonth('fecha', $today->month)
+            ->count();
+
+        $entrevistasPresenciales = Entrevista::where('asesor_id', $user->id)
+            ->where('modalidad', 'Presencial')
+            ->count();
+
+        $entrevistasVirtuales = Entrevista::where('asesor_id', $user->id)
+            ->where('modalidad', 'Virtual')
+            ->count();
+
+        $totalEntrevistas = $entrevistasPresenciales + $entrevistasVirtuales;
+        $porcentajePresencial = $totalEntrevistas > 0 ? round(($entrevistasPresenciales / $totalEntrevistas) * 100) : 0;
+        $porcentajeVirtual = $totalEntrevistas > 0 ? round(($entrevistasVirtuales / $totalEntrevistas) * 100) : 0;
+
+        // Tasa de aprobación de ajustes
+        $totalAjustes = AjusteRazonable::count();
+        $ajustesAprobados = AjusteRazonable::where('estado', 'Aprobado')->count();
+        $tasaAprobacion = $totalAjustes > 0 ? round(($ajustesAprobados / $totalAjustes) * 100) : 0;
+
+        // Tiempo promedio de resolución (días entre creación y aprobación/rechazo)
+        $casosResueltos = Solicitud::whereIn('estado', ['Aprobado', 'Rechazado'])
+            ->whereNotNull('updated_at')
             ->get();
+        $tiempoPromedio = 0;
+        if ($casosResueltos->count() > 0) {
+            $totalDias = $casosResueltos->sum(function ($solicitud) {
+                return $solicitud->created_at->diffInDays($solicitud->updated_at);
+            });
+            $tiempoPromedio = round($totalDias / $casosResueltos->count());
+        }
+
+        // Estudiantes activos (con casos en proceso)
+        $estudiantesActivos = Estudiante::whereHas('solicitudes', function ($query) {
+            $query->whereIn('estado', [
+                'Pendiente de entrevista',
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste',
+                'Pendiente de preaprobación',
+                'Pendiente de Aprobacion'
+            ]);
+        })->count();
+
+        // Casos urgentes (pendientes más de 4 días)
+        $fechaUrgente = Carbon::now()->subDays(4);
+        $casosUrgentes = Solicitud::whereIn('estado', [
+            'Pendiente de entrevista',
+            'Pendiente de formulación del caso',
+            'Pendiente de formulación de ajuste'
+        ])
+        ->where('created_at', '<=', $fechaUrgente)
+        ->count();
 
         $pipelineStats = [
             ['label' => 'Solicitud agendada', 'value' => Solicitud::count(), 'description' => 'Etapa inicial del caso'],
@@ -72,6 +117,15 @@ class CoordinadoraDashboardController extends Controller
             'entrevistasCompletadas' => $entrevistasCompletadas,
             'casosRegistrados' => $casosRegistradosMes,
             'casosEnProceso' => $casosEnProceso,
+            'entrevistasEsteMes' => $entrevistasEsteMes,
+            'entrevistasPresenciales' => $entrevistasPresenciales,
+            'entrevistasVirtuales' => $entrevistasVirtuales,
+            'porcentajePresencial' => $porcentajePresencial,
+            'porcentajeVirtual' => $porcentajeVirtual,
+            'tasaAprobacion' => $tasaAprobacion,
+            'tiempoPromedioResolucion' => $tiempoPromedio,
+            'estudiantesActivos' => $estudiantesActivos,
+            'casosUrgentes' => $casosUrgentes,
         ];
 
         // Obtener estudiantes para el modal de registro de solicitud
@@ -133,7 +187,6 @@ class CoordinadoraDashboardController extends Controller
             'stats',
             'proximasEntrevistas',
             'casosRecientes',
-            'casosPorCarrera',
             'pipelineStats',
             'estudiantes',
             'eventosCalendario'

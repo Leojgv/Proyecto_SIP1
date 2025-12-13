@@ -29,6 +29,69 @@ class AsesoraTecnicaDashboardController extends Controller
             ->where('estado', 'Aprobado')
             ->count();
 
+        // Ajustes formulados este mes
+        $ajustesEsteMes = AjusteRazonable::whereYear('created_at', Carbon::now()->year)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->count();
+
+        // Total de ajustes formulados
+        $totalAjustes = AjusteRazonable::count();
+
+        // Casos con observaciones de entrevista (con PDF o texto)
+        $casosConObservaciones = (clone $solicitudesBase)
+            ->where(function ($query) {
+                $query->whereNotNull('observaciones_pdf_ruta')
+                    ->orWhereHas('entrevistas', function ($q) {
+                        $q->whereNotNull('observaciones');
+                    });
+            })
+            ->whereIn('estado', [
+                'Pendiente de formulación del caso',
+                'Pendiente de formulación de ajuste'
+            ])
+            ->count();
+
+        // Ajustes más comunes (top 3)
+        // Agrupar por nombre normalizado y contar, incluyendo la fecha más reciente
+        $ajustesAgrupados = AjusteRazonable::selectRaw('TRIM(nombre) as nombre_normalizado, COUNT(*) as total, MAX(created_at) as ultima_creacion')
+            ->groupByRaw('TRIM(nombre)')
+            ->get();
+        
+        // Ordenar: primero por total (más comunes), luego por fecha más reciente
+        $ajustesOrdenados = $ajustesAgrupados->sort(function ($a, $b) {
+            // Primero comparar por total (descendente)
+            if ($a->total != $b->total) {
+                return $b->total <=> $a->total;
+            }
+            // Si tienen el mismo total, comparar por fecha más reciente (descendente)
+            return strtotime($b->ultima_creacion) <=> strtotime($a->ultima_creacion);
+        });
+        
+        // Tomar los top 3 (mantener como colección para compatibilidad con la vista)
+        $ajustesComunes = $ajustesOrdenados->take(3)
+            ->map(function ($ajuste) {
+                return [
+                    'nombre' => trim($ajuste->nombre_normalizado),
+                    'total' => (int) $ajuste->total
+                ];
+            })
+            ->values();
+
+        // Datos para el gráfico de evolución mensual de ajustes (últimos 6 meses)
+        $evolucionMensual = [];
+        $mesesNombres = [];
+        
+        for ($i = 5; $i >= 0; $i--) {
+            $fecha = Carbon::now()->subMonths($i);
+            $mesInicio = $fecha->copy()->startOfMonth();
+            $mesFin = $fecha->copy()->endOfMonth();
+            
+            $ajustesMes = AjusteRazonable::whereBetween('created_at', [$mesInicio, $mesFin])->count();
+            
+            $evolucionMensual[] = $ajustesMes;
+            $mesesNombres[] = $fecha->format('M Y');
+        }
+
         $metrics = [
             [
                 'label' => 'Casos pendientes',
@@ -41,6 +104,12 @@ class AsesoraTecnicaDashboardController extends Controller
                 'value' => $casosCompletados,
                 'hint' => 'Aprobados',
                 'icon' => 'fa-circle-check',
+            ],
+            [
+                'label' => 'Ajustes este mes',
+                'value' => $ajustesEsteMes,
+                'hint' => 'Formulados',
+                'icon' => 'fa-calendar-plus',
             ],
         ];
 
@@ -128,6 +197,11 @@ class AsesoraTecnicaDashboardController extends Controller
             'metrics' => $metrics,
             'assignedCases' => $assignedCases,
             'recentAdjustments' => $recentAdjustments,
+            'totalAjustes' => $totalAjustes,
+            'casosConObservaciones' => $casosConObservaciones,
+            'ajustesComunes' => $ajustesComunes,
+            'evolucionMensual' => $evolucionMensual,
+            'mesesNombres' => $mesesNombres,
         ]);
     }
 

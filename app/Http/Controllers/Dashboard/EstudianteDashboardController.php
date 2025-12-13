@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ChileanHolidays;
 use App\Models\Carrera;
 use App\Models\Entrevista;
 use App\Models\Estudiante;
@@ -81,10 +82,28 @@ class EstudianteDashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Historial de entrevistas (pasadas)
+        $historialEntrevistas = Entrevista::with(['solicitud', 'asesor'])
+            ->whereHas('solicitud', function ($query) use ($estudiante) {
+                $query->where('estudiante_id', $estudiante->id);
+            })
+            ->whereDate('fecha', '<', $hoy)
+            ->orderByDesc('fecha')
+            ->take(10)
+            ->get();
+
         $misSolicitudes = $estudiante->solicitudes()
-            ->with(['asesor', 'director', 'ajustesRazonables', 'entrevistas.asesor'])
+            ->with(['asesor', 'director', 'ajustesRazonables', 'entrevistas.asesor', 'evidencias'])
+            ->where('estado', '!=', 'Rechazado')
             ->orderByDesc('fecha_solicitud')
             ->take(5)
+            ->get();
+
+        // Solicitudes rechazadas
+        $solicitudesRechazadas = $estudiante->solicitudes()
+            ->with(['asesor', 'director', 'ajustesRazonables', 'entrevistas.asesor', 'evidencias'])
+            ->where('estado', 'Rechazado')
+            ->orderByDesc('fecha_solicitud')
             ->get();
 
         // Solo ajustes aprobados y activos (no rechazados)
@@ -106,6 +125,16 @@ class EstudianteDashboardController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
+        // Obtener notificaciones del estudiante
+        $notificaciones = $this->getRecentNotifications($user);
+
+        // Obtener feriados chilenos para el año actual y el siguiente
+        $currentYear = (int) $hoy->format('Y');
+        $feriados = array_merge(
+            ChileanHolidays::getHolidaysForYear($currentYear),
+            ChileanHolidays::getHolidaysForYear($currentYear + 1)
+        );
+
         return view('estudiantes.dashboard.index', [
             'estudiante' => $estudiante,
             'stats' => [
@@ -117,9 +146,13 @@ class EstudianteDashboardController extends Controller
                 'solicitudes_realizadas' => $solicitudesRealizadas,
             ],
             'proximasEntrevistas' => $proximasEntrevistas,
+            'historialEntrevistas' => $historialEntrevistas,
             'misSolicitudes' => $misSolicitudes,
+            'solicitudesRechazadas' => $solicitudesRechazadas,
             'misAjustes' => $misAjustes,
             'ajustesRechazados' => $ajustesRechazadosList,
+            'notificaciones' => $notificaciones,
+            'feriados' => $feriados,
             'hoy' => $hoy,
         ]);
     }

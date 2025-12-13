@@ -15,7 +15,7 @@ class CoordinadoraCasoController extends Controller
     {
         // La Coordinadora solo ve casos en estado "Pendiente de entrevista"
         // y casos que ya informó pero aún están en proceso inicial
-        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas'])
+        $solicitudes = Solicitud::with(['estudiante.carrera', 'asesor', 'director', 'entrevistas', 'evidencias'])
             ->whereIn('estado', [
                 'Pendiente de entrevista',
                 'Pendiente de formulación del caso'
@@ -29,7 +29,7 @@ class CoordinadoraCasoController extends Controller
     }
 
     /**
-     * Informa a CTP (Coordinador Técnico Pedagógico) después de completar la anamnesis.
+     * Informa a ATP (Asesora Técnica Pedagógica) después de completar la anamnesis.
      * Cambia el estado de la solicitud a "Pendiente de formulación del caso".
      */
     public function informarACTP(Request $request, Solicitud $solicitud): RedirectResponse
@@ -66,6 +66,6 @@ class CoordinadoraCasoController extends Controller
             ]);
         }
 
-        return back()->with('status', 'Solicitud informada a CTP para formulación del caso.');
+        return back()->with('status', 'Solicitud informada a ATP (Asesora Técnica) para formulación del caso.');
     }
 }

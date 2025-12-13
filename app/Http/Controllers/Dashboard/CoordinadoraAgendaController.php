@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\ChileanHolidays;
 use App\Models\BloqueoAgenda;
 use App\Models\Entrevista;
 use Illuminate\Http\RedirectResponse;
@@ -75,6 +76,13 @@ class CoordinadoraAgendaController extends Controller
         // Combinar entrevistas y bloqueos
         $eventosCalendario = $entrevistasCalendario->concat($bloqueosCalendario);
 
+        // Obtener feriados chilenos para el año actual y el siguiente
+        $currentYear = (int) now()->format('Y');
+        $feriados = array_merge(
+            ChileanHolidays::getHolidaysForYear($currentYear),
+            ChileanHolidays::getHolidaysForYear($currentYear + 1)
+        );
+
         return view('coordinadora.agenda.index', [
             'horarioLaboral' => [
                 'inicio' => $this->horaInicioJornada,
@@ -83,6 +91,7 @@ class CoordinadoraAgendaController extends Controller
             'bloqueos' => $bloqueos,
             'entrevistas' => $entrevistas,
             'eventosCalendario' => $eventosCalendario,
+            'feriados' => $feriados,
         ]);
     }
 

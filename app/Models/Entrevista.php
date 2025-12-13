@@ -18,12 +18,17 @@ class Entrevista extends Model
         'observaciones',
         'solicitud_id',
         'asesor_id',
+        'tiene_acompanante',
+        'acompanante_rut',
+        'acompanante_nombre',
+        'acompanante_telefono',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'fecha_hora_inicio' => 'datetime',
         'fecha_hora_fin' => 'datetime',
+        'tiene_acompanante' => 'boolean',
     ];
 
     public function solicitud(): BelongsTo

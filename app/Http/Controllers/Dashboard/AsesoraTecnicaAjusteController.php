@@ -37,33 +37,49 @@ class AsesoraTecnicaAjusteController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nombre' => ['required', 'string', 'max:255'],
+        // Validar que existan ajustes
+        $request->validate([
+            'ajustes' => ['required', 'array', 'min:1'],
+            'ajustes.*.nombre' => ['required', 'string', 'max:255'],
+            'ajustes.*.descripcion' => ['required', 'string'],
             'solicitud_id' => ['required', 'exists:solicitudes,id'],
             'estudiante_id' => ['required', 'exists:estudiantes,id'],
-            'descripcion' => ['required', 'string'],
         ]);
 
-        $solicitud = Solicitud::findOrFail($validated['solicitud_id']);
+        $solicitud = Solicitud::findOrFail($request->solicitud_id);
+        $estudianteId = $request->estudiante_id;
+        $fechaSolicitud = now()->toDateString();
+        $estado = 'Pendiente de formulación de ajuste';
 
-        // Asignar fecha automáticamente con la fecha actual
-        $validated['fecha_solicitud'] = now()->toDateString();
-        
-        // Siempre marcamos los ajustes como en formulación cuando se crean.
-        $validated['estado'] = 'Pendiente de formulación de ajuste';
+        // Crear todos los ajustes
+        $ajustesCreados = [];
+        foreach ($request->ajustes as $ajusteData) {
+            $ajuste = AjusteRazonable::create([
+                'nombre' => $ajusteData['nombre'],
+                'descripcion' => $ajusteData['descripcion'],
+                'solicitud_id' => $solicitud->id,
+                'estudiante_id' => $estudianteId,
+                'fecha_solicitud' => $fechaSolicitud,
+                'estado' => $estado,
+            ]);
+            $ajustesCreados[] = $ajuste;
+        }
 
-        // Cuando CTP crea un ajuste razonable, cambiar estado de solicitud a "Listo para Enviar"
+        // Cuando ATP crea ajustes razonables, cambiar estado de solicitud a "Listo para Enviar"
         if (in_array($solicitud->estado, ['Pendiente de formulación del caso', 'Pendiente de formulación de ajuste'])) {
             $solicitud->update([
                 'estado' => 'Listo para Enviar',
             ]);
         }
 
-        AjusteRazonable::create($validated);
+        $cantidad = count($ajustesCreados);
+        $mensaje = $cantidad === 1 
+            ? 'Ajuste registrado correctamente.' 
+            : "{$cantidad} ajustes registrados correctamente.";
 
         return redirect()
             ->route('asesora-tecnica.dashboard')
-            ->with('status', 'Ajuste registrado correctamente.');
+            ->with('status', $mensaje);
     }
 
     /**
