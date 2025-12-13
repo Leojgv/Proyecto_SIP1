@@ -169,10 +169,14 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('asesora-tecnica.entrevistas.index');
         Route::get('asesora-tecnica/casos', [AsesoraTecnicaCasoController::class, 'index'])
             ->name('asesora-tecnica.casos.index');
+        Route::get('asesora-tecnica/casos/{solicitud}', [AsesoraTecnicaCasoController::class, 'show'])
+            ->name('asesora-tecnica.casos.show');
         Route::get('asesora-tecnica/ajustes/formular', [AsesoraTecnicaAjusteController::class, 'create'])
             ->name('asesora-tecnica.ajustes.create');
         Route::post('asesora-tecnica/ajustes', [AsesoraTecnicaAjusteController::class, 'store'])
             ->name('asesora-tecnica.ajustes.store');
+        Route::delete('asesora-tecnica/ajustes/{ajuste}', [AsesoraTecnicaAjusteController::class, 'destroy'])
+            ->name('asesora-tecnica.ajustes.destroy');
         Route::post('asesora-tecnica/solicitudes/{solicitud}/enviar-preaprobacion', [AsesoraTecnicaAjusteController::class, 'enviarAPreaprobacion'])
             ->name('asesora-tecnica.solicitudes.enviar-preaprobacion');
     });
