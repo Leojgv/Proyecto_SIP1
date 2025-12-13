@@ -2,6 +2,10 @@
 
 @section('title', 'Detalle de solicitud')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
@@ -62,6 +66,65 @@
 
         <dt class="col-sm-3">Descripción</dt>
         <dd class="col-sm-9">{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}</dd>
+
+        @if($solicitud->entrevistas->isNotEmpty())
+          @php
+            $entrevista = $solicitud->entrevistas->first();
+          @endphp
+          @if($entrevista->tiene_acompanante && $entrevista->acompanante_nombre)
+            <dt class="col-sm-3">Info de Acompañante/Tutor:</dt>
+            <dd class="col-sm-9">
+              <div class="border rounded p-3 bg-light">
+                <div class="mb-2">
+                  <strong>Nombre:</strong> {{ $entrevista->acompanante_nombre }}
+                </div>
+                @if($entrevista->acompanante_rut)
+                  <div class="mb-2">
+                    <strong>RUT:</strong> {{ $entrevista->acompanante_rut }}
+                  </div>
+                @endif
+                @if($entrevista->acompanante_telefono)
+                  <div>
+                    <strong>Teléfono:</strong> {{ $entrevista->acompanante_telefono }}
+                  </div>
+                @endif
+              </div>
+            </dd>
+          @elseif($entrevista->modalidad === 'Presencial')
+            <dt class="col-sm-3">Info de Acompañante/Tutor:</dt>
+            <dd class="col-sm-9">
+              <span class="text-muted">No hay acompañante adicional</span>
+            </dd>
+          @endif
+        @endif
+
+        @if($solicitud->evidencias->isNotEmpty())
+          <dt class="col-sm-3">Archivos Adjuntos</dt>
+          <dd class="col-sm-9">
+            <div class="d-flex flex-column gap-2">
+              @foreach($solicitud->evidencias as $evidencia)
+                <div class="border rounded p-3 bg-light">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                      <div>
+                        <div class="fw-semibold">{{ $evidencia->ruta_archivo ? basename($evidencia->ruta_archivo) : 'Sin nombre' }}</div>
+                        @if($evidencia->descripcion)
+                          <div class="text-muted small">{{ $evidencia->descripcion }}</div>
+                        @endif
+                      </div>
+                    </div>
+                    @if($evidencia->ruta_archivo)
+                      <a href="{{ Storage::url($evidencia->ruta_archivo) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-download me-1"></i>Descargar
+                      </a>
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </dd>
+        @endif
       </dl>
     </div>
   </div>

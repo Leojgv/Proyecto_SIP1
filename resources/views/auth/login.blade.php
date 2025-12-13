@@ -12,7 +12,7 @@
     <div class="login-container">
         <div class="login-form-wrapper">
             <div class="login-form">
-                <h1 class="text-uppercase">Iniciar Sesión</h1>
+                <h1 class="login-title">INICIAR SESIÓN</h1>
 
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
@@ -57,7 +57,7 @@
 
                     <div class="form-group mb-0">
                         <button type="submit" class="login-button">
-                            Ingresar
+                            INGRESAR
                         </button>
                     </div>
 

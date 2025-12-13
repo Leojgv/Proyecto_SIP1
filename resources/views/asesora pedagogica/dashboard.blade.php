@@ -90,51 +90,20 @@
       </div>
     </div>
 
-    {{-- Gráfico de Línea: Ritmo de Trabajo --}}
+    {{-- Gráfico de Barras: Distribución de Estados --}}
     <div class="col-12 col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
-          <h5 class="card-title mb-3">Ritmo de Trabajo</h5>
-          <p class="text-muted small mb-3">Evolución mensual</p>
-
-          {{-- Pestañas de filtro por carrera --}}
-          <ul class="nav nav-tabs mb-3" id="ritmoCarreraTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="ritmo-todas-tab" data-bs-toggle="tab" type="button" data-carrera-id="0">
-                Todas
-              </button>
-            </li>
-            @foreach($carreras as $carrera)
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ritmo-carrera-{{ $carrera->id }}-tab" data-bs-toggle="tab" type="button" data-carrera-id="{{ $carrera->id }}">
-                  {{ Str::limit($carrera->nombre, 15) }}
-                </button>
-              </li>
-            @endforeach
-          </ul>
-
-          <div id="ritmoChartContainer">
-            <div id="ritmoChartWrapper" class="d-flex justify-content-center align-items-center" style="height: 300px;">
-              <canvas id="ritmoTrabajoChart" style="max-height: 300px;"></canvas>
-            </div>
-            <div id="ritmoNoDataMessage" class="d-none text-center py-5" style="height: 300px; display: flex; align-items: center; justify-content: center;">
-              <div>
-                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <p class="text-muted mb-0">No hay casos para esta carrera</p>
-              </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-bar text-danger me-2"></i>Distribución de Estados
+              </h5>
+              <small class="text-muted">Casos por estado actual</small>
             </div>
           </div>
-          <div class="mt-3 text-center">
-            <div class="d-flex justify-content-center gap-4">
-              <div>
-                <span class="badge bg-primary me-2">─</span>
-                <small class="text-muted">Recibidas</small>
-              </div>
-              <div>
-                <span class="badge bg-success me-2">─</span>
-                <small class="text-muted">Procesadas</small>
-              </div>
-            </div>
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="distribucionEstadosChart"></canvas>
           </div>
         </div>
       </div>
@@ -564,6 +533,16 @@
   .dark-mode strong {
     color: #e8e8e8 !important;
   }
+
+  /* Estilos para el gráfico de distribución de estados */
+  .chart-container {
+    position: relative;
+  }
+
+  [data-theme="dark"] .chart-container canvas,
+  .dark-mode .chart-container canvas {
+    filter: brightness(0.95);
+  }
 </style>
 @endpush
 
@@ -795,16 +774,15 @@ document.addEventListener('DOMContentLoaded', function() {
       calidadChart.update('none');
     }
     
-    if (ritmoChart) {
-      ritmoChart.options.scales.x.ticks.color = textColor;
-      ritmoChart.options.scales.x.grid.color = gridColor;
-      ritmoChart.options.scales.y.ticks.color = textColor;
-      ritmoChart.options.scales.y.grid.color = gridColor;
-      ritmoChart.options.plugins.tooltip.backgroundColor = isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-      ritmoChart.options.plugins.tooltip.titleColor = isDarkMode ? '#e8e8e8' : '#1f1f2d';
-      ritmoChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#e8e8e8' : '#1f1f2d';
-      ritmoChart.options.plugins.tooltip.borderColor = isDarkMode ? '#2d3748' : '#e5e7eb';
-      ritmoChart.update('none');
+    if (distribucionChart) {
+      distribucionChart.options.scales.x.ticks.color = textColor;
+      distribucionChart.options.scales.y.ticks.color = textColor;
+      distribucionChart.options.scales.y.grid.color = gridColor;
+      distribucionChart.options.plugins.tooltip.backgroundColor = isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+      distribucionChart.options.plugins.tooltip.titleColor = isDarkMode ? '#e8e8e8' : '#1f1f2d';
+      distribucionChart.options.plugins.tooltip.bodyColor = isDarkMode ? '#e8e8e8' : '#1f1f2d';
+      distribucionChart.options.plugins.tooltip.borderColor = isDarkMode ? '#2d3748' : '#e5e7eb';
+      distribucionChart.update('none');
     }
   }
 
@@ -840,142 +818,135 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Datos de ritmo de trabajo por carrera desde PHP
-  const ritmoGlobal = @json($ritmoTrabajo);
-  const ritmoPorCarrera = @json($ritmoTrabajoPorCarrera);
+  // Datos de distribución de estados desde PHP
+  const distribucionEstados = @json($distribucionEstados ?? []);
 
-  let ritmoChart = null;
+  let distribucionChart = null;
 
-  // Función para actualizar el gráfico de ritmo según la carrera seleccionada
-  function actualizarGraficoRitmo(carreraId) {
-    let datos;
-    const chartWrapper = document.getElementById('ritmoChartWrapper');
-    const noDataMessage = document.getElementById('ritmoNoDataMessage');
-    
-    if (carreraId === 0 || carreraId === '0') {
-      // Mostrar datos globales
-      datos = ritmoGlobal;
-    } else {
-      // Mostrar datos de la carrera específica
-      const carreraData = ritmoPorCarrera[carreraId];
-      if (carreraData && carreraData.datos) {
-        datos = carreraData.datos;
-      } else {
-        datos = [];
-      }
-    }
+  // Función para inicializar el gráfico de distribución de estados
+  function inicializarGraficoDistribucion() {
+    const ctx = document.getElementById('distribucionEstadosChart');
+    if (!ctx) return;
 
-    // Verificar si hay datos
-    const tieneDatos = datos.length > 0 && datos.some(item => item.recibidas > 0 || item.procesadas > 0);
+    // Mapear estados a etiquetas cortas (en el orden correcto)
+    const ordenEstados = [
+      'Pendiente de formulación del caso',
+      'Pendiente de formulación de ajuste',
+      'Listo para Enviar',
+      'Pendiente de preaprobación',
+      'Aprobado'
+    ];
 
-    if (!tieneDatos) {
-      // Ocultar gráfico, mostrar mensaje
-      if (chartWrapper) chartWrapper.classList.add('d-none');
-      if (noDataMessage) noDataMessage.classList.remove('d-none');
-      return;
-    }
+    const etiquetasMap = {
+      'Pendiente de formulación del caso': 'P. de form. del caso',
+      'Pendiente de formulación de ajuste': 'P. de form. de ajuste',
+      'Listo para Enviar': 'Listo para Enviar',
+      'Pendiente de preaprobación': 'P. de preaprob.',
+      'Aprobado': 'Aprobado'
+    };
 
-    // Mostrar gráfico, ocultar mensaje
-    if (chartWrapper) chartWrapper.classList.remove('d-none');
-    if (noDataMessage) noDataMessage.classList.add('d-none');
+    // Preparar datos en el orden correcto
+    const labels = ordenEstados.map(estado => etiquetasMap[estado] || estado);
+    const data = ordenEstados.map(estado => distribucionEstados[estado] || 0);
 
-    // Actualizar el gráfico
-    if (ritmoChart) {
-      ritmoChart.data.labels = datos.map(item => item.fecha);
-      ritmoChart.data.datasets[0].data = datos.map(item => item.recibidas);
-      ritmoChart.data.datasets[1].data = datos.map(item => item.procesadas);
-      ritmoChart.update();
-    } else {
-      // Crear el gráfico por primera vez
-      const ritmoCtx = document.getElementById('ritmoTrabajoChart');
-      if (ritmoCtx) {
-        ritmoChart = new Chart(ritmoCtx, {
-          type: 'line',
-          data: {
-            labels: datos.map(item => item.fecha),
-            datasets: [
-              {
-                label: 'Recibidas',
-                data: datos.map(item => item.recibidas),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.4,
-                fill: true
-              },
-              {
-                label: 'Procesadas',
-                data: datos.map(item => item.procesadas),
-                borderColor: '#22c55e',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                tension: 0.4,
-                fill: true
-              }
-            ]
+    // Colores para las barras según el estado (en el mismo orden)
+    const colores = ordenEstados.map(estado => {
+      if (estado === 'Pendiente de formulación del caso') return '#ef4444'; // Rojo
+      if (estado === 'Pendiente de formulación de ajuste') return '#f59e0b'; // Amarillo
+      if (estado === 'Listo para Enviar') return '#3b82f6'; // Azul
+      if (estado === 'Pendiente de preaprobación') return '#8b5cf6'; // Púrpura
+      if (estado === 'Aprobado') return '#22c55e'; // Verde
+      return '#6b7280'; // Gris por defecto
+    });
+
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const gridColor = isDarkMode ? '#2d3748' : '#e5e7eb';
+    const textColor = isDarkMode ? '#b8b8b8' : '#6b7280';
+
+    // Calcular el máximo dinámicamente para el eje Y
+    const maxValue = Math.max(...data);
+    const yAxisMax = maxValue === 0 ? 2 : Math.ceil(maxValue * 1.2);
+
+    distribucionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Casos',
+          data: data,
+          backgroundColor: colores,
+          borderColor: colores,
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            left: 10,
+            right: 10,
+            top: 10,
+            bottom: 10
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: {
-                display: false
-              },
-              tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: document.body.classList.contains('dark-mode') ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                titleColor: document.body.classList.contains('dark-mode') ? '#e8e8e8' : '#1f1f2d',
-                bodyColor: document.body.classList.contains('dark-mode') ? '#e8e8e8' : '#1f1f2d',
-                borderColor: document.body.classList.contains('dark-mode') ? '#2d3748' : '#e5e7eb',
-                borderWidth: 1
+          tooltip: {
+            backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: isDarkMode ? '#e8e8e8' : '#1f1f2d',
+            bodyColor: isDarkMode ? '#e8e8e8' : '#1f1f2d',
+            borderColor: isDarkMode ? '#2d3748' : '#e5e7eb',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return 'Casos: ' + context.parsed.y;
               }
-            },
-            scales: {
-              x: {
-                ticks: {
-                  color: document.body.classList.contains('dark-mode') ? '#b8b8b8' : '#6b7280'
-                },
-                grid: {
-                  color: document.body.classList.contains('dark-mode') ? '#2d3748' : '#e5e7eb'
-                }
-              },
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  stepSize: 1,
-                  color: document.body.classList.contains('dark-mode') ? '#b8b8b8' : '#6b7280'
-                },
-                grid: {
-                  color: document.body.classList.contains('dark-mode') ? '#2d3748' : '#e5e7eb'
-                }
-              }
-            },
-            interaction: {
-              mode: 'nearest',
-              axis: 'x'
             }
           }
-        });
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: textColor,
+              maxRotation: 45,
+              minRotation: 45
+            },
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            max: yAxisMax,
+            ticks: {
+              stepSize: 1,
+              color: textColor,
+              precision: 0,
+              // Asegurar que se muestren todos los valores necesarios
+              callback: function(value) {
+                if (Number.isInteger(value)) {
+                  return value;
+                }
+                return '';
+              }
+            },
+            grid: {
+              color: gridColor,
+              drawBorder: true,
+              lineWidth: 1
+            }
+          }
+        }
       }
-    }
+    });
   }
 
-  // Inicializar con datos globales
-  actualizarGraficoRitmo(0);
-
-  // Event listeners para las pestañas de ritmo
-  const ritmoTabButtons = document.querySelectorAll('#ritmoCarreraTabs button[data-carrera-id]');
-  ritmoTabButtons.forEach(button => {
-    button.addEventListener('click', function(event) {
-      event.preventDefault();
-      // Remover active de todos los botones
-      ritmoTabButtons.forEach(btn => btn.classList.remove('active'));
-      // Agregar active al botón clickeado
-      this.classList.add('active');
-      
-      const carreraId = this.getAttribute('data-carrera-id');
-      actualizarGraficoRitmo(carreraId);
-    });
-  });
+  // Inicializar gráfico de distribución
+  inicializarGraficoDistribucion();
 });
 </script>
 @endpush

@@ -5,7 +5,15 @@
 @section('content')
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">{{ $evidencia->tipo }}</h1>
+      <h1 class="h3 mb-0">
+        @php
+          $tipoEvidencia = $evidencia->tipo ?? 'Evidencia';
+          if ($tipoEvidencia === 'Documento médico/psicológico' || $tipoEvidencia === 'Documento medico/psicologico') {
+            $tipoEvidencia = 'Documentos Adicionales';
+          }
+        @endphp
+        {{ $tipoEvidencia }}
+      </h1>
     <a href="{{ route('evidencias.index') }}" class="btn btn-secondary">Volver</a>
   </div>
 

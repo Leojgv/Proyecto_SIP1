@@ -37,6 +37,29 @@
           @endif
         </dd>
 
+        <dt class="col-sm-3">Info de Acompañante/Tutor:</dt>
+        <dd class="col-sm-9">
+          @if($entrevista->tiene_acompanante && $entrevista->acompanante_nombre)
+            <div class="border rounded p-3 bg-light">
+              <div class="mb-2">
+                <strong>Nombre:</strong> {{ $entrevista->acompanante_nombre }}
+              </div>
+              @if($entrevista->acompanante_rut)
+                <div class="mb-2">
+                  <strong>RUT:</strong> {{ $entrevista->acompanante_rut }}
+                </div>
+              @endif
+              @if($entrevista->acompanante_telefono)
+                <div>
+                  <strong>Teléfono:</strong> {{ $entrevista->acompanante_telefono }}
+                </div>
+              @endif
+            </div>
+          @else
+            <span class="text-muted">No hay acompañante adicional</span>
+          @endif
+        </dd>
+
         <dt class="col-sm-3">Observaciones</dt>
         <dd class="col-sm-9">{{ $entrevista->observaciones ?? '—' }}</dd>
       </dl>

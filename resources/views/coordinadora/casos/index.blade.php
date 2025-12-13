@@ -2,6 +2,10 @@
 
 @section('title', 'Casos')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <div class="container-fluid casos-page">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -35,7 +39,7 @@
             $badgeClass = match($estado) {
               'Pendiente de entrevista' => 'bg-warning text-dark',
               'Pendiente de formulacion del caso' => 'bg-info text-dark',
-              'Informado a CTP' => 'bg-primary',
+              'Informado a ATP' => 'bg-primary',
               default => 'bg-secondary'
             };
           @endphp
@@ -119,9 +123,59 @@
                             </div>
                           </div>
                         @endif
+                        <div class="row g-2 mt-2">
+                          <div class="col-12">
+                            <small class="text-muted d-block mb-1">
+                              <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                            </small>
+                            @if($entrevista->tiene_acompanante && $entrevista->acompanante_nombre)
+                              <div class="small">
+                                <div><strong>Nombre:</strong> {{ $entrevista->acompanante_nombre }}</div>
+                                @if($entrevista->acompanante_rut)
+                                  <div><strong>RUT:</strong> {{ $entrevista->acompanante_rut }}</div>
+                                @endif
+                                @if($entrevista->acompanante_telefono)
+                                  <div><strong>Teléfono:</strong> {{ $entrevista->acompanante_telefono }}</div>
+                                @endif
+                              </div>
+                            @else
+                              <div class="small text-muted">No hay acompañante adicional</div>
+                            @endif
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    @endif
+                  @endif
+                  @endif
+                  
+                  @if($solicitud->evidencias->isNotEmpty())
+                    <div class="col-12">
+                      <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block mb-2">
+                          <i class="fas fa-file-pdf me-1 text-danger"></i><strong>Archivos Adjuntos</strong>
+                        </small>
+                        <div class="d-flex flex-column gap-2">
+                          @foreach($solicitud->evidencias as $evidencia)
+                            <div class="d-flex align-items-center justify-content-between border rounded p-2 bg-white">
+                              <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                                <div>
+                                  <div class="fw-semibold small">{{ $evidencia->ruta_archivo ? basename($evidencia->ruta_archivo) : 'Sin nombre' }}</div>
+                                  @if($evidencia->descripcion)
+                                    <div class="text-muted small">{{ $evidencia->descripcion }}</div>
+                                  @endif
+                                </div>
+                              </div>
+                              @if($evidencia->ruta_archivo)
+                                <a href="{{ Storage::url($evidencia->ruta_archivo) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                  <i class="fas fa-download me-1"></i>Descargar
+                                </a>
+                              @endif
+                            </div>
+                          @endforeach
+                        </div>
+                      </div>
+                    </div>
                   @endif
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-3">
@@ -132,14 +186,14 @@
                         type="button"
                         class="btn btn-sm btn-danger"
                         data-bs-toggle="modal"
-                        data-bs-target="#informarCtpModal"
+                        data-bs-target="#informarAtpModal"
                         data-action="{{ route('coordinadora.casos.informar-ctp', $solicitud) }}"
                         data-estudiante="{{ trim(($solicitud->estudiante->nombre ?? 'Estudiante').' '.($solicitud->estudiante->apellido ?? '')) }}"
                       >
-                        <i class="fas fa-paper-plane me-1"></i>Informar a CTP
+                        <i class="fas fa-paper-plane me-1"></i>Informar a ATP
                       </button>
                     @elseif($solicitud->estado === 'Pendiente de formulacion del caso')
-                      <span class="text-muted small">Informado a CTP</span>
+                      <span class="text-muted small">Informado a ATP</span>
                     @else
                       <span class="text-muted small">En proceso</span>
                     @endif
@@ -159,22 +213,22 @@
   </div>
 </div>
 
-{{-- Modal para informar a CTP con observaciones y adjunto --}}
-<div class="modal fade" id="informarCtpModal" tabindex="-1" aria-labelledby="informarCtpModalLabel" aria-hidden="true">
+{{-- Modal para informar a ATP con observaciones y adjunto --}}
+<div class="modal fade" id="informarAtpModal" tabindex="-1" aria-labelledby="informarAtpModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form method="POST" enctype="multipart/form-data">
         @csrf
         <div class="modal-header">
           <div>
-            <h5 class="modal-title" id="informarCtpModalLabel">Informar a CTP</h5>
+            <h5 class="modal-title" id="informarAtpModalLabel">Informar a ATP</h5>
             <small class="text-muted">Confirma el envío e incluye las observaciones de la entrevista.</small>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
           <p class="text-muted small mb-3">
-            Se informará el caso de <span class="fw-semibold" data-estudiante-name></span> al CTP.
+            Se informará el caso de <span class="fw-semibold" data-estudiante-name></span> a la Asesora Técnica (ATP).
           </p>
           <div class="mb-3">
             <label class="form-label">Observaciones de la entrevista</label>
@@ -198,7 +252,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    var modalEl = document.getElementById('informarCtpModal');
+    var modalEl = document.getElementById('informarAtpModal');
     if (!modalEl) return;
 
     modalEl.addEventListener('show.bs.modal', function (event) {
@@ -257,6 +311,25 @@
   }
   .dark-mode .casos-page .case-body .text-muted {
     color: #9ca3af !important;
+  }
+
+  /* Estilos para modo oscuro - Archivos adjuntos */
+  [data-theme="dark"] .casos-page .case-body .bg-light {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  [data-theme="dark"] .casos-page .case-body .bg-white {
+    background: #334155 !important;
+    border-color: #475569 !important;
+  }
+
+  [data-theme="dark"] .casos-page .case-body .bg-white .fw-semibold {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .casos-page .case-body .bg-white .text-muted {
+    color: #94a3b8;
   }
 </style>
 @endpush

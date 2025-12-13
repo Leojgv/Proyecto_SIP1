@@ -53,30 +53,54 @@
           <h5 class="card-title mb-3">Bloqueos puntuales</h5>
           <p class="card-text text-muted">Agenda eventos personales o descansos fuera de la regla 45/15.</p>
 
-          <form action="{{ route('coordinadora.agenda.bloqueos.store') }}" method="POST" class="row g-3 mb-4">
+          <!-- Botones rápidos -->
+          <div class="mb-3">
+            <label class="form-label small text-muted mb-2">Bloqueos rápidos</label>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary quick-block-btn" data-hora-inicio="12:00" data-hora-fin="13:00" data-motivo="Almuerzo">
+                <i class="fas fa-utensils me-1"></i>Almuerzo (12:00-13:00)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary quick-block-btn" data-hora-inicio="15:00" data-hora-fin="15:30" data-motivo="Descanso">
+                <i class="fas fa-coffee me-1"></i>Descanso (15:00-15:30)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary quick-block-btn" data-hora-inicio="18:00" data-hora-fin="19:00" data-motivo="Reunión">
+                <i class="fas fa-users me-1"></i>Reunión (18:00-19:00)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="clearQuickBlock">
+                <i class="fas fa-times me-1"></i>Limpiar
+              </button>
+            </div>
+          </div>
+
+          <form action="{{ route('coordinadora.agenda.bloqueos.store') }}" method="POST" class="row g-3 mb-4" id="bloqueoForm">
             @csrf
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label">Fecha</label>
-              <input type="date" name="fecha" class="form-control @error('fecha') is-invalid @enderror" value="{{ old('fecha') }}" required>
+              <input type="date" name="fecha" id="bloqueoFecha" class="form-control @error('fecha') is-invalid @enderror" value="{{ old('fecha', now()->format('Y-m-d')) }}" required>
               @error('fecha')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">Inicio</label>
-              <input type="time" name="hora_inicio" class="form-control @error('hora_inicio') is-invalid @enderror" value="{{ old('hora_inicio') }}" required>
+              <input type="time" name="hora_inicio" id="bloqueoHoraInicio" class="form-control @error('hora_inicio') is-invalid @enderror" value="{{ old('hora_inicio') }}" required>
               @error('hora_inicio')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label">Fin</label>
-              <input type="time" name="hora_fin" class="form-control @error('hora_fin') is-invalid @enderror" value="{{ old('hora_fin') }}" required>
+              <input type="time" name="hora_fin" id="bloqueoHoraFin" class="form-control @error('hora_fin') is-invalid @enderror" value="{{ old('hora_fin') }}" required>
               @error('hora_fin')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-12">
               <label class="form-label">Motivo (opcional)</label>
-              <input type="text" name="motivo" class="form-control @error('motivo') is-invalid @enderror" placeholder="Ej: Almuerzo, reunion de equipo..." value="{{ old('motivo') }}">
+              <input type="text" name="motivo" id="bloqueoMotivo" class="form-control @error('motivo') is-invalid @enderror" placeholder="Ej: Almuerzo, reunion de equipo..." value="{{ old('motivo') }}">
               @error('motivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
-            <div class="col-12 d-flex justify-content-end">
-              <button class="btn btn-danger" type="submit">Agregar bloqueo</button>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+              <button class="btn btn-danger" type="submit">
+                <i class="fas fa-plus me-1"></i>Agregar bloqueo
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="addAnotherBlock">
+                <i class="fas fa-redo me-1"></i>Agregar y continuar
+              </button>
             </div>
           </form>
 
@@ -87,32 +111,47 @@
                   <th>Fecha</th>
                   <th>Horario</th>
                   <th>Motivo</th>
-                  <th></th>
+                  <th class="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse($bloqueos as $bloqueo)
                   <tr>
-                    <td>{{ $bloqueo->fecha->format('d/m/Y') }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-calendar-day text-muted"></i>
+                        <span>{{ $bloqueo->fecha->format('d/m/Y') }}</span>
+                      </div>
+                    </td>
                     <td>
                       @php
                         $horaInicio = \Carbon\Carbon::parse($bloqueo->hora_inicio)->format('H:i');
                         $horaFin = \Carbon\Carbon::parse($bloqueo->hora_fin)->format('H:i');
                       @endphp
-                      {{ $horaInicio }} - {{ $horaFin }}
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-clock text-muted"></i>
+                        <span>{{ $horaInicio }} - {{ $horaFin }}</span>
+                      </div>
                     </td>
-                    <td>{{ $bloqueo->motivo ?? 'Sin detalle' }}</td>
+                    <td>
+                      <span class="badge bg-secondary-subtle text-secondary">{{ $bloqueo->motivo ?? 'Sin detalle' }}</span>
+                    </td>
                     <td class="text-end">
-                      <form action="{{ route('coordinadora.agenda.bloqueos.destroy', $bloqueo) }}" method="POST" onsubmit="return confirm('Eliminar este bloqueo?');">
+                      <form action="{{ route('coordinadora.agenda.bloqueos.destroy', $bloqueo) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este bloqueo?');">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-sm btn-outline-danger" type="submit"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar bloqueo">
+                          <i class="fas fa-trash"></i>
+                        </button>
                       </form>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="4" class="text-center text-muted">Aun no tienes bloqueos registrados.</td>
+                    <td colspan="4" class="text-center py-4" style="background: transparent;">
+                      <i class="fas fa-calendar-times mb-2" style="font-size: 2rem; color: #64748b;"></i>
+                      <p class="mb-0 text-muted">Aun no tienes bloqueos registrados.</p>
+                    </td>
                   </tr>
                 @endforelse
               </tbody>
@@ -281,11 +320,206 @@
     background: #f9fafb;
   }
   .event-chip-bloqueo i { color: #6b7280; }
+  .calendar-cell.is-holiday {
+    background: #fff3e0;
+    border-color: #ff9800;
+  }
+  .calendar-cell.is-holiday.is-today {
+    background: linear-gradient(135deg, #fff3cd 0%, #ff9800 100%);
+    border-color: #ff9800;
+  }
+  .holiday-indicator {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
+  /* Estilos para modo oscuro */
+  [data-theme="dark"] .calendar-grid-agenda,
+  [data-theme="dark"] .calendar-grid {
+    background: #1e293b;
+  }
+
+  [data-theme="dark"] .calendar-weekday {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .calendar-cell {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .calendar-cell .day {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-today {
+    border-color: #fbbf24;
+    background: #fbbf24;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-today .day {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-holiday {
+    background: #fb923c;
+    border-color: #f97316;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-holiday .day {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-holiday.is-today {
+    background: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%);
+    border-color: #f59e0b;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-holiday.is-today .day {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .card-title {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .card-text.text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .form-control,
+  [data-theme="dark"] .form-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .form-control:focus,
+  [data-theme="dark"] .form-select:focus {
+    background: #1e293b;
+    border-color: #dc3545;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .form-control::placeholder {
+    color: #64748b;
+  }
+
+  [data-theme="dark"] .table {
+    color: #e2e8f0;
+    background: #1e293b;
+  }
+
+  [data-theme="dark"] .table thead {
+    background: #334155;
+  }
+
+  [data-theme="dark"] .table thead th {
+    color: #e2e8f0;
+    border-bottom-color: #475569;
+    background: #334155;
+  }
+
+  [data-theme="dark"] .table tbody {
+    background: #1e293b;
+  }
+
+  [data-theme="dark"] .table tbody tr {
+    background: #1e293b;
+    border-bottom-color: #334155;
+  }
+
+  [data-theme="dark"] .table tbody tr:hover {
+    background-color: #334155;
+  }
+
+  [data-theme="dark"] .table tbody td {
+    background: transparent;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .table tbody td {
+    background: transparent;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .table tbody td.text-center {
+    background: transparent;
+  }
+
+  [data-theme="dark"] .table tbody td.text-center .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .table tbody td.text-center i {
+    color: #64748b;
+  }
+
+  [data-theme="dark"] .table .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .table-responsive {
+    background: #1e293b;
+    border-radius: 8px;
+  }
+
+  [data-theme="dark"] .badge.bg-secondary-subtle {
+    background: #475569 !important;
+    color: #e2e8f0 !important;
+  }
+
+  [data-theme="dark"] .btn-outline-secondary {
+    border-color: #475569;
+    color: #cbd5e1;
+  }
+
+  [data-theme="dark"] .btn-outline-secondary:hover {
+    background: #475569;
+    border-color: #475569;
+    color: #fff;
+  }
+
+  [data-theme="dark"] .modal-content {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .modal-header {
+    background: #1e293b;
+    border-bottom-color: #334155;
+  }
+
+  [data-theme="dark"] .modal-title {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .modal-body {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .modal-footer {
+    background: #1e293b;
+    border-top-color: #334155;
+  }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const events = @json($eventosCalendario ?? []);
+  const feriados = @json($feriados ?? []);
 
   const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   
@@ -335,10 +569,26 @@ document.addEventListener('DOMContentLoaded', function () {
       cell.className = 'calendar-cell';
       if (dateStr === todayStr) cell.classList.add('is-today');
 
+      // Verificar si es feriado
+      const isHoliday = feriados.hasOwnProperty(dateStr);
+      const holidayName = isHoliday ? feriados[dateStr] : null;
+      if (isHoliday) {
+        cell.classList.add('is-holiday');
+        cell.title = holidayName;
+      }
+
       const dayLabel = document.createElement('div');
       dayLabel.className = 'day';
       dayLabel.textContent = day;
       cell.appendChild(dayLabel);
+      
+      if (isHoliday) {
+        const holidayIndicator = document.createElement('div');
+        holidayIndicator.className = 'holiday-indicator';
+        holidayIndicator.textContent = '🎉';
+        holidayIndicator.title = holidayName;
+        cell.appendChild(holidayIndicator);
+      }
 
       const dayEvents = events.filter(ev => ev.date === dateStr);
       if (dayEvents.length) {
@@ -430,11 +680,27 @@ document.addEventListener('DOMContentLoaded', function () {
       const cell = document.createElement('div');
       cell.className = 'calendar-cell';
       if (dateStr === todayStr) cell.classList.add('is-today');
+      
+      // Verificar si es feriado
+      const isHoliday = feriados.hasOwnProperty(dateStr);
+      const holidayName = isHoliday ? feriados[dateStr] : null;
+      if (isHoliday) {
+        cell.classList.add('is-holiday');
+        cell.title = holidayName;
+      }
 
       const dayLabel = document.createElement('div');
       dayLabel.className = 'day';
       dayLabel.textContent = day;
       cell.appendChild(dayLabel);
+      
+      if (isHoliday) {
+        const holidayIndicator = document.createElement('div');
+        holidayIndicator.className = 'holiday-indicator';
+        holidayIndicator.textContent = '🎉';
+        holidayIndicator.title = holidayName;
+        cell.appendChild(holidayIndicator);
+      }
 
       const dayEvents = events.filter(ev => ev.date === dateStr);
       if (dayEvents.length) {
@@ -523,6 +789,75 @@ document.addEventListener('DOMContentLoaded', function () {
   // Inicializar calendarios
   if (gridAgenda) renderAgenda(activeDateAgenda);
   if (gridModal) renderModal(activeDateModal);
+
+  // Funcionalidad de bloqueos rápidos
+  const quickBlockButtons = document.querySelectorAll('.quick-block-btn');
+  const bloqueoFecha = document.getElementById('bloqueoFecha');
+  const bloqueoHoraInicio = document.getElementById('bloqueoHoraInicio');
+  const bloqueoHoraFin = document.getElementById('bloqueoHoraFin');
+  const bloqueoMotivo = document.getElementById('bloqueoMotivo');
+  const clearQuickBlock = document.getElementById('clearQuickBlock');
+  const bloqueoForm = document.getElementById('bloqueoForm');
+  const addAnotherBlock = document.getElementById('addAnotherBlock');
+
+  quickBlockButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      bloqueoHoraInicio.value = this.getAttribute('data-hora-inicio');
+      bloqueoHoraFin.value = this.getAttribute('data-hora-fin');
+      bloqueoMotivo.value = this.getAttribute('data-motivo');
+      // Si no hay fecha seleccionada, usar hoy
+      if (!bloqueoFecha.value) {
+        bloqueoFecha.value = new Date().toISOString().split('T')[0];
+      }
+      // Scroll suave al formulario
+      bloqueoForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  if (clearQuickBlock) {
+    clearQuickBlock.addEventListener('click', function() {
+      bloqueoHoraInicio.value = '';
+      bloqueoHoraFin.value = '';
+      bloqueoMotivo.value = '';
+    });
+  }
+
+  // Funcionalidad "Agregar y continuar"
+  if (addAnotherBlock) {
+    addAnotherBlock.addEventListener('click', function(e) {
+      e.preventDefault();
+      const form = bloqueoForm;
+      const formData = new FormData(form);
+      
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          // Limpiar solo los campos de hora y motivo, mantener la fecha
+          bloqueoHoraInicio.value = '';
+          bloqueoHoraFin.value = '';
+          bloqueoMotivo.value = '';
+          // Recargar la página para mostrar el nuevo bloqueo
+          window.location.reload();
+        } else {
+          return response.text().then(html => {
+            // Si hay errores, recargar la página para mostrar los mensajes
+            window.location.reload();
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // En caso de error, enviar el formulario normalmente
+        form.submit();
+      });
+    });
+  }
 });
 </script>
 @endsection

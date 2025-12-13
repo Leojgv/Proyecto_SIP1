@@ -26,6 +26,15 @@
                 --border: #e6e7ed;
             }
 
+            [data-theme="dark"] {
+                --primary: #e53945;
+                --primary-100: #3a1f22;
+                --surface: #1a1a1a;
+                --text: #f5f5f5;
+                --muted: #a0a0a0;
+                --border: #2d2d2d;
+            }
+
             * {
                 box-sizing: border-box;
             }
@@ -37,6 +46,13 @@
                 background: radial-gradient(circle at 20% 20%, #ffffffff, #ffffff 35%),
                     radial-gradient(circle at 80% 10%, #f8f0ff, #ffffff 30%),
                     linear-gradient(180deg, #fff7f7 0%, #f8fafc 100%);
+                transition: background 0.3s ease, color 0.3s ease;
+            }
+
+            [data-theme="dark"] body {
+                background: radial-gradient(circle at 20% 20%, #1a1a1a, #1a1a1a 35%),
+                    radial-gradient(circle at 80% 10%, #1a0f1f, #1a1a1a 30%),
+                    linear-gradient(180deg, #1a0f0f 0%, #0f0f14 100%);
             }
 
             a {
@@ -68,21 +84,41 @@
             .brand {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 8px;
+                flex-shrink: 0;
             }
 
             .logo-slot {
-                width: 150px;
-                height: 52px;
-                display: grid;
-                place-items: center;
-                overflow: hidden;
+                padding: 4px;
+                width: auto;
+                min-height: 90px;
+                height: auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: visible;
+                padding: 0;
+                position: relative;
             }
 
-            .logo-slot img {
-                width: 100%;
-                height: 100%;
+            /* Estilos para el logo en modo claro */
+            .logo-slot #logo-light {
+                max-width: 260px;
+                height: 100px;
+                width: auto;
                 object-fit: contain;
+                transition: opacity 0.3s ease;
+                display: block;
+            }
+
+            /* Estilos para el logo en modo oscuro */
+            .logo-slot #logo-dark {
+                max-width: 100px;
+                height: 95px;
+                width: auto;
+                object-fit: contain;
+                transition: opacity 0.3s ease;
+                display: block;
             }
 
             .brand-text {
@@ -151,6 +187,23 @@
                 color: var(--text);
             }
 
+            .btn.theme-toggle {
+                background: transparent;
+                border: 1px solid var(--border);
+                color: var(--text);
+                padding: 10px 12px;
+                font-size: 18px;
+            }
+
+            .btn.theme-toggle:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+            }
+
+            [data-theme="dark"] .btn.theme-toggle {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
             .hero {
                 display: grid;
                 grid-template-columns: 1fr;
@@ -161,6 +214,11 @@
                 border-radius: 24px;
                 border: 1px solid var(--border);
                 box-shadow: 0 26px 80px rgba(0, 0, 0, 0.06);
+                transition: background 0.3s ease, border-color 0.3s ease;
+            }
+
+            [data-theme="dark"] .hero {
+                box-shadow: 0 26px 80px rgba(0, 0, 0, 0.3);
             }
 
             .hero-copy h1 {
@@ -198,6 +256,12 @@
                 border-radius: 999px;
                 font-weight: 600;
                 border: 1px solid #f7c2c6;
+                transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            }
+
+            [data-theme="dark"] .pill {
+                color: #ff6b7a;
+                border-color: #4a2f32;
             }
 
             .pill .dot {
@@ -222,6 +286,11 @@
                 border-radius: 20px;
                 border: 1px solid var(--border);
                 box-shadow: 0 18px 50px rgba(0, 0, 0, 0.04);
+                transition: background 0.3s ease, border-color 0.3s ease;
+            }
+
+            [data-theme="dark"] .features {
+                box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
             }
 
             .section-head {
@@ -257,6 +326,12 @@
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
+                transition: background 0.3s ease, border-color 0.3s ease;
+            }
+
+            [data-theme="dark"] .feature-card {
+                background: linear-gradient(180deg, #1f1f1f 0%, #1a1a1a 100%);
+                box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
             }
 
             .icon-circle {
@@ -267,6 +342,11 @@
                 display: grid;
                 place-items: center;
                 font-size: 20px;
+                transition: background 0.3s ease;
+            }
+
+            [data-theme="dark"] .icon-circle {
+                background: #3a1f22;
             }
 
             .footer {
@@ -293,6 +373,11 @@
                 display: grid;
                 place-items: center;
                 font-size: 16px;
+                transition: background 0.3s ease;
+            }
+
+            [data-theme="dark"] .footer-icon {
+                background: #3a1f22;
             }
 
             @media (max-width: 980px) {
@@ -333,7 +418,8 @@
             <header class="top-bar">
                 <div class="brand">
                     <div class="logo-slot">
-                        <img src="{{ asset('images/1200.400.jpg') }}" alt="Logo del proyecto" loading="lazy" />
+                        <img id="logo-light" src="{{ asset('images/inacap-logo-png_seeklogo-181445.png') }}" alt="Logo INACAP" loading="lazy" data-theme="light" />
+                        <img id="logo-dark" src="{{ asset('images/logo-inacap-blanco.png') }}" alt="Logo INACAP" loading="lazy" data-theme="dark" style="display: none;" />
                     </div>
                     <div class="brand-text">
                         <span class="brand-name">SIP</span>
@@ -343,6 +429,9 @@
 
                 @if (Route::has('login'))
                     <nav class="nav-actions">
+                        <button id="theme-toggle" class="btn theme-toggle" aria-label="Cambiar tema">
+                            <span id="theme-icon">🌙</span>
+                        </button>
                         @auth
                             <a href="{{ url('/home') }}" class="btn ghost">Panel</a>
                         @else
@@ -358,7 +447,7 @@
             <main class="hero" aria-labelledby="hero-title">
                 <div class="hero-copy">
                     <p class="eyebrow">Plataforma integral</p>
-                    <h1 id="hero-title">Sistema de <span class="highlight">Inclusión</span> Educativa</h1>
+                  <h1 id="hero-title">Sistema de <span class="highlight">Inclusión</span> Educativa</h1>
                     <p class="lead">
                         Plataforma para la gestión de casos de inclusión, seguimiento de estudiantes con necesidades
                         educativas especiales y coordinación entre equipos multidisciplinarios.
@@ -388,7 +477,7 @@
                     </article>
 
                     <article class="feature-card">
-                        <div class="icon-circle">🔒</div>
+                          <div class="icon-circle">🔒</div>
                         <h3>Seguridad y privacidad</h3>
                         <p>Sistema seguro que protege la información sensible y los historiales de cada estudiante.</p>
                     </article>
@@ -412,8 +501,70 @@
                     <span class="footer-icon">🎓</span>
                     <span class="brand-subtitle">Sistema de Inclusión Educativa</span>
                 </div>
-                <span class="muted">2025 -- Diseñado para instituciones comprometidas con la inclusión</span>
+                <span class="muted">2025 -- Diseñado por Leonardo G. Vicente R. y Marcelo Z.</span>
             </footer>
         </div>
+
+        <script>
+            // Funcionalidad del modo oscuro
+            (function() {
+                const themeToggle = document.getElementById('theme-toggle');
+                const themeIcon = document.getElementById('theme-icon');
+                const logoLight = document.getElementById('logo-light');
+                const logoDark = document.getElementById('logo-dark');
+                const html = document.documentElement;
+
+                // Cargar tema guardado o usar preferencia del sistema
+                function loadTheme() {
+                    const savedTheme = localStorage.getItem('theme');
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+                    
+                    html.setAttribute('data-theme', theme);
+                    updateIcon(theme);
+                    updateLogo(theme);
+                }
+
+                // Actualizar icono según el tema
+                function updateIcon(theme) {
+                    themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                }
+
+                // Actualizar logo según el tema
+                function updateLogo(theme) {
+                    if (theme === 'dark') {
+                        logoLight.style.display = 'none';
+                        logoDark.style.display = 'block';
+                    } else {
+                        logoLight.style.display = 'block';
+                        logoDark.style.display = 'none';
+                    }
+                }
+
+                // Toggle del tema
+                themeToggle.addEventListener('click', function() {
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    updateIcon(newTheme);
+                    updateLogo(newTheme);
+                });
+
+                // Cargar tema al iniciar
+                loadTheme();
+
+                // Escuchar cambios en la preferencia del sistema
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                    if (!localStorage.getItem('theme')) {
+                        const theme = e.matches ? 'dark' : 'light';
+                        html.setAttribute('data-theme', theme);
+                        updateIcon(theme);
+                        updateLogo(theme);
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>

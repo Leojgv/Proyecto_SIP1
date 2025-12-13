@@ -84,35 +84,48 @@
       </div>
 
       <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
+        <table class="table table-hover align-middle students-table">
+          <thead class="table-header">
             <tr>
-              <th>Estudiante</th>
-              <th>Carrera</th>
-              <th>Estado</th>
-              <th>Casos</th>
-              <th>Acciones</th>
+              <th class="col-estudiante">Estudiante</th>
+              <th class="col-carrera">Carrera</th>
+              <th class="col-estado">Estado</th>
+              <th class="col-casos">Casos</th>
+              <th class="col-acciones">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @forelse ($estudiantes as $est)
-              <tr>
-                <td>
-                  <div class="fw-semibold">{{ $est['nombre'] }} {{ $est['apellido'] }}</div>
-                  <div class="text-muted small">{{ $est['rut'] ?? 'Sin rut' }}</div>
-                  <div class="text-muted small">{{ $est['email'] ?? 'Sin email' }}</div>
+              <tr class="student-row">
+                <td class="student-info">
+                  <div class="student-name">{{ $est['nombre'] }} {{ $est['apellido'] }}</div>
+                  <div class="student-details">
+                    <span class="student-rut">{{ $est['rut'] ?? 'Sin rut' }}</span>
+                    <span class="student-separator">•</span>
+                    <span class="student-email">{{ $est['email'] ?? 'Sin email' }}</span>
+                  </div>
                 </td>
-                <td>
-                  <div class="fw-semibold">{{ $est['carrera'] ?? 'Sin carrera' }}</div>
-                  <small class="text-muted">{{ $est['semestre'] }}</small>
+                <td class="career-info">
+                  <div class="career-name">{{ $est['carrera'] ?? 'Sin carrera' }}</div>
+                  @if($est['semestre'])
+                    <div class="career-semester">{{ $est['semestre'] }}</div>
+                  @endif
                 </td>
-                <td><span class="badge bg-success">{{ $est['estado'] }}</span></td>
-                <td><span class="badge bg-warning text-dark">{{ $est['casos'] }}</span></td>
-                <td>
+                <td class="status-cell">
+                  @if($est['casos'] > 0)
+                    <span class="badge badge-status badge-active">{{ $est['estado'] }}</span>
+                  @else
+                    <span class="badge badge-status badge-inactive">Sin casos</span>
+                  @endif
+                </td>
+                <td class="cases-cell">
+                  <span class="badge badge-cases">{{ $est['casos'] }}</span>
+                </td>
+                <td class="actions-cell">
                   @if($est['casos'] > 0)
                     <button
                       type="button"
-                      class="btn btn-sm btn-outline-primary"
+                      class="btn btn-action-details"
                       data-bs-toggle="modal"
                       data-bs-target="#modalVerDetalles"
                       data-estudiante-nombre="{{ $est['nombre'] }} {{ $est['apellido'] }}"
@@ -121,16 +134,21 @@
                       data-estudiante-carrera="{{ $est['carrera'] ?? 'Sin carrera' }}"
                       data-solicitudes="{{ json_encode($est['solicitudes']) }}"
                     >
-                      Ver detalles
+                      <i class="fas fa-eye me-1"></i>Ver detalles
                     </button>
                   @else
-                    <span class="text-muted small">Sin casos</span>
+                    <span class="no-cases-text">Sin casos</span>
                   @endif
                 </td>
               </tr>
             @empty
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">Aun no hay estudiantes registrados.</td>
+                <td colspan="5" class="empty-state">
+                  <div class="empty-state-content">
+                    <i class="fas fa-users empty-state-icon"></i>
+                    <p class="empty-state-text">Aun no hay estudiantes registrados.</p>
+                  </div>
+                </td>
               </tr>
             @endforelse
           </tbody>
@@ -333,18 +351,169 @@
     justify-content: center;
     font-size: 1.25rem;
   }
-  .table thead th {
-    color: #6b6c7f;
-    font-weight: 600;
-    border-bottom: 1px solid #ececf4;
+  /* Tabla de estudiantes - Modo claro */
+  .students-table {
+    border-collapse: separate;
+    border-spacing: 0;
   }
+
+  .table-header {
+    background: #f8f9fa;
+  }
+
+  .table-header th {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+    vertical-align: middle;
+  }
+
+  .student-row {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .student-row:hover {
+    background-color: #f8f9fa;
+  }
+
+  .student-info {
+    padding: 1rem 0.75rem;
+  }
+
+  .student-name {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .student-details {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.813rem;
+    color: #6c757d;
+  }
+
+  .student-separator {
+    color: #adb5bd;
+  }
+
+  .career-info {
+    padding: 1rem 0.75rem;
+  }
+
+  .career-name {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .career-semester {
+    font-size: 0.813rem;
+    color: #6c757d;
+  }
+
+  .status-cell,
+  .cases-cell,
+  .actions-cell {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  .badge-status {
+    font-weight: 500;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.813rem;
+    border-radius: 6px;
+  }
+
+  .badge-status.badge-active {
+    background-color: #10b981;
+    color: #ffffff;
+  }
+
+  .badge-status.badge-inactive {
+    background-color: #6b7280;
+    color: #ffffff;
+  }
+
+  .badge-cases {
+    background-color: #f59e0b;
+    color: #1e293b;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    min-width: 2.5rem;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .btn-action-details {
+    background-color: transparent;
+    border: 1.5px solid #3b82f6;
+    color: #3b82f6;
+    font-weight: 500;
+    padding: 0.4rem 0.875rem;
+    font-size: 0.813rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .btn-action-details:hover {
+    background-color: #3b82f6;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  }
+
+  .no-cases-text {
+    color: #6c757d;
+    font-size: 0.813rem;
+    font-style: italic;
+  }
+
+  .empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+  }
+
+  .empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+  }
+
+  .empty-state-text {
+    color: #6c757d;
+    font-size: 1rem;
+    margin: 0;
+  }
+
   .filters-group .filters-group__input {
     width: 220px;
     flex: 0 0 auto;
   }
+
   #ordenarPor {
     min-width: 220px;
   }
+
   @media (max-width: 768px) {
     .filters-group .filters-group__input {
       width: 100%;
@@ -353,6 +522,340 @@
     #ordenarPor {
       min-width: 100%;
     }
+  }
+
+  /* Estilos para modo oscuro */
+  [data-theme="dark"] .students-page {
+    background: transparent;
+  }
+
+  [data-theme="dark"] .page-header h1 {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .page-header .text-muted {
+    color: #cbd5e1;
+  }
+
+  /* Tarjetas de información superior */
+  [data-theme="dark"] .info-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] .info-card .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .info-card h3 {
+    color: #f1f5f9;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .info-card__icon {
+    opacity: 0.9;
+  }
+
+  /* Card principal */
+  [data-theme="dark"] .card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="dark"] .card-title {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .card-body .text-muted {
+    color: #94a3b8;
+  }
+
+  /* Tabla - Modo oscuro */
+  [data-theme="dark"] .students-table {
+    background: transparent;
+  }
+
+  [data-theme="dark"] .table-header {
+    background: #0f172a;
+  }
+
+  [data-theme="dark"] .table-header th {
+    color: #cbd5e1;
+    border-bottom-color: #334155;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .student-row {
+    background: #1e293b;
+    border-bottom-color: #334155;
+  }
+
+  [data-theme="dark"] .student-row:hover {
+    background-color: #334155;
+  }
+
+  [data-theme="dark"] .student-name {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .student-details {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .student-separator {
+    color: #64748b;
+  }
+
+  [data-theme="dark"] .career-name {
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .career-semester {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .badge-status.badge-active {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .badge-status.badge-inactive {
+    background-color: #64748b !important;
+    color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .badge-cases {
+    background-color: #f59e0b !important;
+    color: #1e293b !important;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .btn-action-details {
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  [data-theme="dark"] .btn-action-details:hover {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  }
+
+  [data-theme="dark"] .no-cases-text {
+    color: #64748b;
+  }
+
+  [data-theme="dark"] .empty-state-icon {
+    color: #475569;
+  }
+
+  [data-theme="dark"] .empty-state-text {
+    color: #94a3b8;
+  }
+
+  /* Badges */
+  [data-theme="dark"] .badge.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .badge.bg-warning {
+    background-color: #f59e0b !important;
+    color: #1e293b !important;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .badge.bg-danger {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .badge.bg-secondary {
+    background-color: #64748b !important;
+    color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .badge.bg-info {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+  }
+
+  /* Formularios */
+  [data-theme="dark"] .form-control,
+  [data-theme="dark"] .form-select {
+    background: #0f172a;
+    border-color: #475569;
+    color: #f1f5f9;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .form-control:focus,
+  [data-theme="dark"] .form-select:focus {
+    background: #0f172a;
+    border-color: #dc2626;
+    color: #f1f5f9;
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+  }
+
+  [data-theme="dark"] .form-control::placeholder {
+    color: #64748b;
+    opacity: 0.8;
+  }
+
+  /* Botones */
+  [data-theme="dark"] .btn-outline-primary {
+    border-color: #60a5fa;
+    color: #60a5fa;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  [data-theme="dark"] .btn-outline-primary:hover,
+  [data-theme="dark"] .btn-outline-primary:focus {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+  }
+
+  [data-theme="dark"] .btn-outline-danger {
+    border-color: #f87171;
+    color: #f87171;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .btn-outline-danger:hover,
+  [data-theme="dark"] .btn-outline-danger:focus {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+  }
+
+  [data-theme="dark"] .btn-secondary {
+    background: #475569;
+    border-color: #475569;
+    color: #f1f5f9;
+    font-weight: 500;
+  }
+
+  [data-theme="dark"] .btn-secondary:hover,
+  [data-theme="dark"] .btn-secondary:focus {
+    background: #64748b;
+    border-color: #64748b;
+    color: #ffffff;
+  }
+
+  [data-theme="dark"] .btn-danger {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+  }
+
+  [data-theme="dark"] .btn-danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+
+  /* Modal */
+  [data-theme="dark"] .modal-content {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="dark"] .modal-header {
+    background: #0f172a;
+    border-bottom-color: #334155;
+  }
+
+  [data-theme="dark"] .modal-title {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .modal-body {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+
+  [data-theme="dark"] .modal-footer {
+    background: #0f172a;
+    border-top-color: #334155;
+  }
+
+  [data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  /* Elementos con bg-light */
+  [data-theme="dark"] .bg-light {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+  }
+
+  [data-theme="dark"] .bg-light .text-muted {
+    color: #94a3b8 !important;
+  }
+
+  [data-theme="dark"] .bg-light .fw-semibold {
+    color: #f1f5f9 !important;
+  }
+
+  [data-theme="dark"] .bg-light strong {
+    color: #cbd5e1 !important;
+  }
+
+  /* Bordes */
+  [data-theme="dark"] .border {
+    border-color: #334155 !important;
+  }
+
+  [data-theme="dark"] .border.rounded {
+    background: #0f172a;
+  }
+
+  [data-theme="dark"] .border.rounded .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .border.rounded .fw-semibold {
+    color: #f1f5f9;
+  }
+
+  [data-theme="dark"] .border-danger {
+    border-color: #dc2626 !important;
+  }
+
+  /* Texto */
+  [data-theme="dark"] .text-muted {
+    color: #94a3b8 !important;
+  }
+
+  [data-theme="dark"] .text-danger {
+    color: #f87171 !important;
+  }
+
+  [data-theme="dark"] .text-center {
+    color: #cbd5e1;
+  }
+
+  /* Table responsive */
+  [data-theme="dark"] .table-responsive {
+    border-color: #334155;
+  }
+
+  /* Estado "Sin casos" en la tabla */
+  [data-theme="dark"] .table .text-muted.small {
+    color: #64748b !important;
   }
 </style>
 
@@ -577,9 +1080,58 @@
                         <div class="fw-semibold">Por compartir</div>
                       </div>
                       ` : ''}
+                      ${entrevista.tiene_acompanante && entrevista.acompanante_nombre ? `
+                      <div class="col-md-12 mt-2">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                        </small>
+                        <div class="border rounded p-2 bg-white">
+                          <div class="small mb-1"><strong>Nombre:</strong> ${entrevista.acompanante_nombre}</div>
+                          ${entrevista.acompanante_rut ? `<div class="small mb-1"><strong>RUT:</strong> ${entrevista.acompanante_rut}</div>` : ''}
+                          ${entrevista.acompanante_telefono ? `<div class="small"><strong>Teléfono:</strong> ${entrevista.acompanante_telefono}</div>` : ''}
+                        </div>
+                      </div>
+                      ` : (isPresencial ? `
+                      <div class="col-md-12 mt-2">
+                        <small class="text-muted d-block mb-1">
+                          <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                        </small>
+                        <div class="small text-muted">No hay acompañante adicional</div>
+                      </div>
+                      ` : '')}
                     </div>
                   </div>
-                `;
+                  `;
+                }).join('')}
+              </div>
+              ` : ''}
+
+              ${solicitud.evidencias && solicitud.evidencias.length > 0 ? `
+              <div class="mb-0">
+                <h6 class="mb-3 fw-semibold d-flex align-items-center">
+                  <i class="fas fa-file-pdf me-2 text-danger"></i>Archivos Adjuntos
+                </h6>
+                ${solicitud.evidencias.map(evidencia => {
+                  const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                  const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
+                  return `
+                  <div class="border rounded p-3 bg-light mb-2">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                        <div>
+                          <div class="fw-semibold">${nombreArchivo}</div>
+                          ${evidencia.descripcion ? `<div class="text-muted small">${evidencia.descripcion}</div>` : ''}
+                        </div>
+                      </div>
+                      ${url !== '#' ? `
+                      <a href="${url}" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-download me-1"></i>Descargar
+                      </a>
+                      ` : ''}
+                    </div>
+                  </div>
+                  `;
                 }).join('')}
               </div>
               ` : ''}

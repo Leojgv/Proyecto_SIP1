@@ -162,7 +162,15 @@
             <div class="border rounded p-3 mb-2 bg-light">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="flex-grow-1">
-                  <strong class="d-block mb-1">{{ $evidencia->tipo ?? 'Evidencia' }}</strong>
+                  <strong class="d-block mb-1">
+                    @php
+                      $tipoEvidencia = $evidencia->tipo ?? 'Evidencia';
+                      if ($tipoEvidencia === 'Documento médico/psicológico' || $tipoEvidencia === 'Documento medico/psicologico') {
+                        $tipoEvidencia = 'Documentos Adicionales';
+                      }
+                    @endphp
+                    {{ $tipoEvidencia }}
+                  </strong>
                   @if($evidencia->descripcion)
                     <p class="text-muted mb-2 small">{{ $evidencia->descripcion }}</p>
                   @endif
@@ -219,3 +227,4 @@
   </div>
 </div>
 @endsection
+

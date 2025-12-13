@@ -28,7 +28,15 @@
         <tbody>
           @forelse($evidencias as $evidencia)
             <tr>
-              <td>{{ $evidencia->tipo }}</td>
+              <td>
+                @php
+                  $tipoEvidencia = $evidencia->tipo ?? 'Evidencia';
+                  if ($tipoEvidencia === 'Documento médico/psicológico' || $tipoEvidencia === 'Documento medico/psicologico') {
+                    $tipoEvidencia = 'Documentos Adicionales';
+                  }
+                @endphp
+                {{ $tipoEvidencia }}
+              </td>
               <td>{{ $evidencia->descripcion ? \Illuminate\Support\Str::limit($evidencia->descripcion, 40) : '—' }}</td>
               <td>{{ $evidencia->solicitud->fecha_solicitud?->format('d/m/Y') ?? '—' }}</td>
               <td>{{ $evidencia->ruta_archivo ?? '—' }}</td>

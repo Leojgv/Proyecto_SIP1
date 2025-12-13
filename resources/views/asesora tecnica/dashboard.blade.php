@@ -17,7 +17,7 @@
 
   <div class="row g-3 mb-4">
     @foreach ($metrics as $index => $metric)
-      <div class="col-12 col-md-6">
+      <div class="col-12 col-md-4">
         <div class="stats-card" style="background: {{ $cardPalette[$index % count($cardPalette)] }};">
           <div class="stats-card__value">{{ $metric['value'] }}</div>
           <div class="stats-card__icon"><i class="fas {{ $metric['icon'] }}"></i></div>
@@ -26,6 +26,60 @@
         </div>
       </div>
     @endforeach
+  </div>
+
+  {{-- Estadísticas adicionales --}}
+  <div class="row g-4 mb-4">
+    <div class="col-xl-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-line text-danger me-2"></i>Evolución de Ajustes
+              </h5>
+              <small class="text-muted">Ajustes formulados en los últimos 6 meses</small>
+            </div>
+          </div>
+          <div class="chart-container" style="position: relative; height: 250px;">
+            <canvas id="evolucionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-star text-danger me-2"></i>Ajustes Más Comunes
+              </h5>
+              <small class="text-muted">Tipos de ajustes más formulados</small>
+            </div>
+          </div>
+          @if(isset($ajustesComunes) && $ajustesComunes->count() > 0)
+            <div class="d-flex flex-column gap-2">
+              @foreach($ajustesComunes as $ajuste)
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="badge bg-danger text-white" style="width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.875rem;">
+                      {{ $loop->iteration }}
+                    </div>
+                    <div>
+                      <strong>{{ $ajuste['nombre'] }}</strong>
+                    </div>
+                  </div>
+                  <div class="h5 mb-0 text-danger">{{ $ajuste['total'] }}</div>
+                </div>
+              @endforeach
+            </div>
+          @else
+            <p class="text-muted text-center py-3 mb-0">Aún no hay datos suficientes para mostrar ajustes comunes.</p>
+          @endif
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card border-0 shadow-sm mb-4">
@@ -173,8 +227,98 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    // Gráfico de evolución mensual de ajustes
+    const evolucionData = @json($evolucionMensual ?? []);
+    const mesesLabels = @json($mesesNombres ?? []);
+    const ctx = document.getElementById('evolucionChart');
+    
+    if (ctx && evolucionData.length > 0) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: mesesLabels,
+          datasets: [{
+            label: 'Ajustes formulados',
+            data: evolucionData,
+            borderColor: 'rgba(220, 38, 38, 1)',
+            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: 'rgba(220, 38, 38, 1)',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: 'rgba(220, 38, 38, 1)',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 12,
+                  weight: '500'
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 13
+              },
+              callbacks: {
+                label: function(context) {
+                  return 'Ajustes: ' + context.parsed.y;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                font: {
+                  size: 11
+                }
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                font: {
+                  size: 11
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
     var modal = document.getElementById('ajustesEstudianteModal');
     if (!modal) return;
 
@@ -413,6 +557,48 @@
   .status-pendiente {
     background: #fff7ed;
     color: #b45309;
+  }
+  .metric-card {
+    transition: all 0.2s ease;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+
+  /* Estilos para modo oscuro */
+  [data-theme="dark"] .metric-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .metric-card .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .metric-card .h4 {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .bg-light {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  [data-theme="dark"] .bg-light strong {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .bg-light .h5 {
+    color: #e2e8f0;
+  }
+
+  .chart-container {
+    position: relative;
+  }
+
+  [data-theme="dark"] .chart-container canvas {
+    filter: brightness(0.9);
   }
 </style>
 @endsection

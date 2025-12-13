@@ -24,6 +24,55 @@
     </div>
   @endif
 
+  {{-- Barra de búsqueda y filtros --}}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <form method="GET" action="{{ route('asesora-tecnica.casos.index') }}" id="filtrosForm">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="buscar" class="form-label fw-semibold">
+              <i class="fas fa-search me-1"></i>Buscar
+            </label>
+            <input 
+              type="text" 
+              id="buscar" 
+              name="buscar" 
+              class="form-control" 
+              placeholder="Buscar por nombre, apellido, carrera o RUT..."
+              value="{{ request('buscar') }}"
+            >
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="carrera" class="form-label fw-semibold">
+              <i class="fas fa-graduation-cap me-1"></i>Carrera
+            </label>
+            <select id="carrera" name="carrera" class="form-select">
+              <option value="">Todas las carreras</option>
+              @foreach($carreras ?? [] as $carrera)
+                <option value="{{ $carrera->id }}" {{ request('carrera') == $carrera->id ? 'selected' : '' }}>
+                  {{ $carrera->nombre }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label fw-semibold d-block">&nbsp;</label>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger flex-grow-1">
+                <i class="fas fa-filter me-1"></i>Filtrar
+              </button>
+              @if(request()->hasAny(['buscar', 'carrera']))
+                <a href="{{ route('asesora-tecnica.casos.index') }}" class="btn btn-outline-secondary">
+                  <i class="fas fa-times"></i>
+                </a>
+              @endif
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="card border-0 shadow-sm">
     <div class="card-body">
       <div class="accordion" id="casosAsesoraAccordion">
@@ -91,7 +140,7 @@
                         </div>
                         <div class="col-md-6">
                           <small class="text-muted d-block mb-1">
-                            <i class="fas fa-file-pdf me-1"></i><strong>Evidencia / Observacion Adjuntado</strong>
+                            <i class="fas fa-file-pdf me-1"></i><strong>PDF con Observaciones</strong>
                           </small>
                           <div class="small">
                             @if($solicitud->observaciones_pdf_ruta)
@@ -102,13 +151,27 @@
                                 <i class="fas fa-file-pdf me-1"></i>Ver PDF
                               </a>
                             @else
-                              <span class="text-muted">Nada adjunto</span>
+                              <span class="text-muted">No hay PDF adjunto</span>
                             @endif
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  @php
+                    $entrevista = $solicitud->entrevistas->first();
+                  @endphp
+                  @if($entrevista && $entrevista->observaciones)
+                    <div class="col-12">
+                      <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block mb-2">
+                          <i class="fas fa-comments me-1"></i><strong>Observaciones de la Entrevista</strong>
+                        </small>
+                        <div class="text-muted" style="line-height: 1.6; white-space: pre-wrap;">{{ $entrevista->observaciones }}</div>
+                      </div>
+                    </div>
+                  @endif
                   
                   @if($solicitud->ajustesRazonables->count() > 0)
                     <div class="col-12">
@@ -221,6 +284,60 @@
   .dark-mode .casos-page .case-body .text-muted {
     color: #9ca3af !important;
   }
+
+  /* Estilos para filtros */
+  .casos-page .form-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .casos-page .form-control,
+  .casos-page .form-select {
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+  }
+
+  .casos-page .form-control:focus,
+  .casos-page .form-select:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+  }
+
+  /* Estilos para modo oscuro - filtros */
+  [data-theme="dark"] .casos-page .form-control,
+  [data-theme="dark"] .casos-page .form-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
+  [data-theme="dark"] .casos-page .form-control:focus,
+  [data-theme="dark"] .casos-page .form-select:focus {
+    border-color: #dc2626;
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+
+  [data-theme="dark"] .casos-page .form-control::placeholder {
+    color: #64748b;
+  }
+
+  [data-theme="dark"] .casos-page .form-label {
+    color: #e2e8f0;
+  }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit del formulario cuando cambian los filtros (opcional)
+    const filtrosForm = document.getElementById('filtrosForm');
+    const carreraSelect = document.getElementById('carrera');
+    
+    // Opcional: auto-submit al cambiar filtros (comentado para permitir búsqueda manual)
+    // carreraSelect?.addEventListener('change', () => filtrosForm?.submit());
+  });
+</script>
 @endpush
 @endsection

@@ -15,7 +15,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="tipo" class="form-label">Tipo</label>
-            <input type="text" id="tipo" name="tipo" value="{{ old('tipo', $evidencia->tipo) }}" class="form-control @error('tipo') is-invalid @enderror" required>
+            <input type="text" id="tipo" name="tipo" value="{{ old('tipo', ($evidencia->tipo === 'Documento médico/psicológico' || $evidencia->tipo === 'Documento medico/psicologico') ? 'Documentos Adicionales' : $evidencia->tipo) }}" class="form-control @error('tipo') is-invalid @enderror" required>
             @error('tipo')<div class="invalid-feedback">{{ $message }}</div>@enderror
           </div>
           <div class="col-md-6">

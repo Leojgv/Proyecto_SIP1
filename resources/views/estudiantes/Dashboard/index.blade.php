@@ -56,6 +56,161 @@
     @endforeach
   </div>
 
+  {{-- Mini Calendario de Entrevistas y Historial --}}
+  @if(isset($proximasEntrevistas) && $proximasEntrevistas->count() > 0)
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-xl-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body" style="padding: 1rem;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h5 class="card-title mb-0" style="font-size: 0.9375rem;">
+                <i class="fas fa-calendar-alt text-danger me-2"></i>Calendario de Entrevistas
+              </h5>
+              <small class="text-muted" style="font-size: 0.75rem;">Próximas entrevistas programadas</small>
+            </div>
+          </div>
+          <div id="mini-calendario-entrevistas" class="mini-calendario-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body" style="padding: 1rem;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h5 class="card-title mb-0" style="font-size: 0.9375rem;">
+                <i class="fas fa-history text-danger me-2"></i>Historial de Entrevistas
+              </h5>
+              <small class="text-muted" style="font-size: 0.75rem;">Entrevistas realizadas anteriormente</small>
+            </div>
+          </div>
+          <div class="historial-entrevistas-container" style="max-height: 400px; overflow-y: auto;">
+            @if(isset($historialEntrevistas) && $historialEntrevistas->count() > 0)
+              <div class="list-group list-group-flush">
+                @foreach($historialEntrevistas as $entrevista)
+                  <div class="list-group-item px-0 py-2 border-bottom">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          <i class="fas fa-calendar-day text-muted" style="font-size: 0.75rem;"></i>
+                          <span class="fw-semibold" style="font-size: 0.875rem;">
+                            {{ $entrevista->fecha->format('d/m/Y') }}
+                          </span>
+                        </div>
+                        @if($entrevista->fecha_hora_inicio)
+                          <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="fas fa-clock text-muted" style="font-size: 0.75rem;"></i>
+                            <span style="font-size: 0.8125rem;">
+                              {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin ? $entrevista->fecha_hora_fin->format('H:i') : '' }}
+                            </span>
+                          </div>
+                        @endif
+                        @if($entrevista->asesor)
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-user-tie text-muted" style="font-size: 0.75rem;"></i>
+                            <span style="font-size: 0.8125rem;" class="text-muted">
+                              {{ $entrevista->asesor->name }}
+                            </span>
+                          </div>
+                        @endif
+                        @if($entrevista->modalidad)
+                          <span class="badge bg-info-subtle text-info" style="font-size: 0.6875rem; margin-top: 0.25rem;">
+                            {{ ucfirst($entrevista->modalidad) }}
+                          </span>
+                        @endif
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
+              </div>
+            @else
+              <div class="text-center py-4">
+                <i class="fas fa-calendar-times text-muted mb-2" style="font-size: 2rem;"></i>
+                <p class="text-muted mb-0" style="font-size: 0.875rem;">No hay entrevistas realizadas anteriormente</p>
+              </div>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
+  {{-- Modal Personalizado para Detalles de Entrevistas --}}
+  <div class="modal fade" id="modalEntrevistasDia" tabindex="-1" aria-labelledby="modalEntrevistasDiaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="modalEntrevistasDiaLabel">
+            <i class="fas fa-calendar-day me-2"></i>Entrevistas del Día
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-entrevistas-dia-content">
+            <p class="text-muted">Cargando información...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- Sección de Notificaciones --}}
+  @if(isset($notificaciones) && count($notificaciones) > 0)
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-bell text-danger me-2"></i>Notificaciones
+              </h5>
+              <small class="text-muted">Actualizaciones sobre tus solicitudes, ajustes y casos</small>
+            </div>
+            <span class="badge bg-danger">{{ count($notificaciones) }}</span>
+          </div>
+          <div class="list-group list-group-flush">
+            @foreach ($notificaciones as $notificacion)
+              <div class="list-group-item px-0 py-3 {{ $notificacion['read_at'] ? '' : 'bg-light' }}">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                      <i class="fas fa-info-circle text-danger"></i>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1 {{ $notificacion['read_at'] ? 'text-muted' : 'fw-semibold' }}">
+                      {{ $notificacion['title'] }}
+                    </h6>
+                    <p class="text-muted small mb-2">
+                      {{ $notificacion['message'] }}
+                    </p>
+                    <div class="d-flex align-items-center justify-content-between">
+                      <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>{{ $notificacion['time'] }}
+                      </small>
+                      @if($notificacion['url'])
+                        <a href="{{ $notificacion['url'] }}" class="btn btn-sm btn-outline-danger">
+                          {{ $notificacion['button_text'] ?? 'Ver más' }}
+                        </a>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              </div>
+            @endforeach
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
   {{-- Modal Agenda Estudiante --}}
   <div class="modal fade" id="agendaEstudianteModal" tabindex="-1" aria-labelledby="agendaEstudianteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -208,7 +363,8 @@
                         data-solicitud-coordinadora="{{ $solicitud->entrevistas->first()?->asesor ? $solicitud->entrevistas->first()->asesor->nombre . ' ' . $solicitud->entrevistas->first()->asesor->apellido : 'Sin asignar' }}"
                         data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
                         data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
-                        data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar', 'modalidad' => $e->modalidad ?? null]; })) }}">
+                        data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar', 'modalidad' => $e->modalidad ?? null, 'tiene_acompanante' => $e->tiene_acompanante ?? false, 'acompanante_rut' => $e->acompanante_rut ?? null, 'acompanante_nombre' => $e->acompanante_nombre ?? null, 'acompanante_telefono' => $e->acompanante_telefono ?? null]; })) }}"
+                        data-solicitud-evidencias="{{ json_encode($solicitud->evidencias->map(function($e) { return ['id' => $e->id, 'tipo' => $e->tipo ?? 'Documento', 'descripcion' => $e->descripcion ?? '', 'ruta_archivo' => $e->ruta_archivo ?? '']; })) }}">
                   Ver detalle
                 </button>
               </div>
@@ -221,49 +377,60 @@
     </div>
     <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="card-body" style="padding: 1rem;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
             <div>
-              <h5 class="card-title mb-0">Próximas Entrevistas</h5>
-              <small class="text-muted">Tu agenda personal</small>
+              <h5 class="card-title mb-0" style="font-size: 1rem;">Próximas Entrevistas</h5>
+              <small class="text-muted" style="font-size: 0.75rem;">Tu agenda personal</small>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#agendaEstudianteModal">
+            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size: 0.8125rem; padding: 0.25rem 0.5rem;" data-bs-toggle="modal" data-bs-target="#agendaEstudianteModal">
               Ver agenda
             </button>
           </div>
           <div class="list-group list-group-flush">
             @forelse ($proximasEntrevistas as $entrevista)
-              <div class="list-group-item px-0 d-flex flex-wrap justify-content-between gap-2">
-                <div>
-                  <h6 class="mb-1"><i class="fas fa-calendar-day me-2 text-danger"></i>{{ $entrevista->fecha?->format('d/m/Y') }}</h6>
-                  @if ($entrevista->asesor)
-                    <small class="text-muted"><i class="fas fa-user me-1"></i>{{ $entrevista->asesor->nombre_completo }}</small>
-                  @endif
-                  @if($entrevista->modalidad)
-                    <div class="mt-1">
-                      <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">
-                        {{ $entrevista->modalidad }}
-                      </span>
+              <div class="list-group-item px-0 py-2" style="border-bottom: 1px solid #e6e7ed;">
+                <div class="d-flex align-items-start gap-2">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                      <i class="fas fa-calendar-day text-danger" style="font-size: 0.8125rem;"></i>
                     </div>
-                  @endif
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <div>
+                        <h6 class="mb-0 fw-semibold" style="font-size: 0.875rem; line-height: 1.3;">
+                          {{ $entrevista->fecha?->format('d/m/Y') ?? 'Fecha no definida' }}
+                        </h6>
+                        @if($entrevista->fecha_hora_inicio && $entrevista->fecha_hora_fin)
+                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
+                            {{ $entrevista->fecha_hora_inicio->format('H:i') }} - {{ $entrevista->fecha_hora_fin->format('H:i') }}
+                          </small>
+                        @elseif($entrevista->fecha_hora_inicio)
+                          <small class="text-muted d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-clock" style="font-size: 0.6875rem;"></i>
+                            {{ $entrevista->fecha_hora_inicio->format('H:i') }}
+                          </small>
+                        @endif
+                      </div>
+                      @if($entrevista->modalidad)
+                        <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }} ms-2" style="font-size: 0.6875rem; padding: 0.2rem 0.4rem;">
+                          {{ $entrevista->modalidad }}
+                        </span>
+                      @endif
+                    </div>
+                    @if ($entrevista->asesor)
+                      <small class="text-muted d-flex align-items-center gap-1 mb-1" style="font-size: 0.75rem;">
+                        <i class="fas fa-user-tie" style="font-size: 0.6875rem;"></i>
+                        {{ $entrevista->asesor->nombre_completo }}
+                      </small>
+                    @endif
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-secondary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalDetalleEntrevista"
-                  data-fecha="{{ $entrevista->fecha?->format('d/m/Y') ?? 's/f' }}"
-                  data-hora="{{ $entrevista->fecha_hora_inicio?->format('H:i') ?? ($entrevista->fecha_hora_fin?->format('H:i') ?? '--') }}"
-                  data-estudiante="{{ trim(($entrevista->solicitud->estudiante->nombre ?? 'Sin nombre').' '.($entrevista->solicitud->estudiante->apellido ?? '')) }}"
-                  data-asesor="{{ $entrevista->asesor->nombre_completo ?? 'Sin asignar' }}"
-                  data-descripcion="{{ \Illuminate\Support\Str::limit($entrevista->solicitud->descripcion ?? 'Sin descripción registrada', 200) }}"
-                  data-modalidad="{{ $entrevista->modalidad ?? '' }}"
-                >
-                  Ver detalles
-                </button>
               </div>
             @empty
-              <p class="text-muted text-center my-4">No tienes entrevistas programadas.</p>
+              <p class="text-muted text-center my-3" style="font-size: 0.8125rem;">No tienes entrevistas programadas.</p>
             @endforelse
           </div>
         </div>
@@ -590,6 +757,19 @@
                             </div>
                           </div>
                         @endif
+
+                        {{-- Mensaje informativo sobre el rechazo --}}
+                        <div class="col-12">
+                          <div class="alert alert-danger border-start border-danger border-4 mb-0">
+                            <div class="d-flex align-items-start">
+                              <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                              <div>
+                                <strong class="d-block mb-1">Información importante:</strong>
+                                <p class="mb-0">Lo sentimos, Este Ajuste ha sido rechazado por la directora de carrera. Cualquier consulta visitar las oficinas o llamar a nuestros contactos.</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -608,6 +788,109 @@
       </div>
     </div>
   </div>
+
+  {{-- Sección de Solicitudes Rechazadas --}}
+  @if(isset($solicitudesRechazadas) && count($solicitudesRechazadas) > 0)
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-times-circle text-danger me-2"></i>Solicitudes Rechazadas
+              </h5>
+              <small class="text-muted">Solicitudes que no fueron aprobadas por Dirección de Carrera</small>
+            </div>
+            <span class="badge bg-danger">{{ count($solicitudesRechazadas) }}</span>
+          </div>
+          <div class="list-group list-group-flush">
+            @foreach ($solicitudesRechazadas as $solicitud)
+              <div class="list-group-item px-0 py-3">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                      <i class="fas fa-file-alt text-danger"></i>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                        <h6 class="mb-1 fw-semibold">
+                          <span class="badge bg-light text-dark me-2">{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}</span>
+                          {{ $solicitud->titulo ?? 'Solicitud sin título' }}
+                        </h6>
+                        @if($solicitud->descripcion)
+                          <p class="text-muted small mb-2">{{ Str::limit($solicitud->descripcion, 150) }}</p>
+                        @endif
+                      </div>
+                      <span class="badge bg-danger">Rechazado</span>
+                    </div>
+                    
+                    {{-- Información de rechazo --}}
+                    @if($solicitud->motivo_rechazo)
+                      <div class="alert alert-danger alert-sm mb-2" role="alert">
+                        <div class="d-flex align-items-start">
+                          <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                          <div>
+                            <strong class="d-block mb-1">Motivo de rechazo:</strong>
+                            <p class="mb-0 small">{{ $solicitud->motivo_rechazo }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    @endif
+
+                    {{-- Información adicional --}}
+                    <div class="row g-2 mb-2">
+                      @if($solicitud->director)
+                        <div class="col-auto">
+                          <small class="text-muted">
+                            <i class="fas fa-user-shield me-1"></i>
+                            <strong>Director:</strong> {{ $solicitud->director->nombre }} {{ $solicitud->director->apellido }}
+                          </small>
+                        </div>
+                      @endif
+                      @if($solicitud->asesor)
+                        <div class="col-auto">
+                          <small class="text-muted">
+                            <i class="fas fa-user-tie me-1"></i>
+                            <strong>Asesor:</strong> {{ $solicitud->asesor->nombre }} {{ $solicitud->asesor->apellido }}
+                          </small>
+                        </div>
+                      @endif
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Fecha de rechazo: {{ $solicitud->updated_at?->format('d/m/Y H:i') ?? 'No disponible' }}
+                      </small>
+                      <button type="button" class="btn btn-sm btn-outline-danger" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#modalSolicitudDetalle"
+                              data-solicitud-id="{{ $solicitud->id }}"
+                              data-solicitud-titulo="{{ $solicitud->titulo ?? '' }}"
+                              data-solicitud-fecha="{{ $solicitud->fecha_solicitud?->format('d/m/Y') ?? 's/f' }}"
+                              data-solicitud-estado="{{ $solicitud->estado ?? 'Sin estado' }}"
+                              data-solicitud-descripcion="{{ $solicitud->descripcion ?? 'Sin descripción registrada' }}"
+                              data-solicitud-coordinadora="{{ $solicitud->entrevistas->first()?->asesor ? $solicitud->entrevistas->first()->asesor->nombre . ' ' . $solicitud->entrevistas->first()->asesor->apellido : 'Sin asignar' }}"
+                              data-solicitud-director="{{ $solicitud->director ? $solicitud->director->nombre . ' ' . $solicitud->director->apellido : 'No asignado' }}"
+                              data-solicitud-motivo="{{ $solicitud->motivo_rechazo ?? '' }}"
+                              data-solicitud-entrevistas="{{ json_encode($solicitud->entrevistas->map(function($e) { return ['fecha' => $e->fecha?->format('d/m/Y'), 'hora_inicio' => $e->fecha_hora_inicio?->format('H:i'), 'hora_fin' => $e->fecha_hora_fin?->format('H:i'), 'asesor' => $e->asesor ? $e->asesor->nombre . ' ' . $e->asesor->apellido : 'Sin asignar', 'modalidad' => $e->modalidad ?? null, 'tiene_acompanante' => $e->tiene_acompanante ?? false, 'acompanante_rut' => $e->acompanante_rut ?? null, 'acompanante_nombre' => $e->acompanante_nombre ?? null, 'acompanante_telefono' => $e->acompanante_telefono ?? null]; })) }}"
+                              data-solicitud-evidencias="{{ json_encode($solicitud->evidencias->map(function($e) { return ['id' => $e->id, 'tipo' => $e->tipo ?? 'Documento', 'descripcion' => $e->descripcion ?? '', 'ruta_archivo' => $e->ruta_archivo ?? '']; })) }}">
+                        <i class="fas fa-eye me-1"></i>Ver detalle completo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            @endforeach
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
 
   <div class="card border-0 shadow-sm" id="configuracion">
     <div class="card-body">
@@ -726,12 +1009,22 @@
         </div>
 
         <!-- Entrevistas -->
-        <div class="mb-0" id="modal-entrevistas-container">
+        <div class="mb-3" id="modal-entrevistas-container">
           <h6 class="mb-3 fw-semibold d-flex align-items-center">
             <i class="fas fa-comments me-2 text-danger"></i>Entrevistas
           </h6>
           <div id="modal-entrevistas-lista">
             <p class="text-muted small mb-0">No hay entrevistas asociadas a esta solicitud.</p>
+          </div>
+        </div>
+
+        <!-- Archivos Adjuntos (PDFs) -->
+        <div class="mb-0" id="modal-evidencias-container">
+          <h6 class="mb-3 fw-semibold d-flex align-items-center">
+            <i class="fas fa-file-pdf me-2 text-danger"></i>Archivos Adjuntos
+          </h6>
+          <div id="modal-evidencias-lista">
+            <p class="text-muted small mb-0">No hay archivos adjuntos en esta solicitud.</p>
           </div>
         </div>
       </div>
@@ -810,6 +1103,339 @@
 </style>
 
 @endsection
+
+@php
+  // Preparar datos de entrevistas para el mini calendario
+  $entrevistasCalendario = ($proximasEntrevistas ?? collect())->map(function($e) {
+    return [
+      'fecha' => optional($e->fecha_hora_inicio ?? $e->fecha)->format('Y-m-d'),
+      'fecha_completa' => $e->fecha?->format('d/m/Y'),
+      'hora' => $e->fecha_hora_inicio ? $e->fecha_hora_inicio->format('H:i') : null,
+      'hora_fin' => $e->fecha_hora_fin ? $e->fecha_hora_fin->format('H:i') : null,
+      'modalidad' => $e->modalidad ?? '',
+      'asesor' => $e->asesor ? $e->asesor->nombre_completo : 'Sin asignar',
+    ];
+  })->values()->toArray();
+  
+  // Preparar feriados para el calendario
+  $feriadosCalendario = $feriados ?? [];
+@endphp
+
+@push('styles')
+<style>
+  .mini-calendario-container {
+    padding: 0.5rem 0;
+  }
+
+  .mini-calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-top: 0.5rem;
+  }
+
+  .mini-calendario-weekday {
+    text-align: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 0.25rem 0;
+  }
+
+  .mini-calendario-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e6e7ed;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.75rem;
+    position: relative;
+    background: #fff;
+    min-height: 32px;
+  }
+
+  .mini-calendario-day:hover:not(.empty):not(.has-event) {
+    background: #f8f9fa;
+    border-color: #dc3545;
+  }
+
+  .mini-calendario-day.empty {
+    border: none;
+    cursor: default;
+    background: transparent;
+  }
+
+  .mini-calendario-day.is-today {
+    background: #fff3cd;
+    border-color: #ffc107;
+    font-weight: 700;
+  }
+
+  .mini-calendario-day.has-event {
+    background: #d1e7dd;
+    border-color: #198754;
+    font-weight: 600;
+  }
+
+  .mini-calendario-day.has-event:hover {
+    background: #b8e0cc;
+  }
+
+  .mini-calendario-day.has-event.is-today {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+  }
+
+  .mini-calendario-day.is-holiday {
+    background: #fff3e0;
+    border-color: #ff9800;
+  }
+
+  .mini-calendario-day.is-holiday.is-today {
+    background: linear-gradient(135deg, #fff3cd 0%, #ff9800 100%);
+    border-color: #ff9800;
+  }
+
+  .mini-calendario-holiday-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.625rem;
+    line-height: 1;
+  }
+
+  .mini-calendario-day-number {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #1f2933;
+  }
+
+  .mini-calendario-event-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #dc3545;
+    margin-top: 2px;
+  }
+
+  .mini-calendario-month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+  }
+
+  .mini-calendario-month-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #1f2933;
+    text-transform: capitalize;
+  }
+
+  .mini-calendario-nav-btn {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #1f2933;
+    font-size: 0.75rem;
+  }
+
+  .mini-calendario-nav-btn:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+  }
+
+  .mini-calendario-events-list {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e6e7ed;
+  }
+
+  .mini-calendario-events-list strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #1f2933;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .mini-calendario-event-item {
+    padding: 0.375rem 0.5rem;
+    margin-bottom: 0.375rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    border-left: 3px solid #dc3545;
+  }
+
+  .mini-calendario-event-item strong {
+    color: #dc3545;
+    font-weight: 600;
+    display: inline;
+  }
+
+  /* Estilos para modo oscuro */
+  [data-theme="dark"] .mini-calendario-container {
+    background: transparent;
+  }
+
+  [data-theme="dark"] .mini-calendario-grid {
+    background: transparent;
+  }
+
+  [data-theme="dark"] .mini-calendario-weekday {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .mini-calendario-day {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .mini-calendario-day-number {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .mini-calendario-day:hover:not(.empty):not(.has-event) {
+    background: #334155;
+    border-color: #dc3545;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-today {
+    background: #fbbf24;
+    border-color: #f59e0b;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-today .mini-calendario-day-number {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.has-event {
+    background: #10b981;
+    border-color: #059669;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.has-event .mini-calendario-day-number {
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.has-event:hover {
+    background: #059669;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.has-event.is-today {
+    background: linear-gradient(135deg, #fbbf24 0%, #10b981 100%);
+    border-color: #f59e0b;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.has-event.is-today .mini-calendario-day-number {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-holiday {
+    background: #fb923c;
+    border-color: #f97316;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-holiday .mini-calendario-day-number {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-holiday.is-today {
+    background: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%);
+    border-color: #f59e0b;
+  }
+
+  [data-theme="dark"] .mini-calendario-day.is-holiday.is-today .mini-calendario-day-number {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  [data-theme="dark"] .mini-calendario-month-nav {
+    background: #1e293b;
+    border: 1px solid #334155;
+  }
+
+  [data-theme="dark"] .mini-calendario-month-title {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .mini-calendario-nav-btn {
+    background: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .mini-calendario-nav-btn:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+  }
+
+  [data-theme="dark"] .mini-calendario-events-list {
+    border-top-color: #334155;
+  }
+
+  [data-theme="dark"] .mini-calendario-events-list strong {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .mini-calendario-event-item {
+    background: #1e293b;
+    border-left-color: #dc3545;
+    color: #cbd5e1;
+  }
+
+  [data-theme="dark"] .mini-calendario-event-item strong {
+    color: #dc3545;
+  }
+
+  /* Calendario principal */
+  [data-theme="dark"] .calendar-grid {
+    background: #1e293b;
+  }
+
+  [data-theme="dark"] .calendar-weekday {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .calendar-cell {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .calendar-cell .day {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-today {
+    border-color: #fbbf24;
+    background: #fbbf24;
+  }
+
+  [data-theme="dark"] .calendar-cell.is-today .day {
+    color: #1f2937;
+    font-weight: 700;
+  }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -925,6 +1551,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="fw-semibold">Por compartir</div>
                   </div>
                   ` : ''}
+                  ${entrevista.tiene_acompanante && entrevista.acompanante_nombre ? `
+                  <div class="col-md-12 mt-2">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                    </small>
+                    <div class="border rounded p-2 bg-white">
+                      <div class="small mb-1"><strong>Nombre:</strong> ${entrevista.acompanante_nombre}</div>
+                      ${entrevista.acompanante_rut ? `<div class="small mb-1"><strong>RUT:</strong> ${entrevista.acompanante_rut}</div>` : ''}
+                      ${entrevista.acompanante_telefono ? `<div class="small"><strong>Teléfono:</strong> ${entrevista.acompanante_telefono}</div>` : ''}
+                    </div>
+                  </div>
+                  ` : (isPresencial ? `
+                  <div class="col-md-12 mt-2">
+                    <small class="text-muted d-block mb-1">
+                      <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                    </small>
+                    <div class="small text-muted">No hay acompañante adicional</div>
+                  </div>
+                  ` : '')}
                 </div>
               </div>
             `;
@@ -933,10 +1578,56 @@ document.addEventListener('DOMContentLoaded', function() {
             entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
           }
         } catch (e) {
-          entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
+          console.error('Error parsing entrevistas:', e);
+          entrevistasContainer.innerHTML = '<p class="text-muted small">Error al cargar entrevistas.</p>';
         }
       } else {
         entrevistasContainer.innerHTML = '<p class="text-muted small">No hay entrevistas asociadas a esta solicitud.</p>';
+      }
+
+      // Evidencias (PDFs adjuntos)
+      const evidenciasJson = button.getAttribute('data-solicitud-evidencias');
+      const evidenciasContainer = document.getElementById('modal-evidencias-lista');
+      console.log('Evidencias JSON:', evidenciasJson); // Debug
+      if (evidenciasJson && evidenciasJson !== 'null' && evidenciasJson !== '[]' && evidenciasJson.trim() !== '') {
+        try {
+          const evidencias = JSON.parse(evidenciasJson);
+          console.log('Evidencias parseadas:', evidencias); // Debug
+          if (evidencias && evidencias.length > 0) {
+            evidenciasContainer.innerHTML = evidencias.map(evidencia => {
+              const rutaArchivo = evidencia.ruta_archivo || '';
+              const url = rutaArchivo ? `/storage/${rutaArchivo}` : '#';
+              const nombreArchivo = rutaArchivo ? rutaArchivo.split('/').pop() : 'Sin nombre';
+              console.log('Procesando evidencia:', { rutaArchivo, url, nombreArchivo }); // Debug
+              return `
+              <div class="border rounded p-3 bg-light mb-2">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                    <div>
+                      <div class="fw-semibold">${nombreArchivo}</div>
+                      ${evidencia.descripcion ? `<div class="text-muted small">${evidencia.descripcion}</div>` : ''}
+                    </div>
+                  </div>
+                  ${url !== '#' ? `
+                  <a href="${url}" target="_blank" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-download me-1"></i>Descargar
+                  </a>
+                  ` : ''}
+                </div>
+              </div>
+              `;
+            }).join('');
+          } else {
+            evidenciasContainer.innerHTML = '<p class="text-muted small mb-0">No hay archivos adjuntos en esta solicitud.</p>';
+          }
+        } catch (e) {
+          console.error('Error parsing evidencias:', e, evidenciasJson);
+          evidenciasContainer.innerHTML = '<p class="text-muted small mb-0">Error al cargar archivos adjuntos.</p>';
+        }
+      } else {
+        console.log('No hay evidencias o el JSON está vacío'); // Debug
+        evidenciasContainer.innerHTML = '<p class="text-muted small mb-0">No hay archivos adjuntos en esta solicitud.</p>';
       }
     });
   }
@@ -1109,6 +1800,154 @@ document.addEventListener('DOMContentLoaded', function () {
     
     document.getElementById('det-descripcion').textContent = descripcion;
   });
+
+  // Mini Calendario de Entrevistas
+  const miniCalendarioContainer = document.getElementById('mini-calendario-entrevistas');
+  if (miniCalendarioContainer) {
+    const entrevistasData = @json($entrevistasCalendario ?? []);
+    const feriadosData = @json($feriadosCalendario ?? []);
+    
+    // Debug: verificar feriados
+    console.log('Feriados cargados:', feriadosData);
+    console.log('Total feriados:', Object.keys(feriadosData).length);
+
+    let currentMonth = new Date();
+    currentMonth.setDate(1);
+
+    function renderMiniCalendario() {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const monthName = currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      const monthNameCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+      const start = new Date(year, month, 1);
+      const startOffset = (start.getDay() + 6) % 7; // Lunes como inicio
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let html = `
+        <div class="mini-calendario-month-nav">
+          <button type="button" class="mini-calendario-nav-btn" onclick="prevMiniMonth()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="mini-calendario-month-title">${monthNameCapitalized}</div>
+          <button type="button" class="mini-calendario-nav-btn" onclick="nextMiniMonth()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="mini-calendario-grid">
+      `;
+
+      // Días de la semana
+      const weekdays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+      weekdays.forEach(day => {
+        html += `<div class="mini-calendario-weekday">${day}</div>`;
+      });
+
+      // Días vacíos al inicio
+      for (let i = 0; i < startOffset; i++) {
+        html += '<div class="mini-calendario-day empty"></div>';
+      }
+
+      // Días del mes
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cellDate = new Date(year, month, day);
+        const dateStr = cellDate.toISOString().slice(0, 10);
+        const hasEvent = entrevistasData.some(e => e.fecha === dateStr);
+        const isToday = dateStr === today.toISOString().slice(0, 10);
+        const isHoliday = feriadosData.hasOwnProperty(dateStr);
+        const holidayName = isHoliday ? feriadosData[dateStr] : null;
+        
+        let classes = 'mini-calendario-day';
+        if (isToday) classes += ' is-today';
+        if (hasEvent) classes += ' has-event';
+        if (isHoliday) classes += ' is-holiday';
+
+        html += `
+          <div class="${classes}" data-date="${dateStr}" onclick="showMiniCalendarioEvents('${dateStr}')" title="${isHoliday ? holidayName : ''}">
+            <div class="mini-calendario-day-number">${day}</div>
+            ${hasEvent ? '<div class="mini-calendario-event-dot"></div>' : ''}
+            ${isHoliday ? '<div class="mini-calendario-holiday-indicator" title="' + holidayName + '">🎉</div>' : ''}
+          </div>
+        `;
+      }
+
+      // Días vacíos al final
+      const lastDay = new Date(year, month, daysInMonth);
+      const lastDayOffset = (7 - ((lastDay.getDay() + 6) % 7) - 1) % 7;
+      for (let i = 0; i < lastDayOffset; i++) {
+        html += '<div class="mini-calendario-day empty"></div>';
+      }
+
+      html += '</div>';
+
+      miniCalendarioContainer.innerHTML = html;
+    }
+
+    window.prevMiniMonth = function() {
+      currentMonth.setMonth(currentMonth.getMonth() - 1);
+      renderMiniCalendario();
+    };
+
+    window.nextMiniMonth = function() {
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      renderMiniCalendario();
+    };
+
+    window.showMiniCalendarioEvents = function(dateStr) {
+      const eventos = entrevistasData.filter(e => e.fecha === dateStr);
+      if (eventos.length > 0) {
+        const modal = new bootstrap.Modal(document.getElementById('modalEntrevistasDia'));
+        const content = document.getElementById('modal-entrevistas-dia-content');
+        const title = document.getElementById('modalEntrevistasDiaLabel');
+        
+        title.innerHTML = `<i class="fas fa-calendar-day me-2"></i>Entrevistas del ${eventos[0].fecha_completa}`;
+        
+        let html = `<div class="list-group">`;
+        eventos.forEach((ev, idx) => {
+          const horaTexto = ev.hora && ev.hora_fin 
+            ? `${ev.hora} - ${ev.hora_fin}` 
+            : ev.hora || 'Horario por confirmar';
+          const modalidadBadge = ev.modalidad 
+            ? `<span class="badge ${ev.modalidad === 'Virtual' ? 'bg-info' : 'bg-success'} ms-2">${ev.modalidad}</span>`
+            : '';
+          
+          html += `
+            <div class="list-group-item">
+              <div class="d-flex align-items-start gap-3">
+                <div class="flex-shrink-0">
+                  <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="fas fa-calendar-day text-danger"></i>
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-2 fw-semibold">
+                    Entrevista ${idx + 1}
+                    ${modalidadBadge}
+                  </h6>
+                  <div class="mb-2">
+                    <i class="fas fa-clock text-danger me-2"></i>
+                    <strong>Horario:</strong> ${horaTexto}
+                  </div>
+                  <div>
+                    <i class="fas fa-user-tie text-muted me-2"></i>
+                    <strong>Asesor:</strong> ${ev.asesor}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+        
+        content.innerHTML = html;
+        modal.show();
+      }
+    };
+
+    renderMiniCalendario();
+  }
 });
 </script>
 @endpush

@@ -278,7 +278,11 @@
                                     'modalidad' => $e->modalidad ?? 'N/A',
                                     'asesor_nombre' => $e->asesor->nombre ?? '',
                                     'asesor_apellido' => $e->asesor->apellido ?? '',
-                                    'asesor_email' => $e->asesor->email ?? ''
+                                    'asesor_email' => $e->asesor->email ?? '',
+                                    'tiene_acompanante' => $e->tiene_acompanante ?? false,
+                                    'acompanante_rut' => $e->acompanante_rut ?? null,
+                                    'acompanante_nombre' => $e->acompanante_nombre ?? null,
+                                    'acompanante_telefono' => $e->acompanante_telefono ?? null,
                                   ];
                                 })) }}"
                                 data-ajustes="{{ json_encode($solicitud->ajustesRazonables->map(function($a) {
@@ -286,6 +290,14 @@
                                     'nombre' => $a->nombre ?? 'Sin nombre',
                                     'descripcion' => $a->descripcion ?? 'Sin descripción',
                                     'estado' => $a->estado ?? 'Sin estado'
+                                  ];
+                                })) }}"
+                                data-evidencias="{{ json_encode($solicitud->evidencias->map(function($e) {
+                                  return [
+                                    'id' => $e->id,
+                                    'tipo' => $e->tipo ?? 'Documento',
+                                    'descripcion' => $e->descripcion ?? '',
+                                    'ruta_archivo' => $e->ruta_archivo ?? '',
                                   ];
                                 })) }}"
                                 title="Ver detalles">
@@ -424,6 +436,17 @@
             </div>
           </div>
 
+          {{-- Archivos Adjuntos --}}
+          <div class="col-12">
+            <hr>
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-file-pdf me-2"></i>Archivos Adjuntos
+            </h6>
+            <div id="modal_evidencias_content">
+              <p class="text-muted mb-0">No hay archivos adjuntos.</p>
+            </div>
+          </div>
+
           {{-- Ajustes Razonables --}}
           <div class="col-12">
             <hr>
@@ -556,6 +579,45 @@
         if (directorNombre) directorNombre.textContent = directorNombreCompleto.trim() || 'No asignado';
         if (directorEmail) directorEmail.textContent = data.directorEmail || 'Sin email';
 
+        // Evidencias (PDFs adjuntos)
+        if (evidenciasContent) {
+          try {
+            const evidencias = JSON.parse(data.evidencias || '[]');
+            if (evidencias && evidencias.length > 0) {
+              let html = '<div class="d-flex flex-column gap-2">';
+              evidencias.forEach(evidencia => {
+                const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
+                html += `
+                  <div class="border rounded p-3 bg-light">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                        <div>
+                          <div class="fw-semibold">${nombreArchivo}</div>
+                          ${evidencia.descripcion ? `<div class="text-muted small">${evidencia.descripcion}</div>` : ''}
+                        </div>
+                      </div>
+                      ${url !== '#' ? `
+                      <a href="${url}" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-download me-1"></i>Descargar
+                      </a>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              });
+              html += '</div>';
+              evidenciasContent.innerHTML = html;
+            } else {
+              evidenciasContent.innerHTML = '<p class="text-muted mb-0">No hay archivos adjuntos.</p>';
+            }
+          } catch (e) {
+            console.error('Error parsing evidencias:', e);
+            evidenciasContent.innerHTML = '<p class="text-muted mb-0">Error al cargar archivos adjuntos.</p>';
+          }
+        }
+
         // Entrevistas
         if (entrevistaContent) {
           try {
@@ -597,6 +659,24 @@
                       <div class="fw-semibold">${entrevista.asesor_email || 'Sin email'}</div>
                     </div>
                   </div>
+                  ${entrevista.modalidad && entrevista.modalidad.toLowerCase() === 'presencial' ? `
+                  <div class="col-12">
+                    <div class="border rounded p-3 bg-light">
+                      <small class="text-muted d-block mb-2">
+                        <i class="fas fa-user-friends me-1"></i><strong>Info de Acompañante/Tutor:</strong>
+                      </small>
+                      ${entrevista.tiene_acompanante && entrevista.acompanante_nombre ? `
+                        <div class="border rounded p-2 bg-white">
+                          <div class="small mb-1"><strong>Nombre:</strong> ${entrevista.acompanante_nombre}</div>
+                          ${entrevista.acompanante_rut ? `<div class="small mb-1"><strong>RUT:</strong> ${entrevista.acompanante_rut}</div>` : ''}
+                          ${entrevista.acompanante_telefono ? `<div class="small"><strong>Teléfono:</strong> ${entrevista.acompanante_telefono}</div>` : ''}
+                        </div>
+                      ` : `
+                        <div class="small text-muted">No hay acompañante adicional</div>
+                      `}
+                    </div>
+                  </div>
+                  ` : ''}
                 `;
               });
               html += '</div>';
@@ -606,6 +686,45 @@
             }
           } catch (e) {
             entrevistaContent.innerHTML = '<p class="text-muted mb-0">No hay entrevistas registradas.</p>';
+          }
+        }
+
+        // Evidencias (PDFs adjuntos)
+        if (evidenciasContent) {
+          try {
+            const evidencias = JSON.parse(data.evidencias || '[]');
+            if (evidencias && evidencias.length > 0) {
+              let html = '<div class="d-flex flex-column gap-2">';
+              evidencias.forEach(evidencia => {
+                const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
+                html += `
+                  <div class="border rounded p-3 bg-light">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-pdf text-danger" style="font-size: 1.5rem;"></i>
+                        <div>
+                          <div class="fw-semibold">${nombreArchivo}</div>
+                          ${evidencia.descripcion ? `<div class="text-muted small">${evidencia.descripcion}</div>` : ''}
+                        </div>
+                      </div>
+                      ${url !== '#' ? `
+                      <a href="${url}" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-download me-1"></i>Descargar
+                      </a>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              });
+              html += '</div>';
+              evidenciasContent.innerHTML = html;
+            } else {
+              evidenciasContent.innerHTML = '<p class="text-muted mb-0">No hay archivos adjuntos.</p>';
+            }
+          } catch (e) {
+            console.error('Error parsing evidencias:', e);
+            evidenciasContent.innerHTML = '<p class="text-muted mb-0">Error al cargar archivos adjuntos.</p>';
           }
         }
 
@@ -669,6 +788,7 @@
             directorEmail: button.dataset.directorEmail || '',
             entrevistas: button.dataset.entrevistas || '[]',
             ajustes: button.dataset.ajustes || '[]',
+            evidencias: button.dataset.evidencias || '[]',
           });
         });
       });

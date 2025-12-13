@@ -1,4 +1,4 @@
-﻿@extends('layouts.dashboard_coordinadora.app')
+@extends('layouts.dashboard_coordinadora.app')
 
 @section('title', 'Dashboard Coordinadora')
 
@@ -102,39 +102,111 @@
   </div>
 
   <div class="row g-4">
-    <div class="col-xl-12">
+    <div class="col-xl-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h5 class="card-title mb-0">Casos por Carrera</h5>
-              <small class="text-muted">Distribucion de solicitudes activas</small>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-line text-danger me-2"></i>Métricas de Rendimiento
+              </h5>
+              <small class="text-muted">Indicadores clave de gestión</small>
             </div>
-            <a href="{{ route('coordinadora.casos.index') }}" class="btn btn-sm btn-outline-danger">Ver casos</a>
           </div>
-          @forelse ($casosPorCarrera as $item)
-            @php
-              $porcentajeProceso = $item->total > 0 ? round(($item->en_proceso / $item->total) * 100) : 0;
-            @endphp
-            <div class="pb-3 mb-3 border-bottom">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>{{ $item->carrera }}</strong>
-                  <p class="text-muted small mb-0">{{ $item->total }} casos totales</p>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="metric-card p-3 border rounded">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-clock text-info"></i>
+                  <small class="text-muted">Tiempo promedio</small>
                 </div>
-                <span class="badge bg-light text-dark">{{ $porcentajeProceso }}% en proceso</span>
-              </div>
-              <div class="progress mt-2" style="height: 6px;">
-                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $porcentajeProceso }}%"></div>
-              </div>
-              <div class="d-flex justify-content-between text-muted small mt-2">
-                <span>{{ $item->en_proceso }} en proceso</span>
-                <span>{{ $item->total - $item->en_proceso }} restantes</span>
+                <div class="h4 mb-0">{{ $stats['tiempoPromedioResolucion'] ?? '0' }} días</div>
+                <small class="text-muted">Resolución de casos</small>
               </div>
             </div>
-          @empty
-            <p class="text-muted mb-0">Aun no hay datos suficientes para mostrar esta seccion.</p>
-          @endforelse
+            <div class="col-6">
+              <div class="metric-card p-3 border rounded">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-percentage text-success"></i>
+                  <small class="text-muted">Tasa de aprobación</small>
+                </div>
+                <div class="h4 mb-0">{{ $stats['tasaAprobacion'] ?? '0' }}%</div>
+                <small class="text-muted">Ajustes aprobados</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="metric-card p-3 border rounded">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-users text-warning"></i>
+                  <small class="text-muted">Estudiantes activos</small>
+                </div>
+                <div class="h4 mb-0">{{ $stats['estudiantesActivos'] ?? '0' }}</div>
+                <small class="text-muted">Con casos en proceso</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="metric-card p-3 border rounded">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-calendar-check text-primary"></i>
+                  <small class="text-muted">Entrevistas este mes</small>
+                </div>
+                <div class="h4 mb-0">{{ $stats['entrevistasEsteMes'] ?? '0' }}</div>
+                <small class="text-muted">Total programadas</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="card-title mb-0">
+                <i class="fas fa-chart-pie text-danger me-2"></i>Distribución de Modalidades
+              </h5>
+              <small class="text-muted">Análisis de preferencias de entrevistas</small>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="modalidad-indicator bg-success"></div>
+                  <div>
+                    <strong>Presencial</strong>
+                    <p class="text-muted small mb-0">{{ $stats['entrevistasPresenciales'] ?? '0' }} entrevistas</p>
+                  </div>
+                </div>
+                <div class="h5 mb-0">{{ $stats['porcentajePresencial'] ?? '0' }}%</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="modalidad-indicator bg-info"></div>
+                  <div>
+                    <strong>Virtual</strong>
+                    <p class="text-muted small mb-0">{{ $stats['entrevistasVirtuales'] ?? '0' }} entrevistas</p>
+                  </div>
+                </div>
+                <div class="h5 mb-0">{{ $stats['porcentajeVirtual'] ?? '0' }}%</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="p-3 border rounded bg-light">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class="fas fa-exclamation-triangle text-warning"></i>
+                  <strong>Casos que requieren atención</strong>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span class="text-muted small">Casos pendientes más de 4 días</span>
+                  <span class="badge bg-warning text-dark">{{ $stats['casosUrgentes'] ?? '0' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -308,6 +380,49 @@
     background: #f9fafb;
   }
   .event-chip-bloqueo i { color: #6b7280; }
+  .metric-card {
+    transition: all 0.2s ease;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  }
+  .modalidad-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  /* Estilos para modo oscuro */
+  [data-theme="dark"] .metric-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .metric-card .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .metric-card .h4 {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .bg-light {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  [data-theme="dark"] .bg-light strong {
+    color: #e2e8f0;
+  }
+
+  [data-theme="dark"] .bg-light .text-muted {
+    color: #94a3b8;
+  }
+
+  [data-theme="dark"] .bg-light .h5 {
+    color: #e2e8f0;
+  }
 </style>
 
 <script>
