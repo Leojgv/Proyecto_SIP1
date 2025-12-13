@@ -107,13 +107,14 @@ class EstudianteDashboardController extends Controller
             ->get();
 
         // Solo ajustes aprobados y activos (no rechazados)
+        // Ordenar por fecha de creación descendente (más reciente primero)
         $misAjustes = $estudiante->ajustesRazonables()
             ->with('solicitud')
             ->whereHas('solicitud', function ($query) {
                 $query->where('estado', '!=', 'Rechazado');
             })
             ->where('estado', '!=', 'Rechazado')
-            ->orderByDesc('fecha_solicitud')
+            ->orderByDesc('created_at')
             ->take(5)
             ->get();
 

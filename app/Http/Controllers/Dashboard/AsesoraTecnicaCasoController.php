@@ -17,7 +17,7 @@ class AsesoraTecnicaCasoController extends Controller
         // - Listo para Enviar (cuando se ha agregado al menos un ajuste)
         // - Pendiente de preaprobación (si aplica)
         // También puede ver casos devueltos por el Director
-        $query = Solicitud::with(['estudiante.carrera', 'ajustesRazonables', 'entrevistas'])
+        $query = Solicitud::with(['estudiante.carrera', 'ajustesRazonables', 'entrevistas', 'evidencias'])
             ->whereIn('estado', [
                 'Pendiente de formulación del caso',
                 'Pendiente de formulación de ajuste',

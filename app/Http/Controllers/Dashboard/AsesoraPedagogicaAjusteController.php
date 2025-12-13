@@ -43,9 +43,16 @@ class AsesoraPedagogicaAjusteController extends Controller
                     'solicitud_id' => $primero->solicitud_id ?? null,
                     'estudiante_id' => $estudiante->id ?? null,
                     'items' => $items->map(function (AjusteRazonable $ajuste) {
+                        // En la vista de Asesora Pedagógica, los ajustes con estado "Pendiente de formulación de ajuste"
+                        // se muestran como "Pendiente de preaprobación" porque ya fueron formulados por la Asesora Técnica
+                        $estado = $ajuste->estado ?? 'Pendiente';
+                        if ($estado === 'Pendiente de formulación de ajuste') {
+                            $estado = 'Pendiente de preaprobación';
+                        }
+                        
                         return [
                             'nombre' => $ajuste->nombre ?? 'Ajuste sin nombre',
-                            'estado' => $ajuste->estado ?? 'Pendiente',
+                            'estado' => $estado,
                             'solicitud_id' => $ajuste->solicitud_id,
                             'fecha' => optional($ajuste->fecha_solicitud ?? $ajuste->updated_at)?->format('d/m/Y') ?? 's/f',
                             'descripcion' => $ajuste->descripcion ?? null,
