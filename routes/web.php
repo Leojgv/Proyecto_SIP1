@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
         Route::resource('ajustes-razonables', AjusteRazonableController::class);
         Route::resource('entrevistas', EntrevistaController::class);
         Route::resource('evidencias', EvidenciaController::class);
+        Route::get('evidencias/{evidencia}/download', [EvidenciaController::class, 'download'])->name('evidencias.download');
         Route::resource('solicitudes', SolicitudController::class);
         Route::resource('asignaturas', AsignaturaController::class);
 
