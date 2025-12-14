@@ -160,58 +160,6 @@
     </div>
   </div>
 
-  {{-- Sección de Notificaciones --}}
-  @if(isset($notificaciones) && count($notificaciones) > 0)
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="card-title mb-0">
-                <i class="fas fa-bell text-danger me-2"></i>Notificaciones
-              </h5>
-              <small class="text-muted">Actualizaciones sobre tus solicitudes, ajustes y casos</small>
-            </div>
-            <span class="badge bg-danger">{{ count($notificaciones) }}</span>
-          </div>
-          <div class="list-group list-group-flush">
-            @foreach ($notificaciones as $notificacion)
-              <div class="list-group-item px-0 py-3 {{ $notificacion['read_at'] ? '' : 'bg-light' }}">
-                <div class="d-flex align-items-start gap-3">
-                  <div class="flex-shrink-0">
-                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                      <i class="fas fa-info-circle text-danger"></i>
-                    </div>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h6 class="mb-1 {{ $notificacion['read_at'] ? 'text-muted' : 'fw-semibold' }}">
-                      {{ $notificacion['title'] }}
-                    </h6>
-                    <p class="text-muted small mb-2">
-                      {{ $notificacion['message'] }}
-                    </p>
-                    <div class="d-flex align-items-center justify-content-between">
-                      <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>{{ $notificacion['time'] }}
-                      </small>
-                      @if($notificacion['url'])
-                        <a href="{{ $notificacion['url'] }}" class="btn btn-sm btn-outline-danger">
-                          {{ $notificacion['button_text'] ?? 'Ver más' }}
-                        </a>
-                      @endif
-                    </div>
-                  </div>
-                </div>
-              </div>
-            @endforeach
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  @endif
-
   {{-- Modal Agenda Estudiante --}}
   <div class="modal fade" id="agendaEstudianteModal" tabindex="-1" aria-labelledby="agendaEstudianteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">

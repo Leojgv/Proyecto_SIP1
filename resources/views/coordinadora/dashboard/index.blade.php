@@ -59,16 +59,32 @@
             </button>
           </div>
           @forelse ($proximasEntrevistas as $entrevista)
-            <div class="timeline-item">
-              <div>
+            <div class="timeline-item d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
                 <strong>{{ $entrevista->solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}</strong>
                 <p class="text-muted mb-0">
                   <i class="far fa-calendar me-1"></i>{{ $entrevista->fecha?->format('d/m/Y') }} · {{ $entrevista->fecha_hora_inicio?->format('H:i') ?? '--' }}
                   @if($entrevista->modalidad)
                     · <span class="badge {{ $entrevista->modalidad === 'Virtual' ? 'bg-info' : 'bg-success' }}">{{ $entrevista->modalidad }}</span>
                   @endif
+                  @if($entrevista->estado === 'Pospuesta')
+                    · <span class="badge bg-warning text-dark">Pospuesta</span>
+                  @endif
                 </p>
               </div>
+              @if($entrevista->estado !== 'Pospuesta')
+                <button type="button"
+                        class="btn btn-sm btn-outline-warning ms-2"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalPosponerEntrevista"
+                        data-entrevista-id="{{ $entrevista->id }}"
+                        data-estudiante-nombre="{{ $entrevista->solicitud->estudiante->nombre ?? 'Estudiante' }} {{ $entrevista->solicitud->estudiante->apellido ?? '' }}"
+                        data-fecha-entrevista="{{ $entrevista->fecha?->format('d/m/Y') }}"
+                        data-hora-entrevista="{{ $entrevista->fecha_hora_inicio?->format('H:i') ?? '--' }}"
+                        title="Posponer entrevista">
+                  <i class="fas fa-clock"></i>
+                </button>
+              @endif
             </div>
           @empty
             <p class="text-muted mb-0">No hay entrevistas agendadas.</p>
@@ -648,4 +664,83 @@
     </div>
   </div>
 </div>
+{{-- Modal Posponer Entrevista --}}
+<div class="modal fade" id="modalPosponerEntrevista" tabindex="-1" aria-labelledby="modalPosponerEntrevistaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title" id="modalPosponerEntrevistaLabel">Posponer Entrevista</h5>
+          <p class="text-muted mb-0 small">Indica el motivo por el cual necesitas posponer esta entrevista.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formPosponerEntrevista" method="POST" action="#">
+        @csrf
+        <div class="modal-body">
+          <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Estudiante:</strong> <span id="estudiante-nombre-modal"></span><br>
+            <strong>Fecha:</strong> <span id="fecha-entrevista-modal"></span> a las <span id="hora-entrevista-modal"></span>
+          </div>
+          <div class="mb-3">
+            <label for="motivo_posposicion" class="form-label">
+              Motivo de posposición <span class="text-danger">*</span>
+            </label>
+            <textarea 
+              id="motivo_posposicion" 
+              name="motivo_posposicion" 
+              class="form-control @error('motivo_posposicion') is-invalid @enderror" 
+              rows="4" 
+              placeholder="Ejemplo: Tengo un inconveniente personal, necesito reagendar para otra fecha..."
+              required
+              minlength="10"
+            >{{ old('motivo_posposicion') }}</textarea>
+            @error('motivo_posposicion')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="text-muted">Mínimo 10 caracteres. El estudiante recibirá una notificación con este motivo.</small>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-clock me-2"></i>Posponer Entrevista
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modalPosponer = document.getElementById('modalPosponerEntrevista');
+    const formPosponer = document.getElementById('formPosponerEntrevista');
+    
+    if (modalPosponer && formPosponer) {
+      modalPosponer.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const entrevistaId = button.getAttribute('data-entrevista-id');
+        const estudianteNombre = button.getAttribute('data-estudiante-nombre');
+        const fechaEntrevista = button.getAttribute('data-fecha-entrevista');
+        const horaEntrevista = button.getAttribute('data-hora-entrevista');
+        
+        // Actualizar información en el modal
+        document.getElementById('estudiante-nombre-modal').textContent = estudianteNombre;
+        document.getElementById('fecha-entrevista-modal').textContent = fechaEntrevista;
+        document.getElementById('hora-entrevista-modal').textContent = horaEntrevista;
+        
+        // Actualizar acción del formulario
+        formPosponer.action = '{{ route("coordinadora.entrevistas.posponer", ":id") }}'.replace(':id', entrevistaId);
+        
+        // Limpiar textarea
+        document.getElementById('motivo_posposicion').value = '';
+      });
+    }
+  });
+</script>
+@endpush
+
 @endsection

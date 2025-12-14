@@ -87,6 +87,7 @@
                           data-docente-nombre="{{ $docente->nombre }}"
                           data-docente-apellido="{{ $docente->apellido }}"
                           data-docente-email="{{ $email }}"
+                          data-docente-carrera-id="{{ $docente->carrera_id }}"
                           data-update-url="{{ route('director.docentes.update', $docente) }}"
                           title="Editar docente">
                     <i class="fas fa-pen"></i>
@@ -155,6 +156,19 @@
                      class="form-control @error('email') is-invalid @enderror"
                      required>
               @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_docente_carrera_id">Carrera <span class="text-danger">*</span></label>
+              <select id="edit_docente_carrera_id"
+                      name="carrera_id"
+                      class="form-select @error('carrera_id') is-invalid @enderror"
+                      required>
+                <option value="">Seleccione una carrera</option>
+                @foreach($carreras ?? [] as $carrera)
+                  <option value="{{ $carrera->id }}">{{ $carrera->nombre }}</option>
+                @endforeach
+              </select>
+              @error('carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
           </div>
         </div>
@@ -271,6 +285,7 @@
       const editNombre = document.getElementById('edit_docente_nombre');
       const editApellido = document.getElementById('edit_docente_apellido');
       const editEmail = document.getElementById('edit_docente_email');
+      const editCarreraId = document.getElementById('edit_docente_carrera_id');
 
       const populateAndShowEditModal = (data) => {
         if (!editForm) {
@@ -280,6 +295,7 @@
         if (editNombre) editNombre.value = data.nombre || '';
         if (editApellido) editApellido.value = data.apellido || '';
         if (editEmail) editEmail.value = data.email || '';
+        if (editCarreraId) editCarreraId.value = data.carreraId || '';
 
         if (data.updateUrl) {
           editForm.action = data.updateUrl;
@@ -294,6 +310,7 @@
             nombre: this.getAttribute('data-docente-nombre') || '',
             apellido: this.getAttribute('data-docente-apellido') || '',
             email: this.getAttribute('data-docente-email') || '',
+            carreraId: this.getAttribute('data-docente-carrera-id') || '',
             updateUrl: this.getAttribute('data-update-url') || '',
           };
           populateAndShowEditModal(data);

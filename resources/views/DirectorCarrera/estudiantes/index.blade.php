@@ -178,6 +178,19 @@
                      placeholder="+569 1234 5678">
               @error('telefono')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+            <div class="col-md-6">
+              <label class="form-label" for="edit_carrera_id">Carrera <span class="text-danger">*</span></label>
+              <select id="edit_carrera_id"
+                      name="carrera_id"
+                      class="form-select @error('carrera_id') is-invalid @enderror"
+                      required>
+                <option value="">Seleccione una carrera</option>
+                @foreach($carreras ?? [] as $carrera)
+                  <option value="{{ $carrera->id }}">{{ $carrera->nombre }}</option>
+                @endforeach
+              </select>
+              @error('carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0">
@@ -294,6 +307,7 @@
       const editApellido = document.getElementById('edit_apellido');
       const editEmail = document.getElementById('edit_email');
       const editTelefono = document.getElementById('edit_telefono');
+      const editCarreraId = document.getElementById('edit_carrera_id');
 
       const populateAndShowEditModal = (data) => {
         if (!editForm) {
@@ -304,6 +318,7 @@
         if (editApellido) editApellido.value = data.apellido || '';
         if (editEmail) editEmail.value = data.email || '';
         if (editTelefono) editTelefono.value = data.telefono || '';
+        if (editCarreraId) editCarreraId.value = data.carreraId || '';
 
         if (data.updateUrl) {
           editForm.action = data.updateUrl;

@@ -206,20 +206,16 @@
         </div>
     </div>
 
-    {{-- Gráficas de Pastel --}}
-    <h2>Gráficas de Participación en la Carrera</h2>
-    
-    {{-- Gráfica 1: Distribución de Estudiantes por Carrera --}}
+    {{-- Gráfica de Estudiantes por Carrera --}}
+    <h2>Distribución de Estudiantes por Carrera</h2>
     <div class="chart-container">
-        <div class="chart-title">Distribución de Estudiantes por Carrera</div>
+        <div class="chart-title">Participación de Estudiantes por Carrera</div>
         @php
             $totalEstudiantes = $estudiantesPorCarrera->sum('cantidad');
             $colors = ['#b91d47', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
         @endphp
         
-        {{-- Representación visual de gráfica de pastel usando barras horizontales --}}
         <div style="margin: 20px 0;">
-            {{-- Barra de distribución visual --}}
             <div style="width: 100%; height: 40px; background-color: #f0f0f0; border-radius: 20px; overflow: hidden; margin-bottom: 25px; position: relative; border: 2px solid #ddd;">
                 @php
                     $currentPosition = 0;
@@ -239,7 +235,6 @@
                 @endforeach
             </div>
             
-            {{-- Leyenda detallada --}}
             <table style="width: 100%; border-collapse: collapse;">
                 @foreach($estudiantesPorCarrera as $index => $item)
                     @php
@@ -268,7 +263,65 @@
                 @endforeach
             </table>
         </div>
+    </div>
+
+    {{-- Gráfica de Docentes por Carrera --}}
+    <h2 class="page-break">Distribución de Docentes por Carrera</h2>
+    <div class="chart-container">
+        <div class="chart-title">Participación de Docentes por Carrera</div>
+        @php
+            $totalDocentes = $docentesPorCarrera->sum('cantidad');
+            $docentesColors = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe'];
+        @endphp
         
+        <div style="margin: 20px 0;">
+            <div style="width: 100%; height: 40px; background-color: #f0f0f0; border-radius: 20px; overflow: hidden; margin-bottom: 25px; position: relative; border: 2px solid #ddd;">
+                @php
+                    $currentPosition = 0;
+                    $colorIndex = 0;
+                @endphp
+                @foreach($docentesPorCarrera as $item)
+                    @php
+                        $percentage = $totalDocentes > 0 ? ($item['cantidad'] / $totalDocentes) * 100 : 0;
+                        if ($percentage == 0) continue;
+                        $color = $docentesColors[$colorIndex % count($docentesColors)];
+                        $colorIndex++;
+                    @endphp
+                    <div style="position: absolute; left: {{ $currentPosition }}%; width: {{ $percentage }}%; height: 100%; background-color: {{ $color }}; border-right: 2px solid white;"></div>
+                    @php
+                        $currentPosition += $percentage;
+                    @endphp
+                @endforeach
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                @foreach($docentesPorCarrera as $index => $item)
+                    @php
+                        $color = $docentesColors[$index % count($docentesColors)];
+                        $percentage = $totalDocentes > 0 ? ($item['cantidad'] / $totalDocentes) * 100 : 0;
+                    @endphp
+                    <tr style="background-color: #fafafa;">
+                        <td style="padding: 12px; width: 25px;">
+                            <div style="width: 20px; height: 20px; background-color: {{ $color }}; border-radius: 4px; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
+                        </td>
+                        <td style="padding: 12px; font-size: 11px; font-weight: bold;">
+                            {{ $item['nombre'] }}
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-size: 11px;">
+                            <strong>{{ $item['cantidad'] }}</strong> docentes
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-size: 11px; font-weight: bold; color: #1e40af; width: 80px;">
+                            {{ number_format($percentage, 1) }}%
+                        </td>
+                        <td style="padding: 12px; width: 200px;">
+                            <div style="width: 100%; height: 12px; background-color: #e0e0e0; border-radius: 6px; overflow: hidden;">
+                                <div style="width: {{ $percentage }}%; height: 100%; background-color: {{ $color }}; border-radius: 6px;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </table>
+        </div>
     </div>
 
     {{-- Gráfica 2: Distribución de Ajustes por Carrera --}}
@@ -488,6 +541,90 @@
     @empty
         <p style="text-align: center; padding: 20px; color: #666;">No hay ajustes rechazados.</p>
     @endforelse
+
+    {{-- TERCERA PÁGINA: Lista Completa de Estudiantes y Docentes --}}
+    <div class="page-break">
+        <h2>Directorio Completo de Estudiantes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 25%;">Nombre Completo</th>
+                    <th style="width: 15%;">RUT</th>
+                    <th style="width: 25%;">Correo Electrónico</th>
+                    <th style="width: 15%;">Teléfono</th>
+                    <th style="width: 15%;">Carrera</th>
+                    <th style="width: 10%; text-align: center;">Ajustes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($estudiantesCompletos ?? [] as $index => $estudiante)
+                    <tr>
+                        <td style="text-align: center; font-size: 10px; color: #666;">{{ $index + 1 }}</td>
+                        <td style="font-weight: bold; font-size: 11px;">{{ $estudiante['nombre'] ?: 'Sin nombre' }}</td>
+                        <td style="font-size: 11px;">{{ $estudiante['rut'] }}</td>
+                        <td style="font-size: 10px; color: #555;">{{ $estudiante['email'] }}</td>
+                        <td style="font-size: 11px;">{{ $estudiante['telefono'] }}</td>
+                        <td style="font-size: 10px; color: #555;">{{ $estudiante['carrera'] }}</td>
+                        <td style="text-align: center; font-size: 11px;">
+                            @if($estudiante['ajustes_count'] > 0)
+                                <span style="background-color: #4caf50; color: white; padding: 3px 8px; border-radius: 12px; font-weight: bold;">{{ $estudiante['ajustes_count'] }}</span>
+                            @else
+                                <span style="color: #999;">-</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px; color: #666;">No hay estudiantes registrados.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #f5f5f5; border-radius: 5px; border-left: 4px solid #b91d47;">
+            <div style="font-size: 11px; color: #555;">
+                <strong>Total de Estudiantes:</strong> {{ count($estudiantesCompletos ?? []) }}<br>
+                <strong>Estudiantes con Ajustes Aprobados:</strong> {{ collect($estudiantesCompletos ?? [])->filter(fn($e) => $e['ajustes_count'] > 0)->count() }}
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break">
+        <h2>Directorio Completo de Docentes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 30%;">Nombre Completo</th>
+                    <th style="width: 20%;">RUT</th>
+                    <th style="width: 30%;">Correo Electrónico</th>
+                    <th style="width: 15%;">Carrera</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($docentesCompletos ?? [] as $index => $docente)
+                    <tr>
+                        <td style="text-align: center; font-size: 10px; color: #666;">{{ $index + 1 }}</td>
+                        <td style="font-weight: bold; font-size: 11px;">{{ $docente['nombre'] ?: 'Sin nombre' }}</td>
+                        <td style="font-size: 11px;">{{ $docente['rut'] }}</td>
+                        <td style="font-size: 10px; color: #555;">{{ $docente['email'] }}</td>
+                        <td style="font-size: 10px; color: #555;">{{ $docente['carrera'] }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #666;">No hay docentes registrados.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #f5f5f5; border-radius: 5px; border-left: 4px solid #b91d47;">
+            <div style="font-size: 11px; color: #555;">
+                <strong>Total de Docentes:</strong> {{ count($docentesCompletos ?? []) }}
+            </div>
+        </div>
+    </div>
 
     <div class="footer">
         Documento generado automáticamente por el Sistema de Gestión de Inclusión (SIP).<br>

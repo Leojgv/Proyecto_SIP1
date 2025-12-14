@@ -121,6 +121,59 @@
     .notification-item-modal:hover {
       background-color: #f9fafb !important;
     }
+    
+    /* Estilos mejorados para notificaciones */
+    .notification-item-modal {
+      transition: background 0.2s ease;
+    }
+    
+    .notification-message {
+      word-wrap: break-word;
+      white-space: normal;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      line-height: 1.6;
+    }
+    
+    /* Evitar que el texto corto se divida innecesariamente - solo dividir cuando sea necesario */
+    @media (min-width: 576px) {
+      .notification-message {
+        max-width: 100%;
+        word-break: keep-all;
+      }
+    }
+    
+    /* Para textos muy cortos, mantener en una línea cuando sea posible */
+    .notification-item-modal {
+      min-width: 0;
+    }
+    
+    .notification-item-modal .flex-grow-1 {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    
+    /* Modal responsivo */
+    #notificationsModal .modal-dialog {
+      max-width: 600px;
+    }
+    
+    @media (max-width: 575.98px) {
+      #notificationsModal .modal-dialog {
+        margin: 0.5rem;
+      }
+      
+      .notification-message {
+        margin-left: 0 !important;
+        padding-left: 0.5rem;
+      }
+      
+      .notification-item-modal .btn {
+        margin-left: 0 !important;
+        width: 100%;
+      }
+    }
+    
     .dashboard-content {
       padding: 2rem;
     }
@@ -165,24 +218,62 @@
           @endif
         </span>
         @php
-          $notificationsCount = \App\Models\Notificacion::where('notifiable_type', get_class(auth()->user()))
-              ->where('notifiable_id', auth()->user()->id)
-              ->whereNull('read_at')
-              ->count();
-          $recentNotifications = \App\Models\Notificacion::where('notifiable_type', get_class(auth()->user()))
+          // Obtener carrera actual del docente para filtrar notificaciones
+          $carreraId = null;
+          if (auth()->user()->docente && auth()->user()->docente->carrera_id) {
+            $carreraId = auth()->user()->docente->carrera_id;
+          }
+          
+          $allNotifications = \App\Models\Notificacion::where('notifiable_type', get_class(auth()->user()))
               ->where('notifiable_id', auth()->user()->id)
               ->latest('created_at')
+              ->take(50)
+              ->get();
+          
+          // Filtrar por carrera si es docente
+          // Para docentes, SOLO mostrar notificaciones de su carrera actual
+          // No mostrar notificaciones sin carrera_id (estas son de otras carreras o antiguas)
+          if ($carreraId !== null) {
+            $allNotifications = $allNotifications->filter(function ($notification) use ($carreraId) {
+              // Acceder a los datos de la notificación
+              $data = is_array($notification->data) ? $notification->data : (is_object($notification->data) ? (array)$notification->data : []);
+              
+              // Obtener carrera_id de la notificación
+              $notificacionCarreraId = $data['carrera_id'] ?? null;
+              
+              // Si la notificación no tiene carrera_id, es una notificación antigua o general
+              // Para docentes, NO mostrar estas notificaciones (solo de su carrera actual)
+              if ($notificacionCarreraId === null) {
+                return false;
+              }
+              
+              // Solo mostrar notificaciones que tengan carrera_id Y que coincida con la carrera actual del docente
+              return (int)$notificacionCarreraId === (int)$carreraId;
+            });
+          }
+          
+          $notificationsCount = $allNotifications
+              ->where('read_at', null)
+              ->count();
+              
+          $recentNotifications = $allNotifications
               ->take(10)
-              ->get()
               ->map(function ($notification) {
                   $data = $notification->data ?? [];
+                  
+                  // Formatear tiempo en español
+                  $time = 'hace instantes';
+                  if ($notification->created_at) {
+                      $time = $notification->created_at->locale('es')->diffForHumans();
+                  }
+                  
                   return [
                       'id' => $notification->id,
                       'title' => $data['titulo'] ?? ($data['title'] ?? ($data['subject'] ?? 'Notificación')),
                       'message' => $data['mensaje'] ?? ($data['message'] ?? ($data['body'] ?? 'Nueva actualización disponible.')),
                       'url' => $data['url'] ?? null,
                       'button_text' => $data['texto_boton'] ?? ($data['textoBoton'] ?? null),
-                      'time' => optional($notification->created_at)->diffForHumans() ?? 'hace instantes',
+                      'time' => $time,
                       'read_at' => $notification->read_at,
                   ];
               })
@@ -228,23 +319,23 @@
         @forelse($recentNotifications as $notification)
           <div class="notification-item-modal border-bottom p-3 {{ is_null($notification['read_at']) ? 'bg-light' : 'bg-white' }}" style="transition: background 0.2s ease;">
             <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1">
+              <div class="flex-grow-1" style="min-width: 0;">
                 <div class="d-flex align-items-center mb-2">
-                  <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background-color: var(--red-50);">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px; background-color: var(--red-50);">
                     <i class="fas fa-bell" style="color: var(--red-600); font-size: 0.875rem;"></i>
                   </div>
-                  <div class="flex-grow-1">
-                    <h6 class="mb-0 fw-semibold" style="color: #1f1f2d; font-size: 0.95rem;">
+                  <div class="flex-grow-1" style="min-width: 0;">
+                    <h6 class="mb-0 fw-semibold" style="color: #1f1f2d; font-size: 0.95rem; word-wrap: break-word;">
                       {{ $notification['title'] }}
                     </h6>
-                    <small class="text-muted">{{ $notification['time'] }}</small>
+                    <small class="text-muted d-block">{{ $notification['time'] }}</small>
                   </div>
                 </div>
-                <p class="text-muted mb-2" style="font-size: 0.875rem; line-height: 1.5; margin-left: 44px;">
+                <p class="text-muted mb-2 notification-message" style="font-size: 0.875rem; line-height: 1.5; margin-left: 44px; word-wrap: break-word; white-space: normal;">
                   {{ $notification['message'] }}
                 </p>
                 @if(isset($notification['url']) && $notification['url'])
-                  <div style="margin-left: 44px;">
+                  <div style="margin-left: 44px; margin-top: 0.5rem;">
                     <a href="{{ $notification['url'] }}" class="btn btn-sm" style="background-color: var(--red-600); color: white; border: none; padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 500;">
                       {{ $notification['button_text'] ?? 'Ver más' }}
                       <i class="fas fa-arrow-right ms-1"></i>
@@ -272,6 +363,130 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/accessibility.js') }}"></script>
+<script>
+  // Actualizar notificaciones cuando se abre el modal
+  document.addEventListener('DOMContentLoaded', function() {
+    const notificationsModal = document.getElementById('notificationsModal');
+    const notificationBadge = document.querySelector('.notification-badge');
+    const notificationCountBadge = document.querySelector('#notificationsModalLabel .badge');
+    
+    if (notificationsModal) {
+      notificationsModal.addEventListener('show.bs.modal', function() {
+        updateNotifications();
+      });
+    }
+    
+    // Actualizar notificaciones cada 30 segundos si el modal está abierto
+    let notificationInterval;
+    if (notificationsModal) {
+      notificationsModal.addEventListener('shown.bs.modal', function() {
+        notificationInterval = setInterval(updateNotifications, 30000);
+      });
+      
+      notificationsModal.addEventListener('hidden.bs.modal', function() {
+        if (notificationInterval) {
+          clearInterval(notificationInterval);
+        }
+      });
+    }
+    
+    function updateNotifications() {
+      fetch('{{ route("notificaciones.obtener") }}', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Actualizar badge
+        if (data.count > 0) {
+          if (notificationBadge) {
+            notificationBadge.textContent = data.count > 99 ? '99+' : data.count;
+            notificationBadge.style.display = 'block';
+          }
+          if (notificationCountBadge) {
+            notificationCountBadge.textContent = data.count > 99 ? '99+' : data.count;
+            notificationCountBadge.style.display = 'inline-block';
+          }
+        } else {
+          if (notificationBadge) {
+            notificationBadge.style.display = 'none';
+          }
+          if (notificationCountBadge) {
+            notificationCountBadge.style.display = 'none';
+          }
+        }
+        
+        // Actualizar contenido del modal
+        const modalBody = document.querySelector('#notificationsModal .modal-body');
+        if (modalBody && data.notifications) {
+          if (data.notifications.length === 0) {
+            modalBody.innerHTML = `
+              <div class="text-center py-5">
+                <div class="mb-3">
+                  <i class="fas fa-bell-slash" style="font-size: 3rem; color: #9ca3af;"></i>
+                </div>
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">No tienes notificaciones.</p>
+              </div>
+            `;
+          } else {
+            let html = '';
+            data.notifications.forEach(function(notification) {
+              const isUnread = !notification.read_at;
+              const bgClass = isUnread ? 'bg-light' : 'bg-white';
+              html += `
+                <div class="notification-item-modal border-bottom p-3 ${bgClass}" style="transition: background 0.2s ease;">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1" style="min-width: 0;">
+                      <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px; background-color: var(--red-50);">
+                          <i class="fas fa-bell" style="color: var(--red-600); font-size: 0.875rem;"></i>
+                        </div>
+                        <div class="flex-grow-1" style="min-width: 0;">
+                          <h6 class="mb-0 fw-semibold" style="color: #1f1f2d; font-size: 0.95rem; word-wrap: break-word;">
+                            ${escapeHtml(notification.title)}
+                          </h6>
+                          <small class="text-muted d-block">${escapeHtml(notification.time)}</small>
+                        </div>
+                      </div>
+                      <p class="text-muted mb-2 notification-message" style="font-size: 0.875rem; line-height: 1.5; margin-left: 44px; word-wrap: break-word; white-space: normal;">
+                        ${escapeHtml(notification.message)}
+                      </p>
+                      ${notification.url ? `
+                        <div style="margin-left: 44px; margin-top: 0.5rem;">
+                          <a href="${escapeHtml(notification.url)}" class="btn btn-sm" style="background-color: var(--red-600); color: white; border: none; padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 500;">
+                            ${escapeHtml(notification.button_text || 'Ver más')}
+                            <i class="fas fa-arrow-right ms-1"></i>
+                          </a>
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            modalBody.innerHTML = html;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error al actualizar notificaciones:', error);
+      });
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Actualizar notificaciones al cargar la página
+    updateNotifications();
+  });
+</script>
 @stack('scripts')
 </body>
 </html>

@@ -55,6 +55,10 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
     // Ruta de descarga accesible para todos los usuarios autenticados (estudiantes y staff)
     Route::get('evidencias/{evidencia}/download', [EvidenciaController::class, 'download'])->name('evidencias.download');
     
+    // Ruta para obtener notificaciones vía AJAX (accesible para todos los usuarios autenticados)
+    Route::get('notificaciones/obtener', [NotificacionController::class, 'getNotifications'])->name('notificaciones.obtener');
+    Route::post('notificaciones/{notification}/marcar-leida', [NotificacionController::class, 'markAsRead'])->name('notificaciones.marcar-leida');
+    
     Route::middleware("role:$staffRoles")->group(function () {
         Route::resource('estudiantes', EstudianteController::class)->whereNumber('estudiante');
         Route::resource('carreras', CarreraController::class);
@@ -98,6 +102,7 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
         Route::get('coordinadora/estudiantes', [CoordinadoraEstudianteController::class, 'index'])->name('coordinadora.estudiantes');
         Route::get('coordinadora/agenda', [CoordinadoraAgendaController::class, 'index'])->name('coordinadora.agenda.index');
         Route::get('coordinadora/entrevistas', [CoordinadoraEntrevistaController::class, 'index'])->name('coordinadora.entrevistas.index');
+        Route::post('coordinadora/entrevistas/{entrevista}/posponer', [CoordinadoraEntrevistaController::class, 'posponer'])->name('coordinadora.entrevistas.posponer');
         Route::get('coordinadora/casos', [CoordinadoraCasoController::class, 'index'])->name('coordinadora.casos.index');
         Route::post('coordinadora/casos/{solicitud}/informar-ctp', [CoordinadoraCasoController::class, 'informarACTP'])->name('coordinadora.casos.informar-ctp');
         Route::post('coordinadora/agenda/bloqueos', [CoordinadoraAgendaController::class, 'storeBloqueo'])->name('coordinadora.agenda.bloqueos.store');
