@@ -543,7 +543,7 @@ class DirectorCarreraDashboardController extends Controller
             [
                 'label' => 'Generar reporte de carrera',
                 'route' => route('director.reporte.pdf'),
-                'icon' => 'fa-file-arrow-down',
+                'icon' => 'fa-file-download',
                 'variant' => 'danger',
             ],
         ];

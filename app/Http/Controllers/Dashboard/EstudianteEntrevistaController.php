@@ -34,7 +34,7 @@ class EstudianteEntrevistaController extends Controller
             ? $this->calcularCuposDisponibles($coordinadora, now()->startOfDay(), now()->copy()->addWeeks(2)->endOfDay())
             : collect();
 
-        return view('estudiantes.Dashboard.solicitar-entrevista', [
+        return view('estudiantes.dashboard.solicitar-entrevista', [
             'estudiante' => $estudiante,
             'cuposDisponibles' => $cupos,
         ]);

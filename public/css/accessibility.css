@@ -1,0 +1,658 @@
+/**
+ * Estilos de Accesibilidad Global
+ * Modo oscuro y tamaños de fuente
+ */
+
+/* Variables CSS para modo oscuro */
+:root {
+  --base-font-size: 1rem;
+}
+
+.dark-mode {
+  /* Colores principales oscuros */
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --text-primary: #e8e8e8;
+  --text-secondary: #b8b8b8;
+  --border-color: #2d3748;
+  --card-bg: #1e293b;
+  --hover-bg: #2d3748;
+}
+
+/* Aplicar modo oscuro al body y elementos principales */
+body.dark-mode,
+html.dark-mode {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Modo oscuro para dashboards */
+.dark-mode .dashboard-wrapper {
+  background-color: var(--bg-primary) !important;
+}
+
+.dark-mode .dashboard-sidebar,
+.dark-mode .coordinadora-sidebar {
+  background-color: var(--bg-secondary) !important;
+  border-right-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dashboard-main,
+.dark-mode .coordinadora-main {
+  background-color: var(--bg-primary) !important;
+}
+
+.dark-mode .dashboard-topbar,
+.dark-mode .coordinadora-topbar {
+  background-color: var(--bg-secondary) !important;
+  border-bottom-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dashboard-content,
+.dark-mode .coordinadora-content {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Modo oscuro para cards */
+.dark-mode .card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .card-header {
+  background-color: var(--bg-secondary) !important;
+  border-bottom-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .card-title,
+.dark-mode .card-text {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .card-body {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .stats-card {
+  background-color: #0b1220 !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
+}
+
+.dark-mode .stats-card__icon {
+  color: rgba(255,255,255,.2) !important;
+}
+
+/* Modo oscuro para formularios */
+.dark-mode .form-control,
+.dark-mode .form-select,
+.dark-mode .form-check-input {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--red-500) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-control::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .form-label {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Modo oscuro para tablas */
+.dark-mode .table {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark-mode .table-hover > tbody > tr:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.dark-mode .table-bordered {
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .table-bordered td,
+.dark-mode .table-bordered th {
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .table td,
+.dark-mode .table th {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table {
+  background-color: transparent !important;
+}
+
+.dark-mode .table tbody tr {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark-mode .table tbody tr td {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table tbody tr:nth-of-type(odd) {
+  background-color: #0f172a !important;
+}
+
+.dark-mode .table .text-muted {
+  color: var(--text-primary) !important;
+  opacity: 0.7 !important;
+}
+
+/* Ajustes específicos lista de estudiantes (coordinadora) */
+.dark-mode .students-page .table td .fw-semibold {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .students-page .table td .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .students-page .badge.bg-light {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .students-page .badge.bg-light.text-dark,
+.dark-mode .badge.bg-light.dark-mode-badge-light {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .students-page .badge.bg-warning.text-dark,
+.dark-mode .badge.bg-warning.dark-mode-badge-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .students-page .btn-primary {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Modo oscuro para botones */
+.dark-mode .btn-secondary,
+.dark-mode .btn-outline-secondary {
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .btn-secondary:hover,
+.dark-mode .btn-outline-secondary:hover {
+  background-color: var(--hover-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Modo oscuro para enlaces */
+.dark-mode a {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode a:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* Modo oscuro para dropdowns */
+.dark-mode .dropdown-menu {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dropdown-item:hover,
+.dark-mode .dropdown-item:focus {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dropdown-header {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .dropdown-divider {
+  border-top-color: var(--border-color) !important;
+}
+
+/* Modo oscuro para modales */
+.dark-mode .modal-content {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode .modal-footer {
+  border-top-color: var(--border-color) !important;
+}
+
+/* Modo oscuro para alertas */
+.dark-mode .alert {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .alert-info {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark-mode .alert-warning {
+  background-color: rgba(251, 191, 36, 0.1) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.dark-mode .alert-success {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+.dark-mode .alert-danger {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Modo oscuro para badges */
+.dark-mode .badge {
+  color: white !important;
+}
+
+.dark-mode .badge.bg-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .badge.bg-light.text-dark,
+.dark-mode .badge.bg-light.dark-mode-badge-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .badge.bg-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .badge.bg-warning.text-dark,
+.dark-mode .badge.bg-warning.dark-mode-badge-warning {
+  background-color: #facc15 !important;
+  color: #1f2937 !important;
+}
+
+.dark-mode .info-card {
+  background-color: #0b1220 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .info-card__icon {
+  border: 1px solid var(--border-color) !important;
+  background-color: #111827 !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .filters-group__input {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .filters-group__input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .table thead th {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  background-color: #0b1220 !important;
+}
+
+.dark-mode .badge.bg-danger-subtle,
+.dark-mode .badge.bg-warning-subtle {
+  background-color: #3b1f2b !important;
+  color: #fbcfe8 !important;
+}
+
+.dark-mode .timeline-item,
+.dark-mode .case-item,
+.dark-mode .student-item,
+.dark-mode .student-item__body {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .student-item__body {
+  background-color: #111827 !important;
+}
+
+.dark-mode .calendar-grid,
+.dark-mode .calendar-grid-agenda {
+  background-color: #111827 !important;
+}
+
+.dark-mode .calendar-weekday {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell {
+  background-color: #0b1220 !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell .day {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .calendar-cell.is-today {
+  border-color: #dc2626 !important;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, .35) !important;
+}
+
+.dark-mode .event-dot {
+  background-color: #1f2937 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .event-dot.event-dot-entrevista {
+  background-color: rgba(220,38,38,.18) !important;
+  color: #fecdd3 !important;
+}
+
+.dark-mode .event-dot.event-dot-bloqueo {
+  background-color: rgba(99,102,241,.2) !important;
+  color: #e0e7ff !important;
+}
+
+.dark-mode .event-chip {
+  background-color: #0b1220 !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+/* Modo oscuro para texto secundario y muted */
+.dark-mode .text-muted,
+.dark-mode small.text-muted,
+.dark-mode .text-secondary {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .small,
+.dark-mode small {
+  color: var(--text-secondary) !important;
+}
+
+/* Modo oscuro para listas */
+.dark-mode .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .list-group-item.active {
+  background-color: var(--red-600) !important;
+  border-color: var(--red-600) !important;
+}
+
+/* Modo oscuro para navegación */
+.dark-mode .dashboard-sidebar__link,
+.dark-mode .coordinadora-sidebar__link {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dashboard-sidebar__link:hover,
+.dark-mode .coordinadora-sidebar__link:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dashboard-sidebar__link.active,
+.dark-mode .coordinadora-sidebar__link.active {
+  background-color: var(--red-600) !important;
+  color: white !important;
+}
+
+.dark-mode .dashboard-sidebar__brand,
+.dark-mode .coordinadora-sidebar__brand {
+  color: var(--text-primary) !important;
+}
+
+/* Modo oscuro para inputs y selects específicos */
+.dark-mode input[type="text"],
+.dark-mode input[type="email"],
+.dark-mode input[type="password"],
+.dark-mode input[type="date"],
+.dark-mode input[type="time"],
+.dark-mode input[type="number"],
+.dark-mode textarea,
+.dark-mode select {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode input[disabled],
+.dark-mode select[disabled],
+.dark-mode textarea[disabled] {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Modo oscuro para navbar principal */
+.dark-mode .navbar {
+  background-color: var(--bg-secondary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode .nav-link {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .nav-link:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* Aplicar tamaño de fuente base */
+html {
+  font-size: var(--base-font-size);
+}
+
+body {
+  font-size: inherit;
+}
+
+/* Modo oscuro para elementos específicos adicionales */
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .mb-1.text-muted,
+.dark-mode .mb-2.text-muted,
+.dark-mode p.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .fw-semibold,
+.dark-mode .fw-bold,
+.dark-mode strong {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .border {
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .bg-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .shadow-sm,
+.dark-mode .shadow {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Modo oscuro para elementos de lista adicionales */
+.dark-mode .list-group-flush .list-group-item {
+  background-color: transparent !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Modo oscuro para elementos disabled */
+.dark-mode .form-control:disabled,
+.dark-mode .form-select:disabled {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  opacity: 0.7 !important;
+}
+
+/* Modo oscuro para hr/divider */
+.dark-mode hr {
+  border-color: var(--border-color) !important;
+  opacity: 0.5 !important;
+}
+
+/* Modo oscuro para íconos */
+.dark-mode i.fas,
+.dark-mode i.far,
+.dark-mode i.fal,
+.dark-mode i.fab {
+  color: inherit !important;
+}
+
+/* Modo oscuro para tooltips y popovers */
+.dark-mode .tooltip-inner {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.dark-mode .popover {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .popover-header {
+  background-color: var(--bg-secondary) !important;
+  border-bottom-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .popover-body {
+  color: var(--text-primary) !important;
+}
+
+/* Asegurar que los elementos hereden el tamaño de fuente */
+.dark-mode *,
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Estilos para el botón de accesibilidad */
+#accessibility-dropdown .btn-link {
+  color: inherit !important;
+  text-decoration: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#accessibility-dropdown .btn-link:hover {
+  color: var(--red-600) !important;
+  opacity: 0.8;
+}
+
+.dark-mode #accessibility-dropdown .btn-link {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode #accessibility-dropdown .btn-link:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* Estilos para el dropdown de accesibilidad */
+#accessibility-dropdown .dropdown-menu {
+  min-width: 280px;
+}
+
+/* Estilos para el form-check en modo oscuro */
+.dark-mode .form-check-label {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-check-input {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .form-check-input:checked {
+  background-color: var(--red-600) !important;
+  border-color: var(--red-600) !important;
+}
+
+/* Ajustar estilos del botón de accesibilidad en la top bar */
+.dashboard-topbar__items #accessibility-dropdown,
+.coordinadora-topbar__items #accessibility-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-topbar__items #accessibility-dropdown .btn-link,
+.coordinadora-topbar__items #accessibility-dropdown .btn-link {
+  color: inherit;
+  font-size: inherit;
+}
+
+.dashboard-topbar__items #accessibility-dropdown .btn-link i,
+.coordinadora-topbar__items #accessibility-dropdown .btn-link i {
+  color: inherit;
+  margin-right: 0;
+}

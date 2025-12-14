@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Iniciar Sesión - {{ config('app.name', 'Laravel') }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/custom-login.css') }}">
+    <link rel="stylesheet" href="{{ asset('CSS/custom-login.css') }}">
 </head>
 <body class="auth-page" style="--auth-bg: url('{{ asset('images/auth/background.jpg') }}');">
     <div class="login-container">
