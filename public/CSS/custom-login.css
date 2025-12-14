@@ -48,12 +48,12 @@ body.auth-page::before {
 .login-form-wrapper {
     /* NUEVO: Estilo de tarjeta centrada */
     width: 100%; /* Ancho completo hasta el max-width */
-    max-width: 440px; /* Ancho máximo del formulario */
+    max-width: 440px; /* Ancho mÃ¡ximo del formulario */
     background-color: #ffffff;
     padding: 2.5rem;
-    border-radius: 12px; /* Bordes redondeados */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Sombra más suave */
-    position: relative; /* Para que esté sobre el fondo */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra */
+    position: relative; /* Para que estÃ© sobre el fondo */
     z-index: 10;
     overflow-y: auto; /* Mantener por si el formulario es largo */
 }
@@ -64,15 +64,13 @@ body.auth-page::before {
     margin: 0 auto;
 }
 
-.login-form h1,
-.login-title {
+.login-form h1 {
     font-size: 1.5rem; /* 24px */
-    font-weight: 700;
-    color: #1f2933;
+    font-weight: bold;
+    color: #333;
     margin-bottom: 2rem;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .input-group {
@@ -83,47 +81,28 @@ body.auth-page::before {
 .input-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #1f2933;
+    font-weight: bold;
+    color: #555;
     font-size: 0.875rem; /* 14px */
-    line-height: 1.4;
 }
 
 .input-group input[type="email"],
 .input-group input[type="text"],
 .input-group input[type="password"] {
     width: 100%;
-    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Padding para el ícono */
-    border: 1px solid #e6e7ed;
-    border-radius: 6px;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Padding para el Ã­cono */
+    border: 1px solid #ddd;
+    border-radius: 5px;
     box-sizing: border-box; /* Importante para el padding */
-    font-size: 0.9375rem; /* 15px */
-    color: #1f2933;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-group input[type="email"]:focus,
-.input-group input[type="text"]:focus,
-.input-group input[type="password"]:focus {
-    outline: none;
-    border-color: #e53945;
-    box-shadow: 0 0 0 3px rgba(229, 57, 69, 0.1);
-}
-
-.input-group input[type="email"]::placeholder,
-.input-group input[type="text"]::placeholder,
-.input-group input[type="password"]::placeholder {
-    color: #9ca3af;
-    font-size: 0.9375rem;
+    font-size: 1rem;
 }
 
 .input-group .input-icon {
     position: absolute;
-    left: 12px;
-    top: calc(50% + 10px);
+    left: 10px;
+    top: 70%; /* Ajustar para centrar con el input */
     transform: translateY(-50%);
-    color: #9ca3af;
-    font-size: 0.9375rem;
+    color: #888;
 }
 
 /* Ajuste de Ã­conos para todos los campos */
@@ -146,63 +125,39 @@ body.auth-page::before {
 .login-options .form-check {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-}
-
-.login-options .form-check-input {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    cursor: pointer;
-    accent-color: #e53945;
 }
 
 .login-options .form-check-label {
-    margin-left: 0;
-    color: #1f2933;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
+    margin-left: 0.5rem;
+    color: #555;
 }
 
 .login-options .btn-link {
     font-size: 0.875rem; /* 14px */
-    color: #e53945;
+    color: #ff0000;
     text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s ease;
 }
 
 .login-options .btn-link:hover {
-    color: #c62828;
     text-decoration: underline;
 }
 
 .login-button {
     width: 100%;
-    padding: 0.875rem 1.5rem;
+    padding: 0.85rem;
     border: none;
-    border-radius: 6px;
-    background-color: #e53945;
-    color: #ffffff;
-    font-size: 0.9375rem; /* 15px */
-    font-weight: 700;
+    border-radius: 5px;
+    background-color: #ff0000; /* Color azul primario */
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 8px rgba(229, 57, 69, 0.2);
+    transition: background-color 0.3s ease;
 }
 
 .login-button:hover {
-    background-color: #c62828;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(229, 57, 69, 0.3);
-}
-
-.login-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(229, 57, 69, 0.2);
+    background-color: #b30000; /* Azul mÃ¡s oscuro */
 }
 
 /* Estilos para mostrar errores de validaciÃ³n de Laravel */
@@ -221,60 +176,15 @@ body.auth-page::before {
 .register-link {
     text-align: center;
     margin-top: 1.5rem;
-    padding-top: 1rem;
 }
 
 .register-link .btn-link {
-    font-size: 0.875rem; /* 14px */
-    color: #1f2933;
+    font-size: 0.9rem;
+    color: #000000;
     text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
+    font-weight: 600;
 }
 
 .register-link .btn-link:hover {
-    color: #e53945;
     text-decoration: underline;
-}
-
-/* Estilo para el botón "Volver al intro" */
-.back-to-intro {
-    text-align: center;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e6e7ed;
-}
-
-.back-to-intro-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem; /* 14px */
-    font-weight: 600;
-    color: #4b5563;
-    text-decoration: none;
-    border: 1px solid #e6e7ed;
-    border-radius: 6px;
-    background-color: #ffffff;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.back-to-intro-button:hover {
-    color: #1f2933;
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-    text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.back-to-intro-button:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.back-to-intro-button i {
-    font-size: 0.8125rem; /* 13px */
 }

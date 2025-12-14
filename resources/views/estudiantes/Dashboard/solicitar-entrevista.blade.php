@@ -18,7 +18,7 @@
           <h5 class="card-title mb-2">Formulario de Solicitud</h5>
           <p class="card-text text-muted mb-4">Selecciona un cupo disponible y completa los campos para enviar tu solicitud.</p>
 
-          <form action="{{ route('estudiantes.entrevistas.store') }}" method="POST" class="row g-3" enctype="multipart/form-data">
+          <form action="{{ route('estudiantes.entrevistas.store') }}" method="POST" class="row g-3">
             @csrf
 
             <div class="col-md-6">
@@ -71,39 +71,6 @@
               @error('modalidad')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
-            <div class="col-12" id="acompanante-section" style="display: none;">
-              <div class="card border-0 bg-light">
-                <div class="card-body">
-                  <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" value="1" id="tiene_acompanante" name="tiene_acompanante" {{ old('tiene_acompanante') ? 'checked' : '' }}>
-                    <label class="form-check-label fw-semibold" for="tiene_acompanante">
-                      ¿Necesitas un acompañante?
-                    </label>
-                  </div>
-
-                  <div id="acompanante-fields" style="display: none;">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label for="acompanante_rut" class="form-label">RUT del Acompañante/Tutor</label>
-                        <input type="text" name="acompanante_rut" id="acompanante_rut" class="form-control @error('acompanante_rut') is-invalid @enderror" value="{{ old('acompanante_rut') }}" placeholder="Ej: 12.345.678-9">
-                        @error('acompanante_rut')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                      </div>
-                      <div class="col-md-6">
-                        <label for="acompanante_telefono" class="form-label">Teléfono del Acompañante/Tutor</label>
-                        <input type="text" name="acompanante_telefono" id="acompanante_telefono" class="form-control @error('acompanante_telefono') is-invalid @enderror" value="{{ old('acompanante_telefono') }}" placeholder="Ej: +56 9 1234 5678">
-                        @error('acompanante_telefono')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                      </div>
-                      <div class="col-12">
-                        <label for="acompanante_nombre" class="form-label">Nombre y Apellido del Acompañante/Tutor</label>
-                        <input type="text" name="acompanante_nombre" id="acompanante_nombre" class="form-control @error('acompanante_nombre') is-invalid @enderror" value="{{ old('acompanante_nombre') }}" placeholder="Ej: Juan Pérez">
-                        @error('acompanante_nombre')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div class="col-12">
               <label for="cupo" class="form-label">Selecciona un cupo disponible <span class="text-danger">*</span></label>
               <div class="input-group @error('cupo') is-invalid @enderror">
@@ -137,22 +104,6 @@
                 </div>
               @endif
               @error('cupo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12">
-              <label for="archivos" class="form-label">Adjuntar Archivos (Opcional)</label>
-              <input type="file" name="archivos[]" id="archivos" class="form-control @error('archivos.*') is-invalid @enderror" accept=".pdf" multiple>
-              <div class="form-text">
-                <i class="fas fa-info-circle me-1"></i>
-                Puedes adjuntar archivos PDF como documentos adicionales (médicos, psicológicos, etc.). Máximo 5 archivos, cada uno hasta 10MB.
-              </div>
-              @error('archivos.*')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-              @error('archivos')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-              <div id="archivos-seleccionados" class="mt-2"></div>
             </div>
 
             <div class="col-12">
@@ -567,68 +518,6 @@ document.addEventListener('DOMContentLoaded', function() {
     fechaSeleccionada = null;
     horarioSeleccionado = null;
     btnConfirmar.disabled = true;
-  });
-
-  // Mostrar/ocultar campos de acompañante según modalidad
-  const modalidadSelect = document.getElementById('modalidad');
-  const acompananteSection = document.getElementById('acompanante-section');
-  const tieneAcompananteCheck = document.getElementById('tiene_acompanante');
-  const acompananteFields = document.getElementById('acompanante-fields');
-  
-  modalidadSelect.addEventListener('change', function() {
-    if (this.value === 'Presencial') {
-      acompananteSection.style.display = 'block';
-    } else {
-      acompananteSection.style.display = 'none';
-      tieneAcompananteCheck.checked = false;
-      acompananteFields.style.display = 'none';
-    }
-  });
-  
-  // Mostrar campos de acompañante cuando se marca el checkbox
-  tieneAcompananteCheck.addEventListener('change', function() {
-    if (this.checked) {
-      acompananteFields.style.display = 'block';
-    } else {
-      acompananteFields.style.display = 'none';
-    }
-  });
-  
-  // Inicializar visibilidad según valores antiguos
-  if (modalidadSelect.value === 'Presencial') {
-    acompananteSection.style.display = 'block';
-    if (tieneAcompananteCheck.checked) {
-      acompananteFields.style.display = 'block';
-    }
-  }
-
-  // Mostrar archivos seleccionados
-  const archivosInput = document.getElementById('archivos');
-  const archivosSeleccionados = document.getElementById('archivos-seleccionados');
-  
-  archivosInput.addEventListener('change', function() {
-    const archivos = Array.from(this.files);
-    archivosSeleccionados.innerHTML = '';
-    
-    if (archivos.length > 0) {
-      const lista = document.createElement('div');
-      lista.className = 'list-group';
-      
-      archivos.forEach((archivo, index) => {
-        const item = document.createElement('div');
-        item.className = 'list-group-item d-flex justify-content-between align-items-center';
-        item.innerHTML = `
-          <div>
-            <i class="fas fa-file-pdf text-danger me-2"></i>
-            <span>${archivo.name}</span>
-            <small class="text-muted ms-2">(${(archivo.size / 1024 / 1024).toFixed(2)} MB)</small>
-          </div>
-        `;
-        lista.appendChild(item);
-      });
-      
-      archivosSeleccionados.appendChild(lista);
-    }
   });
 });
 </script>
