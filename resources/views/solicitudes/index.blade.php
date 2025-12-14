@@ -586,7 +586,7 @@
             if (evidencias && evidencias.length > 0) {
               let html = '<div class="d-flex flex-column gap-2">';
               evidencias.forEach(evidencia => {
-                const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                const url = (evidencia.id && evidencia.ruta_archivo) ? `/evidencias/${evidencia.id}/download` : '#';
                 const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
                 html += `
                   <div class="border rounded p-3 bg-light">
@@ -696,7 +696,7 @@
             if (evidencias && evidencias.length > 0) {
               let html = '<div class="d-flex flex-column gap-2">';
               evidencias.forEach(evidencia => {
-                const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                const url = (evidencia.id && evidencia.ruta_archivo) ? `/evidencias/${evidencia.id}/download` : '#';
                 const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
                 html += `
                   <div class="border rounded p-3 bg-light">

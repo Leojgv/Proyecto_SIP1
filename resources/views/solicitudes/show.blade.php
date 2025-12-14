@@ -2,10 +2,6 @@
 
 @section('title', 'Detalle de solicitud')
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 @section('content')
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
@@ -115,7 +111,7 @@
                       </div>
                     </div>
                     @if($evidencia->ruta_archivo)
-                      <a href="{{ Storage::url($evidencia->ruta_archivo) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                      <a href="{{ route('evidencias.download', $evidencia) }}" target="_blank" class="btn btn-sm btn-outline-danger">
                         <i class="fas fa-download me-1"></i>Descargar
                       </a>
                     @endif

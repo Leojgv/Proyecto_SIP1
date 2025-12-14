@@ -167,7 +167,7 @@
                                 </div>
                               </div>
                               @if($evidencia->ruta_archivo)
-                                <a href="{{ Storage::url($evidencia->ruta_archivo) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                <a href="{{ route('evidencias.download', $evidencia) }}" target="_blank" class="btn btn-sm btn-outline-danger">
                                   <i class="fas fa-download me-1"></i>Descargar
                                 </a>
                               @endif

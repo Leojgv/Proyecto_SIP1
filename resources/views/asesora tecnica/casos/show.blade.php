@@ -177,10 +177,7 @@
                 </div>
               </div>
               @if($evidencia->ruta_archivo)
-                @php
-                  $evidenciaUrl = asset('storage/' . $evidencia->ruta_archivo);
-                @endphp
-                <a href="{{ $evidenciaUrl }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                <a href="{{ route('evidencias.download', $evidencia) }}" target="_blank" class="btn btn-sm btn-outline-danger">
                   <i class="fas fa-file-pdf me-1"></i>Ver Documento
                 </a>
               @else

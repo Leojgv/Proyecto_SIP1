@@ -169,10 +169,7 @@
                               <i class="fas fa-file-pdf me-1"></i><strong>Documentos Adicionales</strong>
                             </small>
                             <div class="small">
-                              @php
-                                $documentosUrl = asset('storage/' . $evidenciaDocumentos->ruta_archivo);
-                              @endphp
-                              <a href="{{ $documentosUrl }}" target="_blank" class="text-danger">
+                              <a href="{{ route('evidencias.download', $evidenciaDocumentos) }}" target="_blank" class="text-danger">
                                 <i class="fas fa-file-pdf me-1"></i>Ver PDF
                               </a>
                             </div>

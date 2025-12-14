@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Evidencia;
 use App\Models\Solicitud;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EvidenciaController extends Controller
 {
@@ -69,5 +70,46 @@ class EvidenciaController extends Controller
         $evidencia->delete();
 
         return redirect()->route('evidencias.index')->with('success', 'Evidencia eliminada correctamente.');
+    }
+
+    /**
+     * Descargar o visualizar un archivo PDF de evidencia
+     */
+    public function download(Evidencia $evidencia)
+    {
+        if (!$evidencia->ruta_archivo) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        // Intentar primero con el disco 'public'
+        if (Storage::disk('public')->exists($evidencia->ruta_archivo)) {
+            $filePath = Storage::disk('public')->path($evidencia->ruta_archivo);
+            $fileName = basename($evidencia->ruta_archivo);
+            
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            ]);
+        }
+
+        // Si no está en 'public', intentar con 'local' o ruta absoluta
+        $possiblePaths = [
+            storage_path('app/public/' . $evidencia->ruta_archivo),
+            storage_path('app/private/' . $evidencia->ruta_archivo),
+            $evidencia->ruta_archivo, // Ruta absoluta
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if (file_exists($path) && is_readable($path)) {
+                $fileName = basename($path);
+                
+                return response()->file($path, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                ]);
+            }
+        }
+
+        abort(404, 'Archivo no encontrado');
     }
 }

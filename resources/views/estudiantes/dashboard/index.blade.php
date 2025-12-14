@@ -1543,7 +1543,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (evidencias && evidencias.length > 0) {
             evidenciasContainer.innerHTML = evidencias.map(evidencia => {
               const rutaArchivo = evidencia.ruta_archivo || '';
-              const url = rutaArchivo ? `/storage/${rutaArchivo}` : '#';
+              const url = (evidencia.id && rutaArchivo) ? `/evidencias/${evidencia.id}/download` : '#';
               const nombreArchivo = rutaArchivo ? rutaArchivo.split('/').pop() : 'Sin nombre';
               console.log('Procesando evidencia:', { rutaArchivo, url, nombreArchivo }); // Debug
               return `

@@ -1112,7 +1112,7 @@
                   <i class="fas fa-file-pdf me-2 text-danger"></i>Archivos Adjuntos
                 </h6>
                 ${solicitud.evidencias.map(evidencia => {
-                  const url = evidencia.ruta_archivo ? `/storage/${evidencia.ruta_archivo}` : '#';
+                  const url = (evidencia.id && evidencia.ruta_archivo) ? `/evidencias/${evidencia.id}/download` : '#';
                   const nombreArchivo = evidencia.ruta_archivo ? evidencia.ruta_archivo.split('/').pop() : 'Sin nombre';
                   return `
                   <div class="border rounded p-3 bg-light mb-2">
