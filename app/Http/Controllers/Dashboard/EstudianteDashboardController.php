@@ -43,16 +43,34 @@ class EstudianteDashboardController extends Controller
 
         $hoy = Carbon::today();
 
-        $solicitudesActivas = $estudiante->solicitudes()
+        // Obtener IDs de solicitudes con entrevistas pospuestas (futuras)
+        $solicitudesConEntrevistasPospuestas = Entrevista::where('estado', 'Pospuesta')
+            ->whereDate('fecha', '>=', $hoy)
+            ->whereHas('solicitud', function ($query) use ($estudiante) {
+                $query->where('estudiante_id', $estudiante->id);
+            })
+            ->pluck('solicitud_id')
+            ->unique()
+            ->toArray();
+
+        // Construir consultas base para solicitudes activas y pendientes
+        $querySolicitudesActivas = $estudiante->solicitudes()
             ->where(function ($query) {
                 $query->whereNull('estado')
                     ->orWhereIn('estado', ['pendiente', 'en_proceso', 'en proceso', 'activa']);
-            })
-            ->count();
+            });
 
-        $solicitudesPendientes = $estudiante->solicitudes()
-            ->where(fn ($query) => $query->whereNull('estado')->orWhere('estado', 'pendiente'))
-            ->count();
+        $querySolicitudesPendientes = $estudiante->solicitudes()
+            ->where(fn ($query) => $query->whereNull('estado')->orWhere('estado', 'pendiente'));
+
+        // Filtrar solicitudes con entrevistas pospuestas solo si hay alguna
+        if (!empty($solicitudesConEntrevistasPospuestas)) {
+            $querySolicitudesActivas->whereNotIn('id', $solicitudesConEntrevistasPospuestas);
+            $querySolicitudesPendientes->whereNotIn('id', $solicitudesConEntrevistasPospuestas);
+        }
+
+        $solicitudesActivas = $querySolicitudesActivas->count();
+        $solicitudesPendientes = $querySolicitudesPendientes->count();
 
         // Contar ajustes rechazados para sumarlos a problemas detectados
         $ajustesRechazados = $estudiante->ajustesRazonables()
@@ -78,6 +96,10 @@ class EstudianteDashboardController extends Controller
                 $query->where('estudiante_id', $estudiante->id);
             })
             ->whereDate('fecha', '>=', $hoy)
+            ->where(function($query) {
+                $query->whereNull('estado')
+                      ->orWhere('estado', '!=', 'Pospuesta');
+            })
             ->orderBy('fecha')
             ->take(5)
             ->get();
@@ -92,9 +114,16 @@ class EstudianteDashboardController extends Controller
             ->take(10)
             ->get();
 
-        $misSolicitudes = $estudiante->solicitudes()
+        $queryMisSolicitudes = $estudiante->solicitudes()
             ->with(['asesor', 'director', 'ajustesRazonables', 'entrevistas.asesor', 'evidencias'])
-            ->where('estado', '!=', 'Rechazado')
+            ->where('estado', '!=', 'Rechazado');
+
+        // Filtrar solicitudes con entrevistas pospuestas solo si hay alguna
+        if (!empty($solicitudesConEntrevistasPospuestas)) {
+            $queryMisSolicitudes->whereNotIn('id', $solicitudesConEntrevistasPospuestas);
+        }
+
+        $misSolicitudes = $queryMisSolicitudes
             ->orderByDesc('fecha_solicitud')
             ->take(5)
             ->get();
@@ -126,9 +155,6 @@ class EstudianteDashboardController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        // Obtener notificaciones del estudiante
-        $notificaciones = $this->getRecentNotifications($user);
-
         // Obtener feriados chilenos para el año actual y el siguiente
         $currentYear = (int) $hoy->format('Y');
         $feriados = array_merge(
@@ -152,7 +178,6 @@ class EstudianteDashboardController extends Controller
             'solicitudesRechazadas' => $solicitudesRechazadas,
             'misAjustes' => $misAjustes,
             'ajustesRechazados' => $ajustesRechazadosList,
-            'notificaciones' => $notificaciones,
             'feriados' => $feriados,
             'hoy' => $hoy,
         ]);

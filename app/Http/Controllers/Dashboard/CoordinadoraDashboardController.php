@@ -41,6 +41,10 @@ class CoordinadoraDashboardController extends Controller
         $proximasEntrevistas = Entrevista::with(['solicitud.estudiante'])
             ->where('asesor_id', $user->id)
             ->whereDate('fecha', '>=', $today)
+            ->where(function($query) {
+                $query->whereNull('estado')
+                      ->orWhere('estado', '!=', 'Pospuesta');
+            })
             ->orderBy('fecha')
             ->take(5)
             ->get();

@@ -31,7 +31,14 @@ class DirectorCarreraDashboardController extends Controller
 
         $totalStudents = $studentIds->count();
         $studentsWithAdjustments = $this->countStudentsWithAdjustments($carreras);
-        $pendingCount = $solicitudes->filter(fn ($solicitud) => $this->isPending($solicitud->estado))->count();
+        
+        // Solo contar casos que ya pasaron por Asesora Pedagógica
+        $estadosParaDirector = [
+            'Pendiente de preaprobación',
+            'Pendiente de Aprobación',
+            'Pendiente de Aprobacion',
+        ];
+        $pendingCount = $solicitudes->filter(fn ($solicitud) => in_array($solicitud->estado, $estadosParaDirector))->count();
         $approvedCount = $solicitudes->filter(fn ($solicitud) => $this->isApproved($solicitud->estado))->count();
         $coverage = $totalStudents > 0 ? (int) round(($studentsWithAdjustments / $totalStudents) * 100) : 0;
 
@@ -125,8 +132,17 @@ class DirectorCarreraDashboardController extends Controller
 
     protected function formatPendingCases(Collection $solicitudes): array
     {
+        // Solo mostrar casos que ya pasaron por Asesora Pedagógica
+        // Estados que corresponden al Director de Carrera (ya enviados por AP):
+        // - Pendiente de Aprobación / Pendiente de Aprobacion (enviados por AP a Director)
+        // NO incluir "Pendiente de preaprobación" porque ese estado todavía está con AP
+        $estadosParaDirector = [
+            'Pendiente de Aprobación',
+            'Pendiente de Aprobacion',
+        ];
+        
         return $solicitudes
-            ->filter(fn ($solicitud) => $this->isPending($solicitud->estado))
+            ->filter(fn ($solicitud) => in_array($solicitud->estado, $estadosParaDirector))
             ->take(4)
             ->map(function ($solicitud) {
                 $submittedAt = $solicitud->fecha_solicitud ?? $solicitud->created_at;
@@ -164,7 +180,14 @@ class DirectorCarreraDashboardController extends Controller
             $studentCount = $students->count();
             $careerCases = $solicitudes->filter(fn ($solicitud) => optional($solicitud->estudiante)->carrera_id === $carrera->id);
             $withAdjustments = $students->filter(fn ($estudiante) => $estudiante->ajustesRazonables->isNotEmpty())->count();
-            $pending = $careerCases->filter(fn ($solicitud) => $this->isPending($solicitud->estado))->count();
+            
+            // Solo contar casos que ya pasaron por Asesora Pedagógica
+            $estadosParaDirector = [
+                'Pendiente de preaprobación',
+                'Pendiente de Aprobación',
+                'Pendiente de Aprobacion',
+            ];
+            $pending = $careerCases->filter(fn ($solicitud) => in_array($solicitud->estado, $estadosParaDirector))->count();
             $approved = $careerCases->filter(fn ($solicitud) => $this->isApproved($solicitud->estado))->count();
             $coverage = $studentCount > 0 ? (int) round(($withAdjustments / $studentCount) * 100) : 0;
             
@@ -260,7 +283,13 @@ class DirectorCarreraDashboardController extends Controller
 
     protected function buildPipelineSummary(Collection $solicitudes, Collection $studentIds, Collection $carreras): array
     {
-        $pendingCount = $solicitudes->filter(fn ($solicitud) => $this->isPending($solicitud->estado))->count();
+        // Solo contar casos que ya pasaron por Asesora Pedagógica
+        $estadosParaDirector = [
+            'Pendiente de preaprobación',
+            'Pendiente de Aprobación',
+            'Pendiente de Aprobacion',
+        ];
+        $pendingCount = $solicitudes->filter(fn ($solicitud) => in_array($solicitud->estado, $estadosParaDirector))->count();
         
         // Contar ajustes aprobados y rechazados de todos los estudiantes en las carreras del director
         $ajustesAprobados = 0;
@@ -364,7 +393,7 @@ class DirectorCarreraDashboardController extends Controller
     {
         $user = $request->user();
 
-        $carreras = Carrera::with(['estudiantes.ajustesRazonables'])
+        $carreras = Carrera::with(['estudiantes.ajustesRazonables', 'docentes.user'])
             ->where('director_id', $user->id)
             ->get();
 
@@ -382,12 +411,94 @@ class DirectorCarreraDashboardController extends Controller
             ]);
         $careerStats = $this->buildCareerStats($carreras, $solicitudes);
 
-        // Datos para las gráficas de pastel
+        // Nueva gráfica: Estado de casos por carrera (más útil para Directora)
+        $estadoCasosPorCarrera = $carreras->map(function ($carrera) use ($solicitudes) {
+            $casosCarrera = $solicitudes->filter(fn ($s) => optional($s->estudiante)->carrera_id === $carrera->id);
+            
+            $estadosParaDirector = [
+                'Pendiente de preaprobación',
+                'Pendiente de Aprobación',
+                'Pendiente de Aprobacion',
+            ];
+            
+            return [
+                'nombre' => $carrera->nombre ?? 'Sin nombre',
+                'pendientes' => $casosCarrera->filter(fn ($s) => in_array($s->estado, $estadosParaDirector))->count(),
+                'aprobados' => $casosCarrera->filter(fn ($s) => $this->isApproved($s->estado))->count(),
+                'rechazados' => $casosCarrera->filter(fn ($s) => str_contains(strtolower($s->estado ?? ''), 'rechaz'))->count(),
+            ];
+        })->filter(fn ($item) => $item['pendientes'] > 0 || $item['aprobados'] > 0 || $item['rechazados'] > 0);
+        
+        // Preparar datos completos de estudiantes y docentes para la tercera página
+        $estudiantesCompletos = [];
+        $docentesCompletos = [];
+        
+        foreach ($carreras as $carrera) {
+            // Estudiantes
+            foreach ($carrera->estudiantes as $estudiante) {
+                $rut = $estudiante->rut ?? '';
+                $rutFormateado = $rut;
+                if ($rut && strlen($rut) > 0) {
+                    $rutLimpio = str_replace(['.', '-'], '', $rut);
+                    if (strlen($rutLimpio) >= 7) {
+                        $rutFormateado = substr($rutLimpio, 0, -1);
+                        $rutFormateado = number_format((int)$rutFormateado, 0, '', '.');
+                        $rutFormateado .= '-' . substr($rutLimpio, -1);
+                    }
+                }
+                
+                $estudiantesCompletos[] = [
+                    'nombre' => trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? '')),
+                    'rut' => $rutFormateado ?: 'Sin RUT',
+                    'email' => $estudiante->email ?? 'Sin email',
+                    'telefono' => $estudiante->telefono ?? 'Sin teléfono',
+                    'carrera' => $carrera->nombre ?? 'Sin carrera',
+                    'ajustes_count' => $estudiante->ajustesRazonables->where('estado', 'Aprobado')->count(),
+                ];
+            }
+            
+            // Docentes
+            foreach ($carrera->docentes as $docente) {
+                $rut = $docente->rut ?? '';
+                $rutFormateado = $rut;
+                if ($rut && strlen($rut) > 0) {
+                    $rutLimpio = str_replace(['.', '-'], '', $rut);
+                    if (strlen($rutLimpio) >= 7) {
+                        $rutFormateado = substr($rutLimpio, 0, -1);
+                        $rutFormateado = number_format((int)$rutFormateado, 0, '', '.');
+                        $rutFormateado .= '-' . substr($rutLimpio, -1);
+                    }
+                }
+                
+                $email = $docente->user->email ?? ($docente->email ?? 'Sin email');
+                
+                $docentesCompletos[] = [
+                    'nombre' => trim(($docente->nombre ?? '') . ' ' . ($docente->apellido ?? '')),
+                    'rut' => $rutFormateado ?: 'Sin RUT',
+                    'email' => $email,
+                    'carrera' => $carrera->nombre ?? 'Sin carrera',
+                ];
+            }
+        }
+        
+        // Ordenar listas
+        usort($estudiantesCompletos, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
+        usort($docentesCompletos, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
+        
+        // Datos para las gráficas de pastel (mantener para segunda página)
         // Gráfica 1: Distribución de estudiantes por carrera
         $estudiantesPorCarrera = $carreras->map(function ($carrera) {
             return [
                 'nombre' => $carrera->nombre ?? 'Sin nombre',
                 'cantidad' => $carrera->estudiantes->count(),
+            ];
+        })->filter(fn ($item) => $item['cantidad'] > 0);
+
+        // Gráfica de Docentes por Carrera
+        $docentesPorCarrera = $carreras->map(function ($carrera) {
+            return [
+                'nombre' => $carrera->nombre ?? 'Sin nombre',
+                'cantidad' => $carrera->docentes->count(),
             ];
         })->filter(fn ($item) => $item['cantidad'] > 0);
 
@@ -522,7 +633,9 @@ class DirectorCarreraDashboardController extends Controller
         $pdf = Pdf::loadView('DirectorCarrera.reporte-pdf', [
             'carreras' => $carreras,
             'estudiantesPorCarrera' => $estudiantesPorCarrera,
+            'docentesPorCarrera' => $docentesPorCarrera,
             'ajustesPorCarrera' => $ajustesPorCarrera,
+            'estadoCasosPorCarrera' => $estadoCasosPorCarrera,
             'ajustesConEstudiantes' => $ajustesConEstudiantes,
             'ajustesRechazadosConEstudiantes' => $ajustesRechazadosConEstudiantes,
             'fechaGeneracion' => now()->format('d/m/Y H:i'),
@@ -532,6 +645,8 @@ class DirectorCarreraDashboardController extends Controller
             'statsPorTipo' => $statsPorTipo,
             'solicitudes' => $solicitudes,
             'casosAgrupados' => $casosAgrupados,
+            'estudiantesCompletos' => $estudiantesCompletos,
+            'docentesCompletos' => $docentesCompletos,
         ]);
 
         return $pdf->download('reporte-carrera-' . now()->format('Y-m-d') . '.pdf');
@@ -552,9 +667,16 @@ class DirectorCarreraDashboardController extends Controller
     protected function countOverdueCases(Collection $solicitudes, int $thresholdDays = 7): int
     {
         $limitDate = Carbon::now()->subDays($thresholdDays);
+        
+        // Solo contar casos que ya pasaron por Asesora Pedagógica
+        $estadosParaDirector = [
+            'Pendiente de preaprobación',
+            'Pendiente de Aprobación',
+            'Pendiente de Aprobacion',
+        ];
 
-        return $solicitudes->filter(function ($solicitud) use ($limitDate) {
-            if (! $this->isPending($solicitud->estado)) {
+        return $solicitudes->filter(function ($solicitud) use ($limitDate, $estadosParaDirector) {
+            if (! in_array($solicitud->estado, $estadosParaDirector)) {
                 return false;
             }
 

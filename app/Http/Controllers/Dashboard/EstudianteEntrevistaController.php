@@ -9,10 +9,12 @@ use App\Models\Entrevista;
 use App\Models\Evidencia;
 use App\Models\Solicitud;
 use App\Models\User;
+use App\Notifications\DashboardNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class EstudianteEntrevistaController extends Controller
@@ -159,6 +161,20 @@ class EstudianteEntrevistaController extends Controller
                     'solicitud_id' => $solicitud->id,
                 ]);
             }
+        }
+
+        // Notificar al estudiante que su solicitud fue enviada
+        $estudianteUser = $estudiante->user;
+        if ($estudianteUser) {
+            Notification::send(
+                $estudianteUser,
+                new DashboardNotification(
+                    'Solicitud Enviada',
+                    'Tu solicitud de entrevista ha sido enviada correctamente. El equipo de asesoría pedagógica la revisará pronto.',
+                    route('estudiantes.dashboard'),
+                    'Ver mi dashboard'
+                )
+            );
         }
 
         return redirect()

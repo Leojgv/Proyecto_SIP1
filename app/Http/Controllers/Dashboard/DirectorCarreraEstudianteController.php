@@ -55,7 +55,11 @@ class DirectorCarreraEstudianteController extends Controller
             $directorId = $request->user()->id;
 
             // Ejecutar la importacion pasando el ID del director
-            Excel::import(new EstudiantesImport($directorId), $request->file('archivo'));
+            $import = new EstudiantesImport($directorId);
+            Excel::import($import, $request->file('archivo'));
+
+            // Notificar a docentes después de la importación
+            $import->notifyTeachersAfterImport();
 
             return redirect()
                 ->route('director.estudiantes')
@@ -112,7 +116,20 @@ class DirectorCarreraEstudianteController extends Controller
             'apellido' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:estudiantes,email,' . $estudiante->id],
             'telefono' => ['nullable', 'string', 'max:255'],
+            'carrera_id' => ['required', 'exists:carreras,id'],
         ]);
+
+        // Verificar que la carrera pertenezca al director
+        $carrera = Carrera::where('id', $validated['carrera_id'])
+            ->where('director_id', $directorId)
+            ->first();
+
+        if (!$carrera) {
+            return redirect()
+                ->back()
+                ->withErrors(['carrera_id' => 'La carrera seleccionada no pertenece a tu área de dirección.'])
+                ->withInput();
+        }
 
         $estudiante->update($validated);
 

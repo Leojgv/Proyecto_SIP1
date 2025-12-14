@@ -242,30 +242,69 @@ class DirectorCarreraCasoController extends Controller
             }
         }
 
-        // Notificar sobre ajustes aprobados
-        if (!empty($ajustesAprobados)) {
+        // Crear mensaje combinado si hay ambos tipos de ajustes
+        if (!empty($ajustesAprobados) && !empty($ajustesRechazados)) {
             $listaAprobados = implode(', ', $ajustesAprobados);
-            Notification::send(
-                $estudianteUser,
-                new DashboardNotification(
-                    'Ajustes razonables aprobados',
-                    "Tus ajustes razonables han sido aprobados por Dirección de Carrera: {$listaAprobados}. Ya puedes utilizarlos en tus actividades académicas.",
-                    route('estudiantes.dashboard'),
-                    'Ver mi dashboard'
-                )
-            );
-        }
-
-        // Notificar sobre ajustes rechazados
-        if (!empty($ajustesRechazados)) {
             $listaRechazados = implode(', ', $ajustesRechazados);
-            $primerMotivo = !empty($motivosRechazo) ? reset($motivosRechazo) : 'No se especificó motivo';
+            $motivosTexto = '';
+            
+            if (!empty($motivosRechazo)) {
+                $motivosArray = [];
+                foreach ($motivosRechazo as $ajusteId => $motivo) {
+                    $ajuste = $solicitud->ajustesRazonables->find($ajusteId);
+                    if ($ajuste && $motivo) {
+                        $motivosArray[] = "{$ajuste->nombre}: {$motivo}";
+                    }
+                }
+                if (!empty($motivosArray)) {
+                    $motivosTexto = "\n\nMotivos de rechazo:\n" . implode("\n", $motivosArray);
+                }
+            }
             
             Notification::send(
                 $estudianteUser,
                 new DashboardNotification(
-                    'Ajustes razonables rechazados',
-                    "Los siguientes ajustes fueron rechazados: {$listaRechazados}. Motivo: {$primerMotivo}",
+                    'Decisión sobre Ajustes Razonables',
+                    "Ajustes aprobados: {$listaAprobados}.\n\nAjustes rechazados: {$listaRechazados}.{$motivosTexto}",
+                    route('estudiantes.dashboard'),
+                    'Ver mi dashboard'
+                )
+            );
+        } elseif (!empty($ajustesAprobados)) {
+            // Solo ajustes aprobados
+            $listaAprobados = implode(', ', $ajustesAprobados);
+            Notification::send(
+                $estudianteUser,
+                new DashboardNotification(
+                    'Ajustes Razonables Aprobados',
+                    "Tus ajustes razonables han sido aprobados por Dirección de Carrera:\n{$listaAprobados}\n\nYa puedes utilizarlos en tus actividades académicas.",
+                    route('estudiantes.dashboard'),
+                    'Ver mi dashboard'
+                )
+            );
+        } elseif (!empty($ajustesRechazados)) {
+            // Solo ajustes rechazados
+            $listaRechazados = implode(', ', $ajustesRechazados);
+            $motivosTexto = '';
+            
+            if (!empty($motivosRechazo)) {
+                $motivosArray = [];
+                foreach ($motivosRechazo as $ajusteId => $motivo) {
+                    $ajuste = $solicitud->ajustesRazonables->find($ajusteId);
+                    if ($ajuste && $motivo) {
+                        $motivosArray[] = "{$ajuste->nombre}: {$motivo}";
+                    }
+                }
+                if (!empty($motivosArray)) {
+                    $motivosTexto = "\n\nMotivos de rechazo:\n" . implode("\n", $motivosArray);
+                }
+            }
+            
+            Notification::send(
+                $estudianteUser,
+                new DashboardNotification(
+                    'Ajustes Razonables Rechazados',
+                    "Los siguientes ajustes fueron rechazados:\n{$listaRechazados}.{$motivosTexto}",
                     route('estudiantes.dashboard'),
                     'Ver detalles'
                 )
@@ -470,7 +509,8 @@ class DirectorCarreraCasoController extends Controller
                 'Estudiante con ajustes razonables',
                 $mensaje,
                 route('docente.estudiantes'),
-                'Ver estudiantes'
+                'Ver estudiantes',
+                $estudiante->carrera_id // Incluir carrera_id para filtrar notificaciones
             )
         );
     }

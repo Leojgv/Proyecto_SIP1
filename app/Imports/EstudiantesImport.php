@@ -3,23 +3,33 @@
 namespace App\Imports;
 
 use App\Models\Carrera;
+use App\Models\Docente;
 use App\Models\Estudiante;
 use App\Models\Rol;
 use App\Models\User;
+use App\Notifications\DashboardNotification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class EstudiantesImport implements ToModel, WithHeadingRow, WithValidation
+class EstudiantesImport implements ToModel, WithHeadingRow, WithValidation, WithBatchInserts
 {
     protected int $directorId;
+    protected array $carrerasConEstudiantes = [];
 
     public function __construct(int $directorId)
     {
         $this->directorId = $directorId;
+    }
+
+    public function batchSize(): int
+    {
+        return 100;
     }
 
     /**
@@ -98,6 +108,11 @@ class EstudiantesImport implements ToModel, WithHeadingRow, WithValidation
                 'carrera_id' => $carrera->id,
                 'user_id' => $user->id,
             ]);
+            
+            // Guardar carrera para notificar después
+            if (!in_array($carrera->id, $this->carrerasConEstudiantes)) {
+                $this->carrerasConEstudiantes[] = $carrera->id;
+            }
         } else {
             // Actualizar el estudiante existente (actualizar carrera si es necesario)
             $estudiante->update([
@@ -204,6 +219,35 @@ class EstudiantesImport implements ToModel, WithHeadingRow, WithValidation
         // Asegurar relacion en pivote
         if (! $user->roles->contains($rolEstudiante->id)) {
             $user->roles()->attach($rolEstudiante->id);
+        }
+    }
+
+    /**
+     * Notifica a los docentes después de la importación
+     */
+    public function notifyTeachersAfterImport(): void
+    {
+        foreach ($this->carrerasConEstudiantes as $carreraId) {
+            $docentes = Docente::where('carrera_id', $carreraId)
+                ->with('user')
+                ->get()
+                ->pluck('user')
+                ->filter();
+
+            if ($docentes->isEmpty()) {
+                continue;
+            }
+
+            Notification::send(
+                $docentes,
+                new DashboardNotification(
+                    'Nuevos Estudiantes Importados',
+                    'Se han importado nuevos estudiantes en tu carrera desde Excel. Por favor, revisa tu lista de estudiantes.',
+                    route('docente.estudiantes'),
+                    'Ver estudiantes',
+                    $carreraId // Incluir carrera_id para filtrar notificaciones
+                )
+            );
         }
     }
 }

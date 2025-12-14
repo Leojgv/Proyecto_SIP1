@@ -34,6 +34,15 @@ class AdminDashboardController extends Controller
             ->count('user_id');
 
         $usuariosPorMes = $this->usuariosPorMes();
+        $usuariosPorAno = $this->usuariosPorAno();
+        $usuariosPorDia = $this->usuariosPorDia();
+        
+        // Datos adicionales para los nuevos contenedores
+        $totalCarreras = Carrera::count();
+        $totalSolicitudes = Solicitud::count();
+        $totalAjustes = AjusteRazonable::count();
+        $solicitudesPendientes = Solicitud::whereRaw("LOWER(estado) LIKE ?", ['%pendiente%'])->count();
+        $solicitudesAprobadas = Solicitud::whereRaw("LOWER(estado) LIKE ?", ['%aprob%'])->count();
 
         $accionesRapidas = [
             [
@@ -73,8 +82,15 @@ class AdminDashboardController extends Controller
                 'nuevos_estudiantes_mes' => $nuevosEstudiantesMes,
                 'total_usuarios' => $totalUsuarios,
                 'usuarios_activos' => $usuariosActivos,
+                'total_carreras' => $totalCarreras,
+                'total_solicitudes' => $totalSolicitudes,
+                'total_ajustes' => $totalAjustes,
+                'solicitudes_pendientes' => $solicitudesPendientes,
+                'solicitudes_aprobadas' => $solicitudesAprobadas,
             ],
             'usuariosPorMes' => $usuariosPorMes,
+            'usuariosPorAno' => $usuariosPorAno,
+            'usuariosPorDia' => $usuariosPorDia,
             'accionesRapidas' => $accionesRapidas,
         ]);
     }
@@ -364,6 +380,57 @@ class AdminDashboardController extends Controller
         
         return [
             'meses' => $meses,
+            'datos' => $datos,
+        ];
+    }
+
+    private function usuariosPorAno(): array
+    {
+        // Obtener los últimos 5 años
+        $anos = [];
+        $datos = [];
+        
+        $anoActual = Carbon::now()->year;
+        
+        for ($i = 4; $i >= 0; $i--) {
+            $ano = $anoActual - $i;
+            $inicioAno = Carbon::create($ano, 1, 1)->startOfYear();
+            $finAno = Carbon::create($ano, 12, 31)->endOfYear();
+            
+            $anos[] = (string)$ano;
+            
+            // Contar estudiantes creados en ese año
+            $cantidad = Estudiante::whereBetween('created_at', [$inicioAno, $finAno])->count();
+            $datos[] = $cantidad;
+        }
+        
+        return [
+            'anos' => $anos,
+            'datos' => $datos,
+        ];
+    }
+
+    private function usuariosPorDia(): array
+    {
+        // Obtener los últimos 30 días
+        $dias = [];
+        $datos = [];
+        
+        for ($i = 29; $i >= 0; $i--) {
+            $fecha = Carbon::now()->subDays($i);
+            $inicioDia = $fecha->copy()->startOfDay();
+            $finDia = $fecha->copy()->endOfDay();
+            
+            $diaNombre = $fecha->locale('es')->translatedFormat('d M');
+            $dias[] = $diaNombre;
+            
+            // Contar estudiantes creados en ese día
+            $cantidad = Estudiante::whereBetween('created_at', [$inicioDia, $finDia])->count();
+            $datos[] = $cantidad;
+        }
+        
+        return [
+            'dias' => $dias,
             'datos' => $datos,
         ];
     }

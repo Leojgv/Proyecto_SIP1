@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Imports\DocentesImport;
+use App\Models\Carrera;
 use App\Models\Docente;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +23,14 @@ class DirectorCarreraDocenteController extends Controller
             ->orderBy('apellido')
             ->paginate(15);
 
+        // Obtener solo las carreras del director para el modal de edición
+        $carreras = Carrera::where('director_id', $directorId)
+            ->orderBy('nombre')
+            ->get();
+
         return view('DirectorCarrera.docentes.index', [
             'docentes' => $docentes,
+            'carreras' => $carreras,
         ]);
     }
 
@@ -85,7 +92,20 @@ class DirectorCarreraDocenteController extends Controller
             'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:docentes,email,' . $docente->id],
+            'carrera_id' => ['required', 'exists:carreras,id'],
         ]);
+
+        // Verificar que la carrera pertenezca al director
+        $carrera = Carrera::where('id', $validated['carrera_id'])
+            ->where('director_id', $directorId)
+            ->first();
+
+        if (!$carrera) {
+            return redirect()
+                ->back()
+                ->withErrors(['carrera_id' => 'La carrera seleccionada no pertenece a tu área de dirección.'])
+                ->withInput();
+        }
 
         $docente->update($validated);
 

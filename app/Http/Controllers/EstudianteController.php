@@ -3,8 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Carrera;
+use App\Models\Docente;
 use App\Models\Estudiante;
+use App\Models\Rol;
+use App\Models\User;
+use App\Notifications\DashboardNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 
 class EstudianteController extends Controller
 {
@@ -55,9 +61,81 @@ class EstudianteController extends Controller
             'carrera_id' => ['required', 'exists:carreras,id'],
         ]);
 
-        Estudiante::create($validated);
+        // Verificar si ya existe un usuario con este email
+        $user = User::where('email', $validated['email'])->first();
+
+        if (!$user) {
+            // Crear nuevo usuario para el estudiante
+            $password = Hash::make('password123'); // Contraseña por defecto
+            $user = User::create([
+                'nombre' => $validated['nombre'],
+                'apellido' => $validated['apellido'],
+                'email' => $validated['email'],
+                'password' => $password,
+            ]);
+
+            // Asignar rol de Estudiante
+            $rolEstudiante = Rol::where('nombre', 'Estudiante')->first();
+            if ($rolEstudiante) {
+                $user->rol_id = $rolEstudiante->id;
+                $user->save();
+                if (!$user->roles->contains($rolEstudiante->id)) {
+                    $user->roles()->attach($rolEstudiante->id);
+                }
+            }
+        }
+
+        // Crear el estudiante con el user_id
+        $estudiante = Estudiante::create($validated + [
+            'user_id' => $user->id,
+        ]);
+
+        // Notificar a docentes de la carrera sobre el nuevo estudiante
+        $this->notifyTeachersNewStudent($estudiante);
 
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante creado correctamente.');
+    }
+
+    /**
+     * Notifica a los docentes de la carrera cuando se crea un nuevo estudiante
+     */
+    protected function notifyTeachersNewStudent(Estudiante $estudiante): void
+    {
+        if (!$estudiante->carrera_id) {
+            return;
+        }
+
+        // Obtener docentes de la misma carrera
+        $docentes = Docente::where('carrera_id', $estudiante->carrera_id)
+            ->with('user')
+            ->get()
+            ->pluck('user')
+            ->filter();
+
+        if ($docentes->isEmpty()) {
+            return;
+        }
+
+        $nombreEstudiante = trim(($estudiante->nombre ?? '') . ' ' . ($estudiante->apellido ?? ''));
+        $rutEstudiante = $estudiante->rut ?? '';
+
+        $mensaje = "Se ha registrado un nuevo estudiante en tu carrera. ";
+        $mensaje .= "Estudiante: {$nombreEstudiante}";
+        if ($rutEstudiante) {
+            $mensaje .= " (RUT: {$rutEstudiante})";
+        }
+        $mensaje .= ". Por favor, revisa tu lista de estudiantes.";
+
+        Notification::send(
+            $docentes,
+            new DashboardNotification(
+                'Nuevo Estudiante',
+                $mensaje,
+                route('docente.estudiantes'),
+                'Ver estudiantes',
+                $estudiante->carrera_id // Incluir carrera_id para filtrar notificaciones
+            )
+        );
     }
 
     public function show(Estudiante $estudiante)

@@ -3,10 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class DashboardNotification extends Notification implements ShouldQueue
+class DashboardNotification extends Notification
 {
     use Queueable;
 
@@ -14,7 +13,8 @@ class DashboardNotification extends Notification implements ShouldQueue
         public string $titulo,
         public string $mensaje,
         public ?string $url = null,
-        public ?string $textoBoton = null
+        public ?string $textoBoton = null,
+        public ?int $carrera_id = null
     ) {
     }
 
@@ -30,6 +30,7 @@ class DashboardNotification extends Notification implements ShouldQueue
             'mensaje' => $this->mensaje,
             'url' => $this->url,
             'texto_boton' => $this->textoBoton,
+            'carrera_id' => $this->carrera_id,
         ];
     }
 }

@@ -22,6 +22,8 @@ class Entrevista extends Model
         'acompanante_rut',
         'acompanante_nombre',
         'acompanante_telefono',
+        'estado',
+        'motivo_posposicion',
     ];
 
     protected $casts = [
