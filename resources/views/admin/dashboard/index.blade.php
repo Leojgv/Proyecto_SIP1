@@ -123,6 +123,33 @@
     color: rgba(255,255,255,.25);
     font-size: 2rem;
   }
+
+  /* Modo oscuro para dashboard admin */
+  .dark-mode .dashboard-page {
+    background: transparent;
+  }
+
+  .dark-mode .page-header h1 {
+    color: #e8e8e8 !important;
+  }
+
+  .dark-mode .page-header .text-muted {
+    color: #b8b8b8 !important;
+  }
+
+  .dark-mode .page-header .text-danger {
+    color: #f87171 !important;
+  }
+
+  .dark-mode .stats-card {
+    background-color: #0b1220 !important;
+    border-color: #2d3748 !important;
+    box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
+  }
+
+  .dark-mode .stats-card__icon {
+    color: rgba(255,255,255,.2) !important;
+  }
 </style>
 @endpush
 
@@ -135,7 +162,9 @@
 
     const usuariosPorMesData = @json($usuariosPorMes);
 
-    new Chart(ctx, {
+    const isDarkMode = () => document.documentElement.classList.contains('dark-mode');
+    
+    const chartConfig = {
       type: 'bar',
       data: {
         labels: usuariosPorMesData.meses,
@@ -157,7 +186,9 @@
             display: false
           },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: isDarkMode() ? 'rgba(30, 41, 59, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+            titleColor: isDarkMode() ? '#e8e8e8' : '#fff',
+            bodyColor: isDarkMode() ? '#b8b8b8' : '#fff',
             padding: 12,
             titleFont: {
               size: 14,
@@ -182,10 +213,11 @@
               precision: 0,
               font: {
                 size: 11
-              }
+              },
+              color: isDarkMode() ? '#b8b8b8' : '#666'
             },
             grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: isDarkMode() ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
             }
           },
           x: {
@@ -194,7 +226,8 @@
                 size: 11
               },
               maxRotation: 45,
-              minRotation: 45
+              minRotation: 45,
+              color: isDarkMode() ? '#b8b8b8' : '#666'
             },
             grid: {
               display: false
@@ -202,6 +235,27 @@
           }
         }
       }
+    };
+
+    const chart = new Chart(ctx, chartConfig);
+
+    // Actualizar colores cuando cambie el modo oscuro
+    const updateChartColors = () => {
+      const dark = isDarkMode();
+      chart.options.scales.y.ticks.color = dark ? '#b8b8b8' : '#666';
+      chart.options.scales.y.grid.color = dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+      chart.options.scales.x.ticks.color = dark ? '#b8b8b8' : '#666';
+      chart.options.plugins.tooltip.backgroundColor = dark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(0, 0, 0, 0.8)';
+      chart.options.plugins.tooltip.titleColor = dark ? '#e8e8e8' : '#fff';
+      chart.options.plugins.tooltip.bodyColor = dark ? '#b8b8b8' : '#fff';
+      chart.update('none');
+    };
+
+    // Observar cambios en la clase dark-mode
+    const observer = new MutationObserver(updateChartColors);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
     });
   });
 </script>

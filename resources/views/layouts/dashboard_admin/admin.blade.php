@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
   <link rel="stylesheet" href="{{ asset('dist/css/adminlte.css') }}">
+  <link rel="stylesheet" href="{{ asset('CSS/accessibility.css') }}">
   
   <style>
     /* Paleta por tonos (rojos) compartida con el dashboard estudiantil */
@@ -282,6 +283,146 @@
       background-color: var(--tone-50) !important;
       border-color: var(--tone-400) !important;
     }
+
+    /* Modo oscuro para layout Admin */
+    .dark-mode .student-wrapper {
+      background-color: #1a1a2e !important;
+    }
+
+    .dark-mode .student-sidebar {
+      background-color: #16213e !important;
+      border-right-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .student-sidebar__brand {
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .student-sidebar__link {
+      color: #b8b8b8 !important;
+    }
+
+    .dark-mode .student-sidebar__link:hover {
+      background-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .student-sidebar__link.active {
+      background-color: var(--tone-600) !important;
+      color: #ffffff !important;
+    }
+
+    .dark-mode .student-main {
+      background-color: #1a1a2e !important;
+    }
+
+    .dark-mode .student-topbar {
+      background-color: #16213e !important;
+      border-bottom-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .student-topbar__info {
+      color: #b8b8b8 !important;
+    }
+
+    .dark-mode .student-topbar__info i {
+      color: var(--tone-600) !important;
+    }
+
+    .dark-mode .student-topbar .topbar-icon {
+      color: #b8b8b8 !important;
+    }
+
+    .dark-mode .student-topbar .topbar-icon:hover {
+      color: #e8e8e8 !important;
+      background-color: #2d3748 !important;
+    }
+
+    .dark-mode .student-content {
+      background-color: #1a1a2e !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box {
+      background-color: #1e293b !important;
+      border-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box.text-dark {
+      border-color: #2d3748 !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box .icon {
+      color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box.text-dark .icon {
+      color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box-footer {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box.text-dark .small-box-footer {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .dark-mode .dashboard-shell .small-box-footer:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .dark-mode .dashboard-shell .card,
+    .dark-mode .dashboard-shell .card.border-0 {
+      background-color: #1e293b !important;
+      border-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .card-header {
+      background-color: #16213e !important;
+      border-bottom-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .card-body {
+      background-color: #1e293b !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .dashboard-shell .list-group-item {
+      background-color: #1e293b !important;
+      border-color: #2d3748 !important;
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .page-header h1,
+    .dark-mode .page-header h4 {
+      color: #e8e8e8 !important;
+    }
+
+    .dark-mode .page-header .text-muted {
+      color: #b8b8b8 !important;
+    }
+
+    .dark-mode .page-header .text-danger {
+      color: var(--tone-400) !important;
+    }
+
+    .dark-mode .stats-card {
+      background-color: #0b1220 !important;
+      border: 1px solid #2d3748 !important;
+      color: #e8e8e8 !important;
+      box-shadow: 0 8px 18px rgba(0,0,0,.35) !important;
+    }
+
+    .dark-mode .stats-card__icon {
+      color: rgba(255,255,255,.2) !important;
+    }
   </style>
 
   @stack('styles')
@@ -296,6 +437,7 @@
         <div class="student-topbar__info">
           <span><i class="fas fa-user-circle"></i>{{ auth()->user()->nombre_completo ?? auth()->user()->name ?? '' }}</span>
         </div>
+        @include('components.accessibility-button')
         <a class="text-decoration-none topbar-icon" href="{{ route('logout') }}"
            onclick="event.preventDefault(); document.getElementById('logout-form').submit();" title="Salir">
           <i class="fas fa-right-from-bracket"></i>
@@ -313,8 +455,10 @@
 </div>
 
 <!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="{{ asset('dist/js/adminlte.js') }}"></script>
+<script src="{{ asset('js/accessibility.js') }}"></script>
 @stack('scripts')
 </body>
 </html>
