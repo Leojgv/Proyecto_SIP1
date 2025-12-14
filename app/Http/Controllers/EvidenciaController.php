@@ -81,6 +81,27 @@ class EvidenciaController extends Controller
             abort(404, 'Archivo no encontrado');
         }
 
+        // Cargar relaciones necesarias
+        $evidencia->load('solicitud.estudiante');
+
+        // Verificar permisos: estudiantes solo pueden descargar evidencias de sus propias solicitudes
+        $user = auth()->user();
+        $userRoles = collect([$user->rol?->nombre])
+            ->merge($user->roles->pluck('nombre') ?? [])
+            ->map(fn($role) => mb_strtolower($role))
+            ->unique();
+
+        $isStudent = $userRoles->contains('estudiante');
+        
+        if ($isStudent && !$user->superuser) {
+            $estudiante = $user->estudiante;
+            
+            // Verificar que la evidencia pertenece a una solicitud del estudiante autenticado
+            if (!$estudiante || !$evidencia->solicitud || $evidencia->solicitud->estudiante_id !== $estudiante->id) {
+                abort(403, 'No tienes permisos para acceder a esta evidencia.');
+            }
+        }
+
         // Intentar primero con el disco 'public'
         if (Storage::disk('public')->exists($evidencia->ruta_archivo)) {
             $filePath = Storage::disk('public')->path($evidencia->ruta_archivo);

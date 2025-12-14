@@ -52,13 +52,15 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () use ($staffRoles) {
+    // Ruta de descarga accesible para todos los usuarios autenticados (estudiantes y staff)
+    Route::get('evidencias/{evidencia}/download', [EvidenciaController::class, 'download'])->name('evidencias.download');
+    
     Route::middleware("role:$staffRoles")->group(function () {
         Route::resource('estudiantes', EstudianteController::class)->whereNumber('estudiante');
         Route::resource('carreras', CarreraController::class);
         Route::resource('ajustes-razonables', AjusteRazonableController::class);
         Route::resource('entrevistas', EntrevistaController::class);
         Route::resource('evidencias', EvidenciaController::class);
-        Route::get('evidencias/{evidencia}/download', [EvidenciaController::class, 'download'])->name('evidencias.download');
         Route::resource('solicitudes', SolicitudController::class);
         Route::resource('asignaturas', AsignaturaController::class);
 
