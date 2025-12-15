@@ -44,24 +44,45 @@
           <tbody>
             @forelse($docentes as $docente)
               @php
-                // Formatear RUT chileno
-                $rut = $docente->rut ?? '';
-                $rutFormateado = $rut;
-                if ($rut && strlen($rut) > 0) {
-                  // Remover puntos y guiones existentes
-                  $rutLimpio = str_replace(['.', '-'], '', $rut);
-                  if (strlen($rutLimpio) >= 7) {
-                    // Formatear como XX.XXX.XXX-X
-                    $rutFormateado = substr($rutLimpio, 0, -1);
-                    $rutFormateado = number_format((int)$rutFormateado, 0, '', '.');
-                    $rutFormateado .= '-' . substr($rutLimpio, -1);
+                $esUsuarioSinCarrera = isset($docente->es_usuario_sin_carrera) && $docente->es_usuario_sin_carrera;
+                
+                if ($esUsuarioSinCarrera) {
+                  // Es un usuario sin registro en docentes
+                  $nombre = $docente->nombre ?? '';
+                  $apellido = $docente->apellido ?? '';
+                  $email = $docente->email ?? '';
+                  $rutFormateado = 'Sin RUT';
+                  $carreraNombre = 'Sin carrera asignada';
+                  $carreraId = null;
+                  $docenteId = null;
+                  $userId = $docente->user_id ?? null;
+                } else {
+                  // Es un docente con registro
+                  $rut = $docente->rut ?? '';
+                  $rutFormateado = $rut;
+                  if ($rut && strlen($rut) > 0) {
+                    $rutLimpio = str_replace(['.', '-'], '', $rut);
+                    if (strlen($rutLimpio) >= 7) {
+                      $rutFormateado = substr($rutLimpio, 0, -1);
+                      $rutFormateado = number_format((int)$rutFormateado, 0, '', '.');
+                      $rutFormateado .= '-' . substr($rutLimpio, -1);
+                    }
                   }
+                  $email = $docente->user->email ?? ($docente->email ?? null);
+                  $nombre = $docente->nombre ?? '';
+                  $apellido = $docente->apellido ?? '';
+                  $carreraNombre = $docente->carrera->nombre ?? 'Sin carrera';
+                  $carreraId = $docente->carrera_id ?? null;
+                  $docenteId = $docente->id ?? null;
+                  $userId = $docente->user_id ?? null;
                 }
-                $email = $docente->user->email ?? ($docente->email ?? null);
               @endphp
-              <tr>
+              <tr class="{{ $esUsuarioSinCarrera ? 'table-warning' : '' }}">
                 <td>
-                  <p class="mb-0 fw-semibold">{{ $docente->nombre }} {{ $docente->apellido ?? '' }}</p>
+                  <p class="mb-0 fw-semibold">{{ $nombre }} {{ $apellido }}</p>
+                  @if($esUsuarioSinCarrera)
+                    <small class="text-muted">Usuario sin carrera asignada</small>
+                  @endif
                 </td>
                 <td>
                   <span class="badge bg-light text-dark">{{ $rutFormateado ?: 'Sin RUT' }}</span>
@@ -77,21 +98,48 @@
                   @endif
                 </td>
                 <td>
-                  <span class="badge bg-light text-dark">{{ $docente->carrera->nombre ?? 'Sin carrera' }}</span>
+                  <span class="badge {{ $esUsuarioSinCarrera ? 'bg-warning text-dark' : 'bg-light text-dark' }}">
+                    {{ $carreraNombre }}
+                  </span>
                 </td>
                 <td class="text-end">
-                  <button type="button"
-                          class="btn btn-sm btn-outline-primary btn-edit-docente"
-                          data-edit-docente="true"
-                          data-docente-id="{{ $docente->id }}"
-                          data-docente-nombre="{{ $docente->nombre }}"
-                          data-docente-apellido="{{ $docente->apellido }}"
-                          data-docente-email="{{ $email }}"
-                          data-docente-carrera-id="{{ $docente->carrera_id }}"
-                          data-update-url="{{ route('director.docentes.update', $docente) }}"
-                          title="Editar docente">
-                    <i class="fas fa-pen"></i>
-                  </button>
+                  @if($esUsuarioSinCarrera)
+                    <div class="d-flex gap-2 justify-content-end">
+                      <button type="button"
+                              class="btn btn-sm btn-success btn-asignar-carrera-docente"
+                              data-asignar-docente="true"
+                              data-user-id="{{ $userId }}"
+                              data-user-nombre="{{ $nombre }}"
+                              data-user-apellido="{{ $apellido }}"
+                              data-user-email="{{ $email }}"
+                              title="Asignar carrera">
+                        <i class="fas fa-plus"></i> Asignar carrera
+                      </button>
+                      <button type="button"
+                              class="btn btn-sm btn-danger btn-eliminar-usuario-pendiente"
+                              data-eliminar-usuario="true"
+                              data-user-id="{{ $userId }}"
+                              data-user-nombre="{{ $nombre }}"
+                              data-user-apellido="{{ $apellido }}"
+                              data-delete-url="{{ route('director.docentes.pending.destroy', $userId) }}"
+                              title="Eliminar usuario pendiente">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  @else
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary btn-edit-docente"
+                            data-edit-docente="true"
+                            data-docente-id="{{ $docenteId }}"
+                            data-docente-nombre="{{ $nombre }}"
+                            data-docente-apellido="{{ $apellido }}"
+                            data-docente-email="{{ $email }}"
+                            data-docente-carrera-id="{{ $carreraId }}"
+                            data-update-url="{{ route('director.docentes.update', $docenteId) }}"
+                            title="Editar docente">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                  @endif
                 </td>
               </tr>
             @empty
@@ -175,6 +223,98 @@
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-danger">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{-- Modal Asignar Carrera a Usuario Docente --}}
+<div class="modal fade"
+     id="modalAsignarCarreraDocente"
+     tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title">Asignar Carrera a Docente</h5>
+          <p class="text-muted mb-0 small">Asigna una carrera al usuario docente.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formAsignarCarreraDocente"
+            method="POST"
+            action="{{ route('director.docentes.store') }}">
+        @csrf
+        <input type="hidden" id="asignar_user_id" name="user_id">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Usuario:</strong> <span id="asignar_usuario_nombre"></span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="asignar_carrera_id">Carrera <span class="text-danger">*</span></label>
+              <select id="asignar_carrera_id"
+                      name="carrera_id"
+                      class="form-select @error('carrera_id') is-invalid @enderror"
+                      required>
+                <option value="">Seleccione una carrera</option>
+                @foreach($carreras ?? [] as $carrera)
+                  <option value="{{ $carrera->id }}">{{ $carrera->nombre }}</option>
+                @endforeach
+              </select>
+              @error('carrera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="asignar_rut">RUT (opcional)</label>
+              <input type="text"
+                     id="asignar_rut"
+                     name="rut"
+                     class="form-control @error('rut') is-invalid @enderror"
+                     placeholder="12.345.678-9">
+              @error('rut')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Asignar Carrera</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{-- Modal Confirmar Eliminación de Usuario Pendiente --}}
+<div class="modal fade"
+     id="modalConfirmarEliminarUsuario"
+     tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title text-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+          </h5>
+          <p class="text-muted mb-0 small">Esta acción no se puede deshacer.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formEliminarUsuario"
+            method="POST"
+            action="#">
+        @csrf
+        @method('DELETE')
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar al usuario <strong id="usuario_a_eliminar"></strong>?</p>
+          <p class="text-muted small mb-0">Se eliminará el usuario y todos sus datos asociados.</p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Eliminar</button>
         </div>
       </form>
     </div>
@@ -314,6 +454,50 @@
             updateUrl: this.getAttribute('data-update-url') || '',
           };
           populateAndShowEditModal(data);
+        });
+      });
+    }
+
+    // Modal para asignar carrera
+    const asignarCarreraModal = setupModalController('modalAsignarCarreraDocente');
+    if (asignarCarreraModal) {
+      const asignarForm = document.getElementById('formAsignarCarreraDocente');
+      const asignarUserId = document.getElementById('asignar_user_id');
+      const asignarUsuarioNombre = document.getElementById('asignar_usuario_nombre');
+      const asignarCarreraId = document.getElementById('asignar_carrera_id');
+
+      document.querySelectorAll('[data-asignar-docente="true"]').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const userId = this.getAttribute('data-user-id') || '';
+          const nombre = this.getAttribute('data-user-nombre') || '';
+          const apellido = this.getAttribute('data-user-apellido') || '';
+          
+          if (asignarUserId) asignarUserId.value = userId;
+          if (asignarUsuarioNombre) asignarUsuarioNombre.textContent = nombre + ' ' + apellido;
+          if (asignarCarreraId) asignarCarreraId.value = '';
+          
+          asignarCarreraModal.show();
+        });
+      });
+    }
+
+    // Modal para confirmar eliminación de usuario pendiente
+    const confirmarEliminarModal = setupModalController('modalConfirmarEliminarUsuario');
+    if (confirmarEliminarModal) {
+      const eliminarForm = document.getElementById('formEliminarUsuario');
+      const usuarioAEliminar = document.getElementById('usuario_a_eliminar');
+
+      document.querySelectorAll('[data-eliminar-usuario="true"]').forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const userId = this.getAttribute('data-user-id') || '';
+          const nombre = this.getAttribute('data-user-nombre') || '';
+          const apellido = this.getAttribute('data-user-apellido') || '';
+          const deleteUrl = this.getAttribute('data-delete-url') || '';
+          
+          if (eliminarForm) eliminarForm.action = deleteUrl;
+          if (usuarioAEliminar) usuarioAEliminar.textContent = nombre + ' ' + apellido;
+          
+          confirmarEliminarModal.show();
         });
       });
     }

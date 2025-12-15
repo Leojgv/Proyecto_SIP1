@@ -114,6 +114,8 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.dashboard');
         Route::get('director-carrera/estudiantes', [DirectorCarreraEstudianteController::class, 'index'])
             ->name('director.estudiantes');
+        Route::post('director-carrera/estudiantes', [DirectorCarreraEstudianteController::class, 'store'])
+            ->name('director.estudiantes.store');
         Route::get('director-carrera/estudiantes/importar', [DirectorCarreraEstudianteController::class, 'showImportForm'])
             ->name('director.estudiantes.import.form');
         Route::post('director-carrera/estudiantes/importar', [DirectorCarreraEstudianteController::class, 'import'])
@@ -124,16 +126,22 @@ Route::middleware('auth')->group(function () use ($staffRoles) {
             ->name('director.estudiantes.update');
         Route::delete('director-carrera/estudiantes/{estudiante}', [DirectorCarreraEstudianteController::class, 'destroy'])
             ->name('director.estudiantes.destroy');
+        Route::delete('director-carrera/estudiantes/pendientes/{user}', [DirectorCarreraEstudianteController::class, 'destroyPendingUser'])
+            ->name('director.estudiantes.pending.destroy');
         Route::get('director-carrera/ajustes', [\App\Http\Controllers\Dashboard\DirectorCarreraAjusteController::class, 'index'])
             ->name('director.ajustes.index');
         Route::get('director-carrera/docentes', [DirectorCarreraDocenteController::class, 'index'])
             ->name('director.docentes');
+        Route::post('director-carrera/docentes', [DirectorCarreraDocenteController::class, 'store'])
+            ->name('director.docentes.store');
         Route::get('director-carrera/docentes/importar', [DirectorCarreraDocenteController::class, 'showImportForm'])
             ->name('director.docentes.import.form');
         Route::post('director-carrera/docentes/importar', [DirectorCarreraDocenteController::class, 'import'])
             ->name('director.docentes.import');
         Route::put('director-carrera/docentes/{docente}', [DirectorCarreraDocenteController::class, 'update'])
             ->name('director.docentes.update');
+        Route::delete('director-carrera/docentes/pendientes/{user}', [DirectorCarreraDocenteController::class, 'destroyPendingUser'])
+            ->name('director.docentes.pending.destroy');
         Route::get('director-carrera/casos', [DirectorCarreraCasoController::class, 'index'])
             ->name('director.casos');
         Route::get('director-carrera/casos/{solicitud}', [DirectorCarreraCasoController::class, 'show'])
